@@ -73,7 +73,7 @@ Intel P-ISA Tools project welcomes external contributions through pull
 requests to the `main` branch.
 
 Please refer to the [Contributing](CONTRIBUTING.md) and
-[Code of Conduct](CODE_OF_CONDUCT) documents for additional information on
+[Code of Conduct](CODE_OF_CONDUCT.md) documents for additional information on
 the contribution acceptance guidelines.
 
 We use signed commits, please remember to sign your commits before making a
@@ -93,6 +93,6 @@ the tests pass.
 
 # Feedback
 We encourage feedback and suggestions via
-[GitHub Issues](https://github.com/IntelLabs/hec-p-isa-tools/issues) as well
+[GitHub Issues](https://github.com/IntelLabs/encrypted-computing-sdk/issues) as well
 as via
-[GitHub Discussions](https://github.com/IntelLabs/hec-p-isa-tools/discussions).
+[GitHub Discussions](https://github.com/IntelLabs/encrypted-computing-sdk/discussions).

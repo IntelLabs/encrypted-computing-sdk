@@ -58,3 +58,16 @@ repos:
           - -rn # Only display messages
           - -sn # Don't display the score
           - --source-roots=kerngen # Working directory
+        - id: clang-format-14
+          name: clang-format-14
+          entry: clang-format-14
+          language: system
+          files: \.(c|cc|cxx|cpp|h|hpp|hxx|inl)$
+          args: ["-i", "--style=file"]
+        - id: cpplint
+          name: cpplint
+          entry: cpplint
+          language: system
+          files: \.(c|cc|cxx|cpp|h|hpp|hxx)$
+          args:
+          - --recursive
