@@ -1,0 +1,225 @@
+{
+    "isa_spec": {
+        "xinst": {
+            "add": {
+                "num_dests": 1,
+                "num_sources": 2,
+                "default_throughput": 1,
+                "default_latency": 6,
+                "num_tokens": 6
+            },
+            "copy": {
+                "num_dests": 1,
+                "num_sources": 1,
+                "default_throughput": 1,
+                "default_latency": 6,
+                "num_tokens": 5
+            },
+            "exit": {
+                "num_dests": 0,
+                "num_sources": 0,
+                "default_throughput": 1,
+                "default_latency": 1
+            },
+            "intt": {
+                "num_dests": 2,
+                "num_sources": 3,
+                "default_throughput": 1,
+                "default_latency": 6,
+                "num_tokens": 9
+            },
+            "irshuffle": {
+                "num_dests": 2,
+                "num_sources": 2,
+                "default_throughput": 1,
+                "default_latency": 23,
+                "num_tokens": 7,
+                "special_latency_max": 17,
+                "special_latency_increment": 5
+            },
+            "mac": {
+                "num_dests": 1,
+                "num_sources": 3,
+                "default_throughput": 1,
+                "default_latency": 6,
+                "num_tokens": 6
+            },
+            "maci": {
+                "num_dests": 1,
+                "num_sources": 2,
+                "default_throughput": 1,
+                "default_latency": 6,
+                "num_tokens": 6
+            },
+            "move": {
+                "num_dests": 1,
+                "num_sources": 1,
+                "default_throughput": 1,
+                "default_latency": 6
+            },
+            "mul": {
+                "num_dests": 1,
+                "num_sources": 2,
+                "default_throughput": 1,
+                "default_latency": 6,
+                "num_tokens": 6
+            },
+            "muli": {
+                "num_dests": 1,
+                "num_sources": 1,
+                "default_throughput": 1,
+                "default_latency": 6,
+                "num_tokens": 6
+            },
+            "nop": {
+                "num_dests": 0,
+                "num_sources": 0,
+                "default_throughput": 1,
+                "default_latency": 1
+            },
+            "ntt": {
+                "num_dests": 2,
+                "num_sources": 3,
+                "default_throughput": 1,
+                "default_latency": 6,
+                "num_tokens": 9
+            },
+            "rshuffle": {
+                "num_dests": 2,
+                "num_sources": 2,
+                "default_throughput": 1,
+                "default_latency": 23,
+                "num_tokens": 7,
+                "special_latency_max": 17,
+                "special_latency_increment": 5
+            },
+            "sub": {
+                "num_dests": 1,
+                "num_sources": 2,
+                "default_throughput": 1,
+                "default_latency": 6,
+                "num_tokens": 6
+            },
+            "twintt": {
+                "num_dests": 1,
+                "num_sources": 1,
+                "default_throughput": 1,
+                "default_latency": 6,
+                "num_tokens": 8
+            },
+            "twntt": {
+                "num_dests": 1,
+                "num_sources": 1,
+                "default_throughput": 1,
+                "default_latency": 6,
+                "num_tokens": 8
+            },
+            "xstore": {
+                "num_dests": 1,
+                "num_sources": 1,
+                "default_throughput": 1,
+                "default_latency": 6
+            }
+        },
+        "cinst": {
+            "bload": {
+                "num_dests": 0,
+                "num_sources": 1,
+                "default_throughput": 1,
+                "default_latency": 5
+            },
+            "bones": {
+                "num_dests": 0,
+                "num_sources": 1,
+                "default_throughput": 1,
+                "default_latency": 5
+            },
+            "exit": {
+                "num_dests": 0,
+                "num_sources": 0,
+                "default_throughput": 1,
+                "default_latency": 1
+            },
+            "cload": {
+                "num_dests": 1,
+                "num_sources": 1,
+                "default_throughput": 4,
+                "default_latency": 4
+            },
+            "nop": {
+                "num_dests": 0,
+                "num_sources": 0,
+                "default_throughput": 1,
+                "default_latency": 1
+            },
+            "cstore": {
+                "num_dests": 0,
+                "num_sources": 0,
+                "default_throughput": 1,
+                "default_latency": 5
+            },
+            "csyncm": {
+                "num_dests": 0,
+                "num_sources": 0,
+                "default_throughput": 1,
+                "default_latency": 1
+            },
+            "ifetch": {
+                "num_dests": 0,
+                "num_sources": 0,
+                "default_throughput": 1,
+                "default_latency": 5
+            },
+            "kgload": {
+                "num_dests": 1,
+                "num_sources": 0,
+                "default_throughput": 4,
+                "default_latency": 40
+            },
+            "kgseed": {
+                "num_dests": 0,
+                "num_sources": 1,
+                "default_throughput": 1,
+                "default_latency": 1
+            },
+            "kgstart": {
+                "num_dests": 0,
+                "num_sources": 0,
+                "default_throughput": 1,
+                "default_latency": 40
+            },
+            "nload": {
+                "num_dests": 0,
+                "num_sources": 1,
+                "default_throughput": 4,
+                "default_latency": 4
+            },
+            "xinstfetch": {
+                "num_dests": 0,
+                "num_sources": 0,
+                "default_throughput": 1,
+                "default_latency": 1
+            }
+        },
+        "minst": {
+            "mload": {
+                "num_dests": 1,
+                "num_sources": 1,
+                "default_throughput": 1,
+                "default_latency": 1
+            },
+            "mstore": {
+                "num_dests": 1,
+                "num_sources": 1,
+                "default_throughput": 1,
+                "default_latency": 1
+            },
+            "msyncc": {
+                "num_dests": 0,
+                "num_sources": 0,
+                "default_throughput": 1,
+                "default_latency": 1
+            }
+        }
+    }
+}

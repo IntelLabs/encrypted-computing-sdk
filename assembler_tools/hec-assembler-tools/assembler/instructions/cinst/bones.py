@@ -1,0 +1,164 @@
+﻿from assembler.common.cycle_tracking import CycleType
+from .cinstruction import CInstruction
+from assembler.memory_model.variable import Variable
+
+class Instruction(CInstruction):
+    """
+    Encapsulates a `bones` CInstruction.
+
+    The `bones` instruction loads metadata of identity (one) from the scratchpad to the register file.
+    
+    For more information, check the `bones` Specification:
+        https://github.com/IntelLabs/hec-assembler-tools/blob/master/docsrc/inst_spec/cinst/cinst_bones.md
+    
+    Attributes:
+        spad_src (int): SPAD address of the metadata variable to load.
+    """
+
+    @classmethod
+    def _get_OP_NAME_ASM(cls) -> str:
+        """
+        Returns the ASM name for the operation.
+
+        Returns:
+            str: The ASM name for the operation, which is "bones".
+        """
+        return "bones"
+
+    def __init__(self,
+                 id: int,
+                 src_col_num: int,
+                 src: Variable,
+                 mem_model,
+                 throughput : int = None,
+                 latency : int = None,
+                 comment: str = ""):
+        """
+        Constructs a new `bones` CInstruction.
+
+        Parameters:
+            id (int): User-defined ID for the instruction. It will be bundled with a nonce to form a unique ID.
+            src_col_num (int): Column number of the source metadata.
+            src (Variable): Metadata variable to load from SPAD.
+            mem_model: The memory model associated with the instruction.
+            throughput (int, optional): The throughput of the instruction. Defaults to the class-defined throughput.
+            latency (int, optional): The latency of the instruction. Defaults to the class-defined latency.
+            comment (str, optional): An optional comment for the instruction.
+
+        Raises:
+            ValueError: If `mem_model` is None.
+        """
+        if not mem_model:
+            raise ValueError('`mem_model` cannot be `None`.')
+        if not throughput:
+            throughput = Instruction._OP_DEFAULT_THROUGHPUT
+        if not latency:
+            latency = Instruction._OP_DEFAULT_LATENCY
+        super().__init__(id, throughput, latency, comment=comment)
+        self.src_col_num = src_col_num
+        self.__mem_model = mem_model
+        self._set_sources( [ src ] )
+
+    def __repr__(self):
+        """
+        Returns a string representation of the Instruction object.
+
+        Returns:
+            str: A string representation of the Instruction object.
+        """
+        assert(len(self.sources) > 0)
+        retval=('<{}({}) object at {}>(id={}[0], '
+                  'src_col_num={}, src={}, '
+                  'mem_model, '
+                  'throughput={}, latency={})').format(type(self).__name__,
+                                                           self.name,
+                                                           hex(id(self)),
+                                                           self.id,
+                                                           self.src_col_num,
+                                                           self.sources[0],
+                                                           self.throughput,
+                                                           self.latency)
+        return retval
+
+    def _set_dests(self, value):
+        """
+        Raises an error as the `bones` instruction does not have destination parameters.
+
+        Parameters:
+            value: The value to set as destinations.
+
+        Raises:
+            RuntimeError: Always, as `bones` does not have destination parameters.
+        """
+        raise RuntimeError(f"Instruction `{self.name}` does not have parameters.")
+
+    def _set_sources(self, value):
+        """
+        Validates and sets the list of source objects.
+
+        Parameters:
+            value (list): The list of source objects to set.
+
+        Raises:
+            ValueError: If the value is not a list of the expected number of `Variable` objects.
+        """
+        if len(value) != Instruction._OP_NUM_SOURCES:
+            raise ValueError(("`value`: Expected list of {} `Variable` objects, "
+                              "but list with {} elements received.".format(Instruction._OP_NUM_SOURCES,
+                                                                           len(value))))
+        if not all(isinstance(x, Variable) for x in value):
+            raise ValueError("`value`: Expected list of `Variable` objects.")
+        super()._set_sources(value)
+
+    def _schedule(self, cycle_count: CycleType, schedule_id: int) -> int:
+        """
+        Schedules the instruction, simulating timings of executing this instruction.
+
+        Parameters:
+            cycle_count (CycleType): Current cycle of execution.
+            schedule_id (int): The schedule ID for the instruction.
+
+        Raises:
+            RuntimeError: If the SPAD address is invalid or if the source column number is negative.
+
+        Returns:
+            int: The throughput for this instruction, i.e., the number of cycles by which to advance
+            the current cycle counter.
+        """
+        assert(Instruction._OP_NUM_SOURCES > 0 and len(self.sources) == Instruction._OP_NUM_SOURCES)
+
+        variable: Variable = self.sources[0] # Expected sources to contain a Variable.
+        if variable.spad_address < 0:
+            raise RuntimeError(f"Null Access Violation: Variable `{variable}` not allocated in SPAD.")
+        if self.src_col_num < 0:
+            raise RuntimeError("Invalid `src_col_num` negative `Ones` target index.")
+
+        retval = super()._schedule(cycle_count, schedule_id)
+        # Track last access to SPAD address.
+        spad_access_tracking = self.__mem_model.spad.getAccessTracking(variable.spad_address)
+        spad_access_tracking.last_cload = self
+        # No need to sync to any previous MLoads after bones.
+        spad_access_tracking.last_mload = None
+        return retval
+
+    def _toCASMISAFormat(self, *extra_args) -> str:
+        """
+        Converts the instruction to ASM format.
+
+        Parameters:
+            extra_args: Additional arguments for the conversion.
+
+        Raises:
+            ValueError: If `extra_args` are provided.
+
+        Returns:
+            str: The ASM format string of the instruction.
+        """
+        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
+        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
+
+        if extra_args:
+            raise ValueError('`extra_args` not supported.')
+
+        # `op, spad_src, src_col_num [# comment]`
+        return super()._toCASMISAFormat(self.src_col_num)

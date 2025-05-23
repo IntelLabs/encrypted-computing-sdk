@@ -38,6 +38,10 @@ repos:
           - HEADER
           - --comment-style
           - //                   # defaults to: #
+        - id: remove-tabs
+          name: remove-tabs
+          files: \.(py)$
+          args: [--whitespaces-count, '4']
     - repo: https://github.com/psf/black-pre-commit-mirror
       rev: 24.4.0 # Updated 2024/04
       hooks:
