@@ -14,6 +14,10 @@ class Instruction(CInstruction):
     """
 
     @classmethod
+    def get_throughput(cls) -> int:
+        return cls._OP_DEFAULT_THROUGHPUT
+    
+    @classmethod
     def _get_OP_NAME_ASM(cls) -> str:
         """
         Returns the ASM name of the operation.
