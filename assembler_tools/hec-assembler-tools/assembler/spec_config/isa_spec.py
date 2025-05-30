@@ -4,7 +4,7 @@ import assembler.instructions.cinst as cinst
 import assembler.instructions.minst as minst
 import assembler.instructions.xinst as xinst
 
-class SpecConfig:
+class ISASpecConfig:
     __target_cops = {
         "bload"     : cinst.bload.Instruction,
         "bones"     : cinst.bones.Instruction,

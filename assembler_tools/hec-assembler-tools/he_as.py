@@ -29,13 +29,13 @@ import sys
 import time
 
 from assembler.common.run_config import RunConfig
-from assembler.common.run_config import static_initializer
 
 from assembler.common import constants
 from assembler.common import makeUniquePath
 from assembler.common.config import GlobalConfig
 from assembler.common.counter import Counter
-from assembler.isa_spec import SpecConfig
+from assembler.spec_config.isa_spec import ISASpecConfig
+from assembler.spec_config.mem_spec import MemSpecConfig
 from assembler.instructions import xinst
 from assembler.stages import scheduler
 from assembler.stages.asm_scheduler import scheduleASMISAInstructions
@@ -50,7 +50,6 @@ DEFAULT_CINST_FILE_EXT = "cinst"
 DEFAULT_MINST_FILE_EXT = "minst"
 DEFAULT_MEM_FILE_EXT = "mem"
 
-@static_initializer
 class AssemblerRunConfig(RunConfig):
     """
     Maintains the configuration data for the run.
@@ -93,15 +92,20 @@ class AssemblerRunConfig(RunConfig):
                 At least, one of the arguments passed is invalid.
         """
 
-        super().__init__(**kwargs)
-
+        self.init_default_config()
 
         # class members based on configuration
+        print("ROCHA RUN")
         for config_name, default_value in self.__default_config.items():
-            assert(not hasattr(self, config_name))
-            setattr(self, config_name, kwargs.get(config_name, default_value))
-            if getattr(self, config_name) is None:
-                raise TypeError(f'Expected value for configuration `{config_name}`, but `None` received.')
+            value = kwargs.get(config_name)
+            if value is not None:
+                assert(not hasattr(self, config_name))
+                setattr(self, config_name, value)
+            else:
+                if not hasattr(self, config_name):
+                    setattr(self, config_name, default_value)
+                    if getattr(self, config_name) is None:
+                        raise TypeError(f'Expected value for configuration `{config_name}`, but `None` received.')
 
         # class members
         self.input_prefix = ""
@@ -122,16 +126,23 @@ class AssemblerRunConfig(RunConfig):
         self.input_mem_file = makeUniquePath(self.input_mem_file)
 
     @classmethod
-    def init_static(cls):
+    def init_default_config(cls):
         """
         Initializes static members of the class.
         """
         if not cls.__initialized:
-            cls.__default_config["input_file"]      = None
-            cls.__default_config["input_mem_file"]  = ""
-            cls.__default_config["output_dir"]      = ""
-            cls.__default_config["output_prefix"]   = ""
-            cls.__default_config["has_hbm"]         = True
+            cls.__default_config["input_file"]        = None
+            cls.__default_config["input_mem_file"]    = ""
+            cls.__default_config["output_dir"]        = ""
+            cls.__default_config["output_prefix"]     = ""
+            cls.__default_config["has_hbm"]           = True
+            print(f"ROCHA Default HBM SIZE in KB {cls.DEFAULT_HBM_SIZE_KB}")
+            cls.__default_config["hbm_size"]          = cls.DEFAULT_HBM_SIZE_KB
+            cls.__default_config["spad_size"]         = cls.DEFAULT_SPAD_SIZE_KB
+            cls.__default_config["repl_policy"]       = cls.DEFAULT_REPL_POLICY
+            cls.__default_config["use_xinstfetch"]    = GlobalConfig.useXInstFetch
+            cls.__default_config["suppress_comments"] = GlobalConfig.suppressComments
+            cls.__default_config["debug_verbose"]     = GlobalConfig.debugVerbose
             cls.__initialized = True
 
     def __str__(self):
@@ -186,7 +197,10 @@ def asmisaAssemble(run_config,
 
     input_filename: str         = run_config.input_file
     mem_filename: str           = run_config.input_mem_file
+    print(f"ROCHA HBM Size {run_config.hbm_size}")
+    print(f"ROCHA HBM Size in bytes {run_config.hbm_size * constants.Constants.KILOBYTE}")
     hbm_capcity_words: int      = constants.convertBytes2Words(run_config.hbm_size * constants.Constants.KILOBYTE)
+    print(f"ROCHA HBM Size in words {hbm_capcity_words}")
     spad_capacity_words: int    = constants.convertBytes2Words(run_config.spad_size * constants.Constants.KILOBYTE)
     num_register_banks: int     = constants.MemoryModel.NUM_REGISTER_BANKS
     register_range: range       = None
@@ -316,7 +330,7 @@ def main(config: AssemblerRunConfig, verbose: bool = False):
 
     GlobalConfig.useHBMPlaceHolders = True #config.use_hbm_placeholders
     GlobalConfig.useXInstFetch = config.use_xinstfetch
-    GlobalConfig.supressComments = config.suppress_comments
+    GlobalConfig.suppressComments = config.suppress_comments
     GlobalConfig.hasHBM = config.has_hbm
     GlobalConfig.debugVerbose = config.debug_verbose
 
@@ -358,6 +372,8 @@ def parse_args():
                               "File must be the result of pre-processing a P-ISA kernel with he_prep.py"))
     parser.add_argument("--isa_spec", default="", dest="isa_spec_file",
                         help=("Input ISA specification (.json) file."))
+    parser.add_argument("--mem_spec", default="", dest="mem_spec_file",
+                        help=("Input Mem specification (.json) file."))
     parser.add_argument("--input_mem_file", default="", help=("Input memory mapping file associated with the kernel. "
                                                               "Defaults to the same name as the input file, but with `.mem` extension."))
     parser.add_argument("--output_dir", default="", help=("Directory where to store all intermediate files and final output. "
@@ -365,21 +381,17 @@ def parse_args():
                                               "Defaults to the same directory as the input file."))
     parser.add_argument("--output_prefix", default="", help=("Prefix for the output files. "
                                                  "Defaults to the same the input file without extension."))
-    parser.add_argument("--spad_size", type=int, default=AssemblerRunConfig.DEFAULT_SPAD_SIZE_KB,
-                        help="Scratchpad size in KB. Defaults to {} KB.".format(AssemblerRunConfig.DEFAULT_SPAD_SIZE_KB))
-    parser.add_argument("--hbm_size", type=int, default=AssemblerRunConfig.DEFAULT_HBM_SIZE_KB,
-                        help="HBM size in KB. Defaults to {} KB.".format(AssemblerRunConfig.DEFAULT_HBM_SIZE_KB))
+    parser.add_argument("--spad_size", type=int, help="Scratchpad size in KB.")
+    parser.add_argument("--hbm_size", type=int, help="HBM size in KB.")
     parser.add_argument("--no_hbm", dest="has_hbm", action="store_false",
                         help="If set, this flag tells he_prep there is no HBM in the target chip.")
-    parser.add_argument("--repl_policy", default=AssemblerRunConfig.DEFAULT_REPL_POLICY,
-                        choices=constants.Constants.REPLACEMENT_POLICIES,
-                        help="Replacement policy for cache evictions. Defaults to {}.".format(AssemblerRunConfig.DEFAULT_REPL_POLICY))
+    parser.add_argument("--repl_policy", choices=constants.Constants.REPLACEMENT_POLICIES,
+                        help="Replacement policy for cache evictions.")
     parser.add_argument("--use_xinstfetch", dest="use_xinstfetch", action="store_true",
                         help=("When enabled, `xinstfetch` instructions are generated in the CInstQ."))
     parser.add_argument("--suppress_comments", "--no_comments", dest="suppress_comments", action="store_true",
                         help=("When enabled, no comments will be emited on the output generated by the assembler."))
-    parser.add_argument("--debug_verbose", type=int, default=0)
-    parser.add_argument("-v", "--verbose", dest="verbose", action="count", default=0,
+    parser.add_argument("-v", "--verbose", dest="debug_verbose", action="count", default=0,
                         help=("If enabled, extra information and progress reports are printed to stdout. "
                               "Increase level of verbosity by specifying flag multiple times, e.g. -vv"))
     args = parser.parse_args()
@@ -390,12 +402,14 @@ if __name__ == "__main__":
     module_dir = os.path.dirname(__file__)
     module_name = os.path.basename(__file__)
 
+    # Initialize Defaults
     args = parse_args()
-    args.isa_spec_file = SpecConfig.initialize_isa_spec(module_dir, args.isa_spec_file)
+    args.isa_spec_file = ISASpecConfig.initialize_isa_spec(module_dir, args.isa_spec_file)
+    args.mem_spec_file = MemSpecConfig.initialize_mem_spec(module_dir, args.mem_spec_file)
 
     config = AssemblerRunConfig(**vars(args)) # convert argsparser into a dictionary
 
-    if args.verbose > 0:
+    if args.debug_verbose > 0:
         print(module_name)
         print()
         print("Run Configuration")
@@ -403,9 +417,9 @@ if __name__ == "__main__":
         print(config)
         print("=================")
         print()
+    print(f"ROCHA he_as config {config}")
+    main(config, verbose = args.debug_verbose > 1)
 
-    main(config, verbose = args.verbose > 1)
-
-    if args.verbose > 0:
+    if args.debug_verbose > 0:
         print()
         print(module_name, "- Complete")

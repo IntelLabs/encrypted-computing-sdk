@@ -38,14 +38,13 @@ from assembler.common import constants
 from assembler.common import makeUniquePath
 from assembler.common.counter import Counter
 from assembler.common.run_config import RunConfig
-from assembler.common.run_config import static_initializer
 from assembler.common.config import GlobalConfig
 from assembler.memory_model import mem_info
+from assembler.spec_config.mem_spec import MemSpecConfig
 from linker import loader
 from linker.steps import variable_discovery
 from linker.steps import program_linker
 
-@static_initializer
 class LinkerRunConfig(RunConfig):
     """
     Maintains the configuration data for the run.
@@ -92,22 +91,26 @@ class LinkerRunConfig(RunConfig):
                 At least, one of the arguments passed is invalid.
         """
 
-        super().__init__(**kwargs)
-
-
+        self.init_default_config()
+        
         # class members based on configuration
         for config_name, default_value in self.__default_config.items():
-            assert(not hasattr(self, config_name))
-            setattr(self, config_name, kwargs.get(config_name, default_value))
-            if getattr(self, config_name) is None:
-                raise TypeError(f'Expected value for configuration `{config_name}`, but `None` received.')
+            value = kwargs.get(config_name)
+            if value is not None:
+                assert(not hasattr(self, config_name))
+                setattr(self, config_name, value)
+            else:
+                if not hasattr(self, config_name):
+                    setattr(self, config_name, default_value)
+                    if getattr(self, config_name) is None:
+                        raise TypeError(f'Expected value for configuration `{config_name}`, but `None` received.')
 
         # fix file names
         self.output_dir = makeUniquePath(self.output_dir)
         self.input_mem_file = makeUniquePath(self.input_mem_file)
 
     @classmethod
-    def init_static(cls):
+    def init_default_config(cls):
         """
         Initializes static members of the class.
         """
@@ -117,6 +120,9 @@ class LinkerRunConfig(RunConfig):
             cls.__default_config["output_dir"]      = os.getcwd()
             cls.__default_config["output_prefix"]   = None
             cls.__default_config["has_hbm"]         = True
+            cls.__default_config["hbm_size"]          = cls.DEFAULT_HBM_SIZE_KB
+            cls.__default_config["use_xinstfetch"]    = GlobalConfig.useXInstFetch
+            cls.__default_config["suppress_comments"] = GlobalConfig.suppressComments
 
             cls.__initialized = True
 
@@ -327,6 +333,8 @@ def parse_args():
                         help=("List of input prefixes, including full path. For an input prefix, linker will "
                               "assume three files exist named `input_prefixes[i] + '.minst'`, "
                               "`input_prefixes[i] + '.cinst'`, and `input_prefixes[i] + '.xinst'`."))
+    parser.add_argument("--mem_spec", default="", dest="mem_spec_file",
+                        help=("Input Mem specification (.json) file."))
     parser.add_argument("-im", "--input_mem_file", dest="input_mem_file", required=True,
                         help=("Input memory mapping file associated with the resulting program. "
                               "Specifies the names for input, output, and metadata variables for the full program. "
@@ -343,8 +351,7 @@ def parse_args():
                         help=("Directory where to store all intermediate files and final output. "
                               "This will be created if it doesn't exists. "
                               "Defaults to current working directory."))
-    parser.add_argument("--hbm_size", type=int, default=LinkerRunConfig.DEFAULT_HBM_SIZE_KB,
-                        help="HBM size in KB. Defaults to {} KB.".format(LinkerRunConfig.DEFAULT_HBM_SIZE_KB))
+    parser.add_argument("--hbm_size", type=int, help="HBM size in KB.")
     parser.add_argument("--no_hbm", dest="has_hbm", action="store_false",
                         help="If set, this flag tells he_prep there is no HBM in the target chip.")
     parser.add_argument("--suppress_comments", "--no_comments", dest="suppress_comments", action="store_true",
@@ -357,9 +364,12 @@ def parse_args():
     return args
 
 if __name__ == "__main__":
+    module_dir = os.path.dirname(__file__)
     module_name = os.path.basename(__file__)
 
     args = parse_args()
+    args.mem_spec_file = MemSpecConfig.initialize_mem_spec(module_dir, args.mem_spec_file)
+
     config = LinkerRunConfig(**vars(args)) # convert argsparser into a dictionary
 
     if args.verbose > 0:
@@ -371,6 +381,7 @@ if __name__ == "__main__":
         print("=================")
         print()
 
+    print(f"ROCHA he_link config {config}")
     main(config, sys.stdout if args.verbose > 1 else None)
 
     if args.verbose > 0:

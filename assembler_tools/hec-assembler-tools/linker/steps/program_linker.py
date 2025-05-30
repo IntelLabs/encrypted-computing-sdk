@@ -2,7 +2,7 @@
 from linker import MemoryModel
 from linker.instructions import minst, cinst, xinst
 from assembler.common.config import GlobalConfig
-from assembler.isa_spec import cinst as ISACInst
+from assembler.instructions import cinst as ISACInst
 
 class LinkedProgram:
     """

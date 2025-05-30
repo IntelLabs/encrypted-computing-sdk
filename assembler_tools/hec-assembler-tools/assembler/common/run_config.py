@@ -1,25 +1,9 @@
 import io
 
+from .decorators import *
 from . import constants
 from .config import GlobalConfig
 
-def static_initializer(cls):
-    """
-    Decorator to initialize static members of a class.
-
-    This decorator calls the `init_static` method of the class to initialize
-    any static members or configurations.
-
-    Args:
-        cls: The class to be initialized.
-
-    Returns:
-        The class with initialized static members.
-    """
-    cls.init_static()
-    return cls
-
-@static_initializer
 class RunConfig:
     """
     Configuration class for running the assembler with specific settings.
@@ -30,11 +14,6 @@ class RunConfig:
 
     __initialized = False # Specifies whether static members have been initialized
     __default_config = {} # Dictionary of all configuration items supported and their default values
-
-    # Config defaults
-    DEFAULT_HBM_SIZE_KB = int(constants.MemoryModel.HBM.MAX_CAPACITY / constants.Constants.KILOBYTE)
-    DEFAULT_SPAD_SIZE_KB = int(constants.MemoryModel.SPAD.MAX_CAPACITY / constants.Constants.KILOBYTE)
-    DEFAULT_REPL_POLICY = constants.Constants.REPLACEMENT_POLICY_FTBU
 
     def __init__(self,
                  **kwargs):
@@ -74,13 +53,26 @@ class RunConfig:
         """
 
         # Initialize class members
+        print(f"ROCHA default configs {self.__default_config.items()}")
         for config_name, default_value in self.__default_config.items():
+            print(f"ROCHA Setting attribute {config_name}")
             setattr(self, config_name, kwargs.get(config_name, default_value))
 
         # Validate inputs
         if self.repl_policy not in constants.Constants.REPLACEMENT_POLICIES:
             raise ValueError('Invalid `repl_policy`. "{}" not in {}'.format(self.repl_policy,
                                                                             constants.Constants.REPLACEMENT_POLICIES))
+    @classproperty
+    def DEFAULT_HBM_SIZE_KB(cls) -> int:
+        return int(constants.MemoryModel.HBM.MAX_CAPACITY / constants.Constants.KILOBYTE)
+
+    @classproperty
+    def DEFAULT_SPAD_SIZE_KB(cls) -> int:
+        return int(constants.MemoryModel.SPAD.MAX_CAPACITY / constants.Constants.KILOBYTE)
+
+    @classproperty
+    def DEFAULT_REPL_POLICY(cls) -> int:
+        return constants.Constants.REPLACEMENT_POLICY_FTBU
 
     @classmethod
     def init_static(cls):
@@ -90,6 +82,7 @@ class RunConfig:
         This method sets up default configuration values for the class, ensuring
         that they are only initialized once.
         """
+        print("ROCHA Super init static")
         if not cls.__initialized:
             cls.__default_config["hbm_size"]             = cls.DEFAULT_HBM_SIZE_KB
             cls.__default_config["spad_size"]            = cls.DEFAULT_SPAD_SIZE_KB

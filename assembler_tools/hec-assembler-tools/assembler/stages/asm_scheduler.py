@@ -204,8 +204,6 @@ class Simulation:
 
     INSTRUCTION_WINDOW_SIZE = 100
     MIN_INSTRUCTIONS_IN_TOPO_SORT = 10
-    # Amount of instructions for a bundle to be considered short
-    BUNDLE_INSTRUCTION_MIN_LIMIT = Constants.MAX_BUNDLE_SIZE // 4 # 10
 
     def __init__(self,
                  dependency_graph: nx.DiGraph,
@@ -350,6 +348,11 @@ class Simulation:
         # Tracks the number of instruction (in original dependency graph) that have been scheduled
         self.scheduled_xinsts_count = 0
         self.verbose = progress_verbose
+
+    # Amount of instructions for a bundle to be considered short
+    @property
+    def BUNDLE_INSTRUCTION_MIN_LIMIT(self):
+        return Constants.MAX_BUNDLE_SIZE // 4 # 10
 
     @property
     def last_xinstr(self) -> object:
