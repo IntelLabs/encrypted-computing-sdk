@@ -8,10 +8,10 @@ class MemSpecConfig:
     _target_attributes = {
         "bytes_per_xinstruction": Constants.setXInstructionSizeBytes,
         "max_instructions_per_bundle": Constants.setMaxBundleSize,
-        "xinst_queue_size_in_bytes": MemoryModel.setMaxXInstQueueCapacity,
-        "cinst_queue_size_in_bytes": MemoryModel.setMaxCInstQueueCapacity,
-        "minst_queue_size_in_bytes": MemoryModel.setMaxMInstQueueCapacity,
-        "store_buffer_size_in_bytes": MemoryModel.setMaxStoreBufferCapacity,
+        "max_xinst_queue_size_in_bytes": MemoryModel.setMaxXInstQueueCapacity,
+        "max_cinst_queue_size_in_bytes": MemoryModel.setMaxCInstQueueCapacity,
+        "max_minst_queue_size_in_bytes": MemoryModel.setMaxMInstQueueCapacity,
+        "max_store_buffer_size_in_bytes": MemoryModel.setMaxStoreBufferCapacity,
         "num_blocks_per_twid_meta_word": MemoryModel.setNumBlocksPerTwidMetaWord,
         "num_blocks_per_kgseed_meta_word": MemoryModel.setNumBlocksPerKgseedMetaWord,
         "num_routing_table_registers": MemoryModel.setNumRoutingTableRegisters,
@@ -21,8 +21,8 @@ class MemSpecConfig:
         "max_residuals": MemoryModel.setMaxResiduals,
         "num_register_banks": MemoryModel.setNumRegisterBanks,
         "num_registers_per_bank": MemoryModel.setNumRegistersPerBank,
-        "hbm_size_in_bytes": MemoryModel.HBM.setMaxCapacity,
-        "cache_size_in_bytes": MemoryModel.SPAD.setMaxCapacity,
+        "max_hbm_size_in_bytes": MemoryModel.HBM.setMaxCapacity,
+        "max_cache_size_in_bytes": MemoryModel.SPAD.setMaxCapacity,
     }
 
     @classmethod

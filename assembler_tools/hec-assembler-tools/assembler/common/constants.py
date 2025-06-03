@@ -432,10 +432,10 @@ class MemoryModel:
         """
         Returns hw configurable attributes as dictionary.
         """
-        dict = {"xinst_queue_size_in_bytes": cls.__XINST_QUEUE_MAX_CAPACITY,
-                "cinst_queue_size_in_bytes": cls.__CINST_QUEUE_MAX_CAPACITY,
-                "minst_queue_size_in_bytes": cls.__MINST_QUEUE_MAX_CAPACITY,
-                "store_buffer_size_in_bytes": cls.__STORE_BUFFER_MAX_CAPACITY,
+        dict = {"max_xinst_queue_size_in_bytes": cls.__XINST_QUEUE_MAX_CAPACITY,
+                "max_cinst_queue_size_in_bytes": cls.__CINST_QUEUE_MAX_CAPACITY,
+                "max_minst_queue_size_in_bytes": cls.__MINST_QUEUE_MAX_CAPACITY,
+                "max_store_buffer_size_in_bytes": cls.__STORE_BUFFER_MAX_CAPACITY,
                 "num_blocks_per_twid_meta_word": cls.NUM_BLOCKS_PER_TWID_META_WORD,
                 "num_blocks_per_kgseed_meta_word": cls.NUM_BLOCKS_PER_KGSEED_META_WORD,
                 "num_routing_table_registers": cls.NUM_ROUTING_TABLE_REGISTERS,
@@ -544,7 +544,7 @@ class MemoryModel:
 
         This class defines the maximum capacity of HBM in both bytes and words.
         """
-        __MAX_CAPACITY: int # = 64 * Constants.GIGABYTE
+        __MAX_CAPACITY: int
 
         @classproperty
         def MAX_CAPACITY(cls) -> int:
@@ -561,7 +561,7 @@ class MemoryModel:
             """
             Returns hw configurable attributes as dictionary.
             """
-            dict = {"hbm_size_in_bytes": cls.__MAX_CAPACITY}
+            dict = {"max_hbm_size_in_bytes": cls.__MAX_CAPACITY}
             return dict
 
         @classmethod
@@ -577,7 +577,7 @@ class MemoryModel:
 
         This class defines the maximum capacity of SPAD in both bytes and words.
         """
-        __MAX_CAPACITY: int # = 64 * Constants.MEGABYTE
+        __MAX_CAPACITY: int
 
         # Class methods and properties
         # ----------------------------
@@ -597,7 +597,7 @@ class MemoryModel:
             """
             Returns hw configurable attributes as dictionary.
             """
-            dict = {"cache_size_in_bytes": cls.__MAX_CAPACITY}
+            dict = {"max_cache_size_in_bytes": cls.__MAX_CAPACITY}
             return dict
 
         @classmethod

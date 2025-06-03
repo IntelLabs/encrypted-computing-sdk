@@ -1,11 +1,11 @@
 {
     "mem_spec": {
-        "cache_size_in_bytes": 67108864,
-        "hbm_size_in_bytes": 68719476736,
-        "xinst_queue_size_in_bytes": 1048576,
-        "cinst_queue_size_in_bytes": 131072,
-        "minst_queue_size_in_bytes": 131072,
-        "store_buffer_size_in_bytes": 131072,
+        "max_cache_size_in_bytes": 67108864,
+        "max_hbm_size_in_bytes": 68719476736,
+        "max_xinst_queue_size_in_bytes": 1048576,
+        "max_cinst_queue_size_in_bytes": 131072,
+        "max_minst_queue_size_in_bytes": 131072,
+        "max_store_buffer_size_in_bytes": 131072,
         "num_register_banks": 4,
         "num_registers_per_bank": 72,
         "bytes_per_xinstruction": 8,
