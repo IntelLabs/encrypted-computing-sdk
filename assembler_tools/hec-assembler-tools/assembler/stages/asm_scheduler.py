@@ -352,7 +352,7 @@ class Simulation:
     # Amount of instructions for a bundle to be considered short
     @property
     def BUNDLE_INSTRUCTION_MIN_LIMIT(self):
-        return Constants.MAX_BUNDLE_SIZE // 4 # 10
+        return Constants.MAX_BUNDLE_SIZE // 4
 
     @property
     def last_xinstr(self) -> object:
