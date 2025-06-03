@@ -95,7 +95,6 @@ class AssemblerRunConfig(RunConfig):
         self.init_default_config()
 
         # class members based on configuration
-        print("ROCHA RUN")
         for config_name, default_value in self.__default_config.items():
             value = kwargs.get(config_name)
             if value is not None:
@@ -136,7 +135,6 @@ class AssemblerRunConfig(RunConfig):
             cls.__default_config["output_dir"]        = ""
             cls.__default_config["output_prefix"]     = ""
             cls.__default_config["has_hbm"]           = True
-            print(f"ROCHA Default HBM SIZE in KB {cls.DEFAULT_HBM_SIZE_KB}")
             cls.__default_config["hbm_size"]          = cls.DEFAULT_HBM_SIZE_KB
             cls.__default_config["spad_size"]         = cls.DEFAULT_SPAD_SIZE_KB
             cls.__default_config["repl_policy"]       = cls.DEFAULT_REPL_POLICY
@@ -197,10 +195,7 @@ def asmisaAssemble(run_config,
 
     input_filename: str         = run_config.input_file
     mem_filename: str           = run_config.input_mem_file
-    print(f"ROCHA HBM Size {run_config.hbm_size}")
-    print(f"ROCHA HBM Size in bytes {run_config.hbm_size * constants.Constants.KILOBYTE}")
     hbm_capcity_words: int      = constants.convertBytes2Words(run_config.hbm_size * constants.Constants.KILOBYTE)
-    print(f"ROCHA HBM Size in words {hbm_capcity_words}")
     spad_capacity_words: int    = constants.convertBytes2Words(run_config.spad_size * constants.Constants.KILOBYTE)
     num_register_banks: int     = constants.MemoryModel.NUM_REGISTER_BANKS
     register_range: range       = None
@@ -417,7 +412,7 @@ if __name__ == "__main__":
         print(config)
         print("=================")
         print()
-    print(f"ROCHA he_as config {config}")
+
     main(config, verbose = args.debug_verbose > 1)
 
     if args.debug_verbose > 0:

@@ -381,7 +381,6 @@ if __name__ == "__main__":
         print("=================")
         print()
 
-    print(f"ROCHA he_link config {config}")
     main(config, sys.stdout if args.verbose > 1 else None)
 
     if args.verbose > 0:

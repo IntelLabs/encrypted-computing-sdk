@@ -1,4 +1,5 @@
 import os
+import re
 import json
 from assembler.common.constants import Constants, MemoryModel
 
@@ -49,6 +50,7 @@ class MemSpecConfig:
         with open(filename, 'w') as json_file:
             json.dump(output_dict, json_file, indent=4)
 
+
     @classmethod
     def init_mem_spec_from_json(cls, filename):
         """
@@ -67,10 +69,37 @@ class MemSpecConfig:
 
         mem_spec = data["mem_spec"]
 
+        # Check for missing attributes
+        missing_keys = set(cls._target_attributes.keys()) - set(mem_spec.keys())
+        if missing_keys:
+            raise ValueError(f"The JSON file is missing the following attributes: {', '.join(missing_keys)}")
+        
+        # Internal function to convert size expressions to bytes
+        def parse_size_expression(value):
+            size_map = {
+                'kb': Constants.KILOBYTE,
+                'mb': Constants.MEGABYTE,
+                'gb': Constants.GIGABYTE,
+                'kib': Constants.KILOBYTE,
+                'mib': Constants.MEGABYTE,
+                'gib': Constants.GIGABYTE,
+                'b': 1
+            }
+            value = value.strip()
+            match = re.match(r'^\s*(\d+(\.\d+)?)\s*(b|kb|mb|gb|tb|kib|mib|gib|tib)?\s*$', value.lower())
+            if not match:
+                raise ValueError(f"Invalid size expression: {value}")
+            number, _, unit = match.groups()
+            unit = unit or 'b'  # Default to bytes if no unit is specified
+            return int(float(number) * size_map[unit])
+        
         for key, value in mem_spec.items():
             if key not in cls._target_attributes:
                 raise ValueError(f"Attribute key '{key}' is not valid.")
             else:
+                # Convert value to bytes if necessary
+                if 'bytes' in key:
+                    value = parse_size_expression(str(value))
                 update_method = cls._target_attributes[key]
                 update_method(value)
     

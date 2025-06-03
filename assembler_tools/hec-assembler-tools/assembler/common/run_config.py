@@ -53,9 +53,7 @@ class RunConfig:
         """
 
         # Initialize class members
-        print(f"ROCHA default configs {self.__default_config.items()}")
         for config_name, default_value in self.__default_config.items():
-            print(f"ROCHA Setting attribute {config_name}")
             setattr(self, config_name, kwargs.get(config_name, default_value))
 
         # Validate inputs
@@ -82,7 +80,6 @@ class RunConfig:
         This method sets up default configuration values for the class, ensuring
         that they are only initialized once.
         """
-        print("ROCHA Super init static")
         if not cls.__initialized:
             cls.__default_config["hbm_size"]             = cls.DEFAULT_HBM_SIZE_KB
             cls.__default_config["spad_size"]            = cls.DEFAULT_SPAD_SIZE_KB
