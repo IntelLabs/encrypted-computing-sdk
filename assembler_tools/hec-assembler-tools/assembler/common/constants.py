@@ -23,8 +23,8 @@ class Constants:
         OPERATIONS (list): List of high-level operations supported by the system.
     """
 
-    __MAX_BUNDLE_SIZE: int # = 64
-    __XINSTRUCTION_SIZE_BYTES: int # = 8
+    __MAX_BUNDLE_SIZE: int
+    __XINSTRUCTION_SIZE_BYTES: int
 
     # Data Constants
     # --------------
