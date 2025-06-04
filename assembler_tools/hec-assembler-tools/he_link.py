@@ -41,6 +41,7 @@ from assembler.common.run_config import RunConfig
 from assembler.common.run_config import static_initializer
 from assembler.common.config import GlobalConfig
 from assembler.memory_model import mem_info
+from assembler.isa_spec import SpecConfig
 from linker import loader
 from linker.steps import variable_discovery
 from linker.steps import program_linker
@@ -327,6 +328,8 @@ def parse_args():
                         help=("List of input prefixes, including full path. For an input prefix, linker will "
                               "assume three files exist named `input_prefixes[i] + '.minst'`, "
                               "`input_prefixes[i] + '.cinst'`, and `input_prefixes[i] + '.xinst'`."))
+    parser.add_argument("--isa_spec", default="", dest="isa_spec_file",
+                        help=("Input ISA specification (.json) file."))
     parser.add_argument("-im", "--input_mem_file", dest="input_mem_file", required=True,
                         help=("Input memory mapping file associated with the resulting program. "
                               "Specifies the names for input, output, and metadata variables for the full program. "
@@ -357,9 +360,11 @@ def parse_args():
     return args
 
 if __name__ == "__main__":
+    module_dir = os.path.dirname(__file__)
     module_name = os.path.basename(__file__)
 
     args = parse_args()
+    args.isa_spec_file = SpecConfig.initialize_isa_spec(module_dir, args.isa_spec_file)
     config = LinkerRunConfig(**vars(args)) # convert argsparser into a dictionary
 
     if args.verbose > 0:
