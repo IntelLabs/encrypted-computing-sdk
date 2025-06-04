@@ -2,7 +2,7 @@
 from linker import MemoryModel
 from linker.instructions import minst, cinst, xinst
 from assembler.common.config import GlobalConfig
-from assembler.isa_spec import cinst as ISACInst
+from assembler.instructions import cinst as ISACInst
 
 class LinkedProgram:
     """
@@ -188,13 +188,13 @@ class LinkedProgram:
 
                 if isinstance(cinstr, cinst.CNop):
                     # Add the missing cycles to any cnop we encounter up to this point
-                    cinstr.cycles += (csyncm_count * ISACInst.CSyncM.Throughput)
+                    cinstr.cycles += (csyncm_count * ISACInst.CSyncm.get_throughput())
                     csyncm_count = 0 # Idle cycles to account for the csyncm have been added
 
                 if isinstance(cinstr, (cinst.IFetch, cinst.NLoad, cinst.BLoad)):
                     if csyncm_count > 0:
                         # Extra cycles needed before scheduling next bundle
-                        cinstr_nop = cinst.CNop([i, cinst.CNop.name, str(csyncm_count * ISACInst.CSyncM.Throughput - 1)]) # Subtract 1 because cnop n, waits for n+1 cycles
+                        cinstr_nop = cinst.CNop([i, cinst.CNop.name, str(csyncm_count * ISACInst.CSyncm.get_throughput() - 1)]) # Subtract 1 because cnop n, waits for n+1 cycles
                         kernel_cinstrs.insert(i, cinstr_nop)
                         csyncm_count = 0 # Idle cycles to account for the csyncm have been added
                         i += 1
@@ -224,7 +224,7 @@ class LinkedProgram:
                 #     # replace instruction by cnop
                 #     kernel_cinstrs.pop(i)
                 #     if current_bundle > 0:
-                #         cinstr_nop = cinst.CNop([i, cinst.CNop.name, str(ISACInst.CSyncM.Throughput)]) # Subtract 1 because cnop n, waits for n+1 cycles
+                #         cinstr_nop = cinst.CNop([i, cinst.CNop.name, str(ISACInst.CSyncm.get_throughput())]) # Subtract 1 because cnop n, waits for n+1 cycles
                 #         kernel_cinstrs.insert(i, cinstr_nop)
                 #
                 # i += 1 # next instruction
