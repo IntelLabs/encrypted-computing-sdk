@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "pip" # See documentation for possible values
-    directory: "/kerngen" # Location of package manifests
+    directory: "/" # Look everywhere for package manifests
     schedule:
       interval: "weekly"
     ignore:
