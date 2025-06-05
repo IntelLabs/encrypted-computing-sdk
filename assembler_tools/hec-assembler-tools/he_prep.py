@@ -23,7 +23,8 @@ import os
 import time
 
 from assembler.common import constants
-from assembler.isa_spec import SpecConfig
+from assembler.spec_config.isa_spec import ISASpecConfig
+from assembler.spec_config.mem_spec import MemSpecConfig
 from assembler.stages import preprocessor
 from assembler.memory_model import MemoryModel
 
@@ -76,7 +77,8 @@ def main(output_file_name: str,
         output_file_name = ''.join(output_file_name[:-1] + (".tw",) + output_file_name[-1:])
 
     hec_mem_model = MemoryModel(constants.MemoryModel.HBM.MAX_CAPACITY_WORDS,
-                                constants.MemoryModel.SPAD.MAX_CAPACITY_WORDS)
+                                constants.MemoryModel.SPAD.MAX_CAPACITY_WORDS,
+                                constants.MemoryModel.NUM_REGISTER_BANKS)
 
     insts_listing = []
     start_time = time.time()
@@ -124,6 +126,8 @@ def parse_args():
     parser.add_argument("output_file_name", nargs="?", help="Output file name. Defaults to <input_file_name_no_ext>.tw.<input_file_name_ext>")
     parser.add_argument("--isa_spec", default="", dest="isa_spec_file",
                         help=("Input ISA specification (.json) file."))
+    parser.add_argument("--mem_spec", default="", dest="mem_spec_file",
+                        help=("Input Mem specification (.json) file."))
     parser.add_argument("-v", "--verbose", dest="verbose", action="count", default=0,
                         help=("If enabled, extra information and progress reports are printed to stdout. "
                               "Increase level of verbosity by specifying flag multiple times, e.g. -vv"))
@@ -137,7 +141,8 @@ if __name__ == "__main__":
 
     args = parse_args()
 
-    args.isa_spec_file = SpecConfig.initialize_isa_spec(module_dir, args.isa_spec_file)
+    args.isa_spec_file = ISASpecConfig.initialize_isa_spec(module_dir, args.isa_spec_file)
+    args.mem_spec_file = MemSpecConfig.initialize_mem_spec(module_dir, args.mem_spec_file)
 
     if args.verbose > 0:
         print(module_name)
@@ -145,6 +150,7 @@ if __name__ == "__main__":
         print("Input: {0}".format(args.input_file_name))
         print("Output: {0}".format(args.output_file_name))
         print("ISA Spec: {0}".format(args.isa_spec_file))
+        print("Mem Spec: {0}".format(args.mem_spec_file))
 
     main(output_file_name=args.output_file_name,
          input_file_name=args.input_file_name,

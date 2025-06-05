@@ -231,8 +231,8 @@ class Register(CycleTracker):
         Raises:
             ValueError: If the register index is out of the valid range.
         """
-        if register_index < 0 or register_index >= constants.MemoryModel.NUM_REGISTER_PER_BANKS:
-            raise ValueError((f'`register_index`: expected an index for register in the range [0, {constants.MemoryModel.NUM_REGISTER_PER_BANKS}), '
+        if register_index < 0 or register_index >= constants.MemoryModel.NUM_REGISTERS_PER_BANK:
+            raise ValueError((f'`register_index`: expected an index for register in the range [0, {constants.MemoryModel.NUM_REGISTERS_PER_BANK}), '
                               f'but {register_index} received.'))
         super().__init__((0, 0))
         self.register_dirty = False

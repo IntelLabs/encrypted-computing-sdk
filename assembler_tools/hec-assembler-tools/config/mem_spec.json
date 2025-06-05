@@ -1,0 +1,21 @@
+{
+    "mem_spec": {
+        "max_cache_size_in_bytes": "64 MiB",
+        "max_hbm_size_in_bytes": "64 GiB",
+        "max_xinst_queue_size_in_bytes": "1 MiB",
+        "max_cinst_queue_size_in_bytes": "128 KiB",
+        "max_minst_queue_size_in_bytes": "128 KiB",
+        "max_store_buffer_size_in_bytes": "128 KiB",
+        "num_register_banks": 4,
+        "num_registers_per_bank": 72,
+        "bytes_per_xinstruction": 8,
+        "max_instructions_per_bundle": 64,
+        "num_blocks_per_twid_meta_word": 4,
+        "num_blocks_per_kgseed_meta_word": 4,
+        "num_routing_table_registers": 1,
+        "num_ones_meta_registers": 1,
+        "num_twiddle_meta_registers": 32,
+        "twiddle_meta_register_size_in_bytes": "8 KiB",
+        "max_residuals": 64
+    }
+}
