@@ -31,10 +31,6 @@ class MemoryModel:
         variable: Variable
         dest_spad_address: int
 
-    __MAX_TWIDDLE_META_VARS_PER_SEGMENT = math.ceil(constants.MemoryModel.NUM_TWIDDLE_META_REGISTERS * \
-                                                    constants.MemoryModel.TWIDDLE_META_REGISTER_SIZE_BYTES / \
-                                                    constants.Constants.WORD_SIZE)
-
     @classproperty
     def MAX_TWIDDLE_META_VARS_PER_SEGMENT(cls):
         """
@@ -43,8 +39,9 @@ class MemoryModel:
         Returns:
             int: The number of variables per segment.
         """
-        return cls.__MAX_TWIDDLE_META_VARS_PER_SEGMENT
-
+        return math.ceil(constants.MemoryModel.NUM_TWIDDLE_META_REGISTERS * \
+                         constants.MemoryModel.TWIDDLE_META_REGISTER_SIZE_BYTES / \
+                         constants.Constants.WORD_SIZE)
 
     # Constructor
     # -----------
@@ -52,7 +49,7 @@ class MemoryModel:
     def __init__(self,
                  hbm_capacity_words: int,
                  spad_capacity_words: int,
-                 num_register_banks: int = constants.MemoryModel.NUM_REGISTER_BANKS,
+                 num_register_banks: int,
                  register_range: range = None):
         """
         Initializes a new MemoryModel object.
@@ -74,7 +71,7 @@ class MemoryModel:
             raise ValueError(('`num_register_banks`: there must be at least {} register banks, '
                               'but {} requested.').format(constants.MemoryModel.NUM_REGISTER_BANKS,
                                                           num_register_banks))
-        self.__register_range = range(constants.MemoryModel.NUM_REGISTER_PER_BANKS) if not register_range else register_range
+        self.__register_range = range(constants.MemoryModel.NUM_REGISTERS_PER_BANK) if not register_range else register_range
         # initialize members
         self.__store_buffer = QueueDict() # QueueDict(var_name: str, StoreBufferValueType)
         self.__variables = {} # dict(var_name, Variable)

@@ -9,6 +9,7 @@ The tools in this directory are the reference implementation of and Assembler co
    1. [Assembler Instruction Specs](#asm_specs)
 4. [Executing the Assembler](#executing_asm)
    1. [Running for a Pre-Generated Kernel](#executing_single)
+   2. [Hardware Spec Configuration](#spec_configuration)
 5. [Debug Tools](./debug_tools/README.md)
 
 ## Dependencies <a name="dependencies"></a>
@@ -98,3 +99,21 @@ python3 he_prep.py -h
 python3 he_as.py -h
 python3 he_link.py -h
 ```
+
+### Hardware Spec Configuration <a name="spec_configuration"></a>
+
+#### Default Configuration
+The HERACLES assembler comes with default configurations for ISA and Memory parameters. These configurations are defined in JSON files located in the config folder:
+- **ISA Specification:** config/isa_spec.json
+- **Memory Specification:** config/mem_spec.json
+
+These files contain default values for various parameters that affect the behavior of the assembler and linker. Users can modify these files directly, but it is recommended to create a copy and use the command-line flags to specify the path to the modified configuration files. This approach ensures that the original default files remain unchanged and can be used as a reference.
+
+#### Modifying Configuration
+To modify the ISA or Memory specifications, follow these steps:
+- Create a Copy: Copy the default JSON files from the config folder to a new location.
+- Edit the Copy: Modify the parameters in the copied JSON files as needed.
+- **Specify the Path:** Use the **--isa_spec** and **--mem_spec** command-line flags to specify the path to your modified configuration files when running the scripts.
+
+#### Additional Notes
+Memory Parameters: For he_as.py and he_link.py, certain memory parameters like spad_size and hbm_size can be overwritten directly from the command line, providing flexibility in configuration without modifying the JSON files.
