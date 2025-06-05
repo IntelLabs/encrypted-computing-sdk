@@ -31,12 +31,41 @@ Example:
 import argparse
 import sys
 from kernel_parser.parser import KernelParser
+from kernel_optimization.loops import loop_interchange
+from const.options import LoopKey
 
 
 def parse_args():
     """Parse arguments from the commandline"""
     parser = argparse.ArgumentParser(description="Kernel Graph Parser")
     parser.add_argument("-d", "--debug", action="store_true", help="Enable Debug Print")
+    parser.add_argument(
+        "-t", "--target", nargs="*", default=[], help="List of high_op names"
+    )
+    parser.add_argument(
+        "-p",
+        "--primary",
+        type=LoopKey,
+        default=LoopKey.PART,
+        help="Primary key for loop interchange (default: PART, options: RNS, PART))",
+    )
+    parser.add_argument(
+        "-s",
+        "--secondary",
+        type=LoopKey,
+        default=LoopKey.RNS,
+        help="Secondary key for loop interchange (default: RNS, Options: RNS, PART)",
+    )
+    parsed_args = parser.parse_args()
+    # verify that primary and secondary keys are valid and not the same
+    valid_keys = set(LoopKey)
+    if parsed_args.primary not in valid_keys or parsed_args.secondary not in valid_keys:
+        valid_names = ", ".join(key.name for key in LoopKey)
+        raise ValueError(
+            f"Invalid primary or secondary key. Valid options are: {valid_names}"
+        )
+    if parsed_args.primary == parsed_args.secondary:
+        raise ValueError("Primary and secondary keys cannot be the same.")
     return parser.parse_args()
 
 
@@ -57,9 +86,18 @@ def main(args):
     if not valid_kernels:
         print("No valid kernel strings were parsed.")
     else:
-        print("Successfully parsed kernel objects:")
+        print(
+            f"# Reordered targets {args.target} with primary key {args.primary} and secondary key {args.secondary}"
+        )
         for kernel in valid_kernels:
-            print(kernel)
+            if args.target and any(target in str(kernel) for target in args.target):
+                kernel = loop_interchange(
+                    kernel.to_pisa(),
+                    primary_key=args.primary,
+                    secondary_key=args.secondary,
+                )
+            for pisa in kernel:
+                print(pisa)
 
 
 if __name__ == "__main__":

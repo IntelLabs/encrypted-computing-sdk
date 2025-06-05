@@ -17,6 +17,22 @@ from pisa_generators.rescale import Rescale
 class KernelParser:
     """Parser for kernel operations."""
 
+    high_op_map = {
+        "Add": Add,
+        "Mul": Mul,
+        "Muli": Muli,
+        "Copy": Copy,
+        "Sub": Sub,
+        "Square": Square,
+        "NTT": NTT,
+        "INTT": INTT,
+        "Mod": Mod,
+        "ModUp": ModUp,
+        "Relin": Relin,
+        "Rotate": Rotate,
+        "Rescale": Rescale,
+    }
+
     @staticmethod
     def parse_context(context_str: str) -> KernelContext:
         """Parse the context string and return a KernelContext object."""
@@ -101,33 +117,18 @@ class KernelParser:
                 # For other operations, parse as Polys
                 input1 = KernelParser.parse_polys(input1_str)
 
-        # Map operation type to the corresponding HighOp class
-        high_op_map = {
-            "Add": Add,
-            "Mul": Mul,
-            "Muli": Muli,
-            "Copy": Copy,
-            "Sub": Sub,
-            "Square": Square,
-            "NTT": NTT,
-            "INTT": INTT,
-            "Mod": Mod,
-            "ModUp": ModUp,
-            "Relin": Relin,
-            "Rotate": Rotate,
-            "Rescale": Rescale,
-        }
-
-        if op_type not in high_op_map:
+        if op_type not in KernelParser.high_op_map:
             raise ValueError(f"Unsupported HighOp type: {op_type}")
 
         # Instantiate the HighOp object
         if has_second_input:
-            return high_op_map[op_type](
+            return KernelParser.high_op_map[op_type](
                 context=context, output=output, input0=input0, input1=input1
             )
         # For operations without a second input, we can ignore the input1 parameter
-        return high_op_map[op_type](context=context, output=output, input0=input0)
+        return KernelParser.high_op_map[op_type](
+            context=context, output=output, input0=input0
+        )
 
     @staticmethod
     def parse_kernel(kernel_str: str) -> HighOp:
