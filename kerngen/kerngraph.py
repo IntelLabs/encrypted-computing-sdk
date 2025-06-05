@@ -33,6 +33,7 @@ import sys
 from kernel_parser.parser import KernelParser
 from kernel_optimization.loops import loop_interchange
 from const.options import LoopKey
+from pisa_generators.basic import mixed_to_pisa_ops
 
 
 def parse_args():
@@ -40,7 +41,13 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Kernel Graph Parser")
     parser.add_argument("-d", "--debug", action="store_true", help="Enable Debug Print")
     parser.add_argument(
-        "-t", "--target", nargs="*", default=[], help="List of high_op names"
+        "-t",
+        "--target",
+        nargs="*",
+        default=[],
+        # Composition high ops such are ntt, mod, and relin are not currently supported
+        choices=["add", "sub", "mul", "muli", "copy"],  # currently supports single ops
+        help="List of high_op names",
     )
     parser.add_argument(
         "-p",
@@ -90,14 +97,19 @@ def main(args):
             f"# Reordered targets {args.target} with primary key {args.primary} and secondary key {args.secondary}"
         )
         for kernel in valid_kernels:
-            if args.target and any(target in str(kernel) for target in args.target):
+            if args.target and any(
+                target.capitalize() in str(kernel) for target in args.target
+            ):
                 kernel = loop_interchange(
                     kernel.to_pisa(),
                     primary_key=args.primary,
                     secondary_key=args.secondary,
                 )
-            for pisa in kernel:
-                print(pisa)
+                for pisa in mixed_to_pisa_ops(kernel):
+                    print(pisa)
+            else:
+                for pisa in kernel.to_pisa():
+                    print(pisa)
 
 
 if __name__ == "__main__":
