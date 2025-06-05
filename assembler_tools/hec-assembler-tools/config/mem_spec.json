@@ -12,7 +12,7 @@
         "max_instructions_per_bundle": 64,
         "num_blocks_per_twid_meta_word": 4,
         "num_blocks_per_kgseed_meta_word": 4,
-        "num_routing_table_registers": 2,
+        "num_routing_table_registers": 1,
         "num_ones_meta_registers": 1,
         "num_twiddle_meta_registers": 32,
         "twiddle_meta_register_size_in_bytes": "8 KiB",
