@@ -54,23 +54,19 @@ def parse_args():
         "--primary",
         type=LoopKey,
         default=LoopKey.PART,
+        choices=list(LoopKey),
         help="Primary key for loop interchange (default: PART, options: RNS, PART))",
     )
     parser.add_argument(
         "-s",
         "--secondary",
         type=LoopKey,
-        default=LoopKey.RNS,
-        help="Secondary key for loop interchange (default: RNS, Options: RNS, PART)",
+        default=None,
+        choices=list(LoopKey) + list([None]),
+        help="Secondary key for loop interchange (default: None, Options: RNS, PART)",
     )
     parsed_args = parser.parse_args()
-    # verify that primary and secondary keys are valid and not the same
-    valid_keys = set(LoopKey)
-    if parsed_args.primary not in valid_keys or parsed_args.secondary not in valid_keys:
-        valid_names = ", ".join(key.name for key in LoopKey)
-        raise ValueError(
-            f"Invalid primary or secondary key. Valid options are: {valid_names}"
-        )
+    # verify that primary and secondary keys are  not the same
     if parsed_args.primary == parsed_args.secondary:
         raise ValueError("Primary and secondary keys cannot be the same.")
     return parser.parse_args()
@@ -93,9 +89,10 @@ def main(args):
     if not valid_kernels:
         print("No valid kernel strings were parsed.")
     else:
-        print(
-            f"# Reordered targets {args.target} with primary key {args.primary} and secondary key {args.secondary}"
-        )
+        if args.debug:
+            print(
+                f"# Reordered targets {args.target} with primary key {args.primary} and secondary key {args.secondary}"
+            )
         for kernel in valid_kernels:
             if args.target and any(
                 target.capitalize() in str(kernel) for target in args.target
