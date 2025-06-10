@@ -23,5 +23,8 @@ jobs:
       - name: Install pre-commit
         run: pip install pre-commit
 
-      - name: Run pre-commit checks
-        run: pre-commit run
+      - name: Fetch main branch for diff
+        run: git fetch origin main
+
+      - name: Run pre-commit on changed files only
+        run: pre-commit run --from-ref origin/main --to-ref HEAD
