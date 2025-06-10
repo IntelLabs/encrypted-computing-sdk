@@ -18,8 +18,8 @@ Functions:
         Parses command-line arguments for the linker script.
 
 Usage:
-    This script is intended to be run as a standalone program. It requires specific command-line arguments
-    to specify input and output files and configuration options for the linking process.
+    This script is intended to be run as a standalone program. It requires specific command-line
+    arguments to specify input and output files and configuration options for the linking process.
 
 """
 import argparse
