@@ -16,7 +16,7 @@ repos:
           args:
           - --allow-multiple-documents
     - repo: https://github.com/crate-ci/typos
-      rev: v1.20.9 # Updated 2024/04
+      rev: v1 # Updated 2024/04
       hooks:
         - id: typos
     - repo: https://github.com/Lucas-C/pre-commit-hooks
