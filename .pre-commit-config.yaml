@@ -61,7 +61,7 @@ repos:
           args:
           - -rn # Only display messages
           - -sn # Don't display the score
-          - --source-roots=kerngen # Working directory
+          - --source-roots=p-isa_tools/kerngen # Working directory
         - id: clang-format-14
           name: clang-format-14
           entry: clang-format-14
