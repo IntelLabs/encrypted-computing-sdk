@@ -19,6 +19,7 @@ tmp/
 #========================
 
 *.yml
+!.github/workflows/*.yml
 *.pyc
 *.bak
 *.pkl
