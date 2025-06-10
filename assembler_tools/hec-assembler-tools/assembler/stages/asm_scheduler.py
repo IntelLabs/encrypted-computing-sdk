@@ -546,6 +546,33 @@ class Simulation:
                     deps_added += 1
             self.addLiveVar(v.name, new_dependency_instr) # Source and dests variables are now a live-in for new_dependency_instr
 
+    def addExtraXStoreDependencies(self, original_instr, xstore_instr, new_var):
+        """
+        Adds instructions using `new_var` as new dependencies of `xstore_instr`. 
+        `new_var` is awaiting `xstore_instr` to get a register free.
+        Dependency graph and topo sort are updated as appropriate. `xstore_instr` is NOT
+        added to the topo_sort.
+        Parameters:
+            new_var: Variable waiting for eviction to occurr. 
+            xstore_instr: The instruction in charge of eviction.
+            original_instr: The original instruction awaiting `new_var` to be ready.
+        """
+        deps_added = 0
+        for idx, next_instr_id in new_var.accessed_by_xinsts:
+            if idx < self.topo_start_idx + 2 * Simulation.INSTRUCTION_WINDOW_SIZE:
+                # Only add dependencies within the instruction window and next 2 instruction windows
+                if deps_added > 0 or len(new_var.accessed_by_xinsts) <= 0:
+                    # Add, at least, one dependency if needed
+                    break
+            if next_instr_id != xstore_instr.id and next_instr_id != original_instr.id:
+                assert next_instr_id in self.dependency_graph
+                self.dependency_graph.add_edge(xstore_instr.id, next_instr_id) # Link as dependency to input instruction
+                if self.dependency_graph.in_degree(next_instr_id) == 1:
+                    # We need to add next instruction back to topo sort because it will have a dependency
+                    next_instr = self.dependency_graph.nodes[next_instr_id]['instruction']
+                    self.addXInstrBackIntoPipeline(next_instr)
+                deps_added += 1
+
     def addLiveVar(self,
                    var_name: str,
                    instr):
@@ -2322,6 +2349,10 @@ def prepareInstruction(original_xinstr, simulation: Simulation) -> int:
 
                             if retval == 2:
                                 # XInsts needed to prepare variable
+                                
+                                # Add extra dependencies in case of XStore
+                                if isinstance(new_instr_or_reg, xinst.XStore):
+                                    simulation.addExtraXStoreDependencies(original_xinstr, new_instr_or_reg, src_var)
 
                                 # Moves should always be able to schedule at this point
                                 assert isinstance(new_instr_or_reg, (xinst.Move, xinst.XStore))
