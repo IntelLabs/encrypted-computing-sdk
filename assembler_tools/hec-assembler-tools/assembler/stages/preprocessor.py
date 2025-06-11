@@ -1,13 +1,19 @@
-﻿import networkx as nx
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""Preprocessing utilities for HERACLES assembler stages."""
+
+from typing import Tuple
+import networkx as nx
 
 from assembler.common.constants import Constants
 from assembler.instructions import xinst
 from assembler.instructions.xinst.xinstruction import XInstruction
 from assembler.instructions.xinst import parse_xntt
 from assembler.memory_model import MemoryModel
-from assembler.memory_model import variable
 
-def __dependencyGraphForVars(insts_list: list) -> (nx.Graph, set, set):
+
+def dependency_graph_for_vars(insts_list: list) -> Tuple[nx.Graph, set, set]:
     """
     Given the listing of instructions, this method returns the dependency graph
     for the variables in the listing and the sets of destination and source variables.
@@ -36,7 +42,7 @@ def __dependencyGraphForVars(insts_list: list) -> (nx.Graph, set, set):
     all_sources_vars = set()
 
     for inst in insts_list:
-        extra_sources = []
+        extra_sources: list = []
         for idx, v in enumerate(inst.dests):
             all_dests_vars.add(v.name)
             if v.name not in retval:
@@ -44,7 +50,9 @@ def __dependencyGraphForVars(insts_list: list) -> (nx.Graph, set, set):
             for v_i in range(idx + 1, len(inst.dests)):
                 v_next = inst.dests[v_i]
                 if v.name == v_next.name:
-                    raise RuntimeError(f"Cannot write to the same variable in the same instruction more than once: {inst.toPISAFormat()}")
+                    raise RuntimeError(
+                        f"Cannot write to the same variable in the same instruction more than once: {inst.toPISAFormat()}"
+                    )
                 if not retval.has_edge(v.name, v_next.name):
                     retval.add_edge(v.name, v_next.name)
             # Mac deps already handled in the Mac instructions themselves
@@ -59,16 +67,18 @@ def __dependencyGraphForVars(insts_list: list) -> (nx.Graph, set, set):
             for v_i in range(idx + 1, len(inst_all_sources)):
                 v_next = inst_all_sources[v_i]
                 if v.name == v_next.name:
-                    raise RuntimeError(f"Cannot read from the same variable in the same instruction more than once: {inst.toPISAFormat()}")
+                    raise RuntimeError(
+                        f"Cannot read from the same variable in the same instruction more than once: {inst.toPISAFormat()}"
+                    )
                 if not retval.has_edge(v.name, v_next.name):
                     retval.add_edge(v.name, v_next.name)
 
     return retval, all_dests_vars, all_sources_vars
 
-def injectVariableCopy(mem_model: MemoryModel,
-                       insts_list: list,
-                       instruction_idx: int,
-                       var_name: str) -> int:
+
+def inject_variable_copy(
+    mem_model: MemoryModel, insts_list: list, instruction_idx: int, var_name: str
+) -> int:
     """
     Injects a copy of a variable into the instruction list at the specified index.
 
@@ -85,20 +95,24 @@ def injectVariableCopy(mem_model: MemoryModel,
         IndexError: If the instruction index is out of range.
     """
     if instruction_idx < 0 or instruction_idx >= len(insts_list):
-        raise IndexError(f'instruction_idx: Expected index in range [0, {len(insts_list)}), but received {instruction_idx}.')
+        raise IndexError(
+            f"instruction_idx: Expected index in range [0, {len(insts_list)}), but received {instruction_idx}."
+        )
     last_instruction: XInstruction = insts_list[instruction_idx]
     last_instruction_sources = last_instruction.sources[:]
-    for idx, variable in enumerate(last_instruction_sources):
-        if variable.name == var_name:
+    for idx, src_var in enumerate(last_instruction_sources):
+        if src_var.name == var_name:
             # Find next available temp var name
             temp_name = mem_model.findUniqueVarName()
             temp_var = mem_model.retrieveVarAdd(temp_name, -1)
             # Copy source var into temp
-            copy_xinst = xinst.Copy(id = last_instruction.id[1],
-                                    N = 0,
-                                    dst = [ temp_var ],
-                                    src = [ variable ],
-                                    comment='Injected copy for bank reduction.')
+            copy_xinst = xinst.Copy(
+                id=last_instruction.id[1],
+                N=0,
+                dst=[temp_var],
+                src=[src_var],
+                comment="Injected copy for bank reduction.",
+            )
             insts_list.insert(instruction_idx, copy_xinst)
             # Replace src by temp
             last_instruction.sources[idx] = temp_var
@@ -106,9 +120,8 @@ def injectVariableCopy(mem_model: MemoryModel,
 
     return instruction_idx
 
-def reduceVarDepsByVar(mem_model: MemoryModel,
-                       insts_list: list,
-                       var_name: str):
+
+def reduce_var_deps_by_var(mem_model: MemoryModel, insts_list: list, var_name: str):
     """
     Reduces variable dependencies by injecting copies of the specified variable.
 
@@ -123,34 +136,43 @@ def reduceVarDepsByVar(mem_model: MemoryModel,
     # * care with mac instructions
     while last_pos < len(insts_list):
         if var_name in (v.name for v in insts_list[last_pos].sources):
-            last_instruction: XInstruction = insts_list[last_pos]
+            last_instruction = insts_list[last_pos]
             if isinstance(last_instruction, (xinst.Mac, xinst.Maci)):
                 # Check if the conflicting variable is the accumulator
                 if last_instruction.sources[0].name == var_name:
                     # Turn all other variables into copies
-                    for variable in last_instruction.sources[1:]:
-                        last_pos = injectVariableCopy(mem_model, insts_list, last_pos, variable.name)
+                    for src_var in last_instruction.sources[1:]:
+                        last_pos = inject_variable_copy(
+                            mem_model, insts_list, last_pos, src_var.name
+                        )
                         assert last_instruction == insts_list[last_pos]
-                    last_instruction = None # avoid further processing of instruction
+                    last_instruction = None  # avoid further processing of instruction
                     last_pos += 1
                     continue
                 # If conflict variable was not the accumulator, proceed to change the other variables
             # Skip copy, twxntt and xrshuffle
-            if not isinstance(last_instruction, (xinst.twiNTT,
-                                                 xinst.twiNTT,
-                                                 xinst.irShuffle,
-                                                 xinst.rShuffle,
-                                                 xinst.Copy)):
+            if not isinstance(
+                last_instruction,
+                (
+                    xinst.twiNTT,
+                    xinst.twiNTT,
+                    xinst.irShuffle,
+                    xinst.rShuffle,
+                    xinst.Copy,
+                ),
+            ):
                 # Break up indicated variable in sources into a temp copy
-                last_pos = injectVariableCopy(mem_model, insts_list, last_pos, var_name)
+                last_pos = inject_variable_copy(
+                    mem_model, insts_list, last_pos, var_name
+                )
                 assert last_instruction == insts_list[last_pos]
 
         last_pos += 1
 
-def assignRegisterBanksToVars(mem_model: MemoryModel,
-                              insts_list: list,
-                              use_bank0: bool,
-                              verbose = False) -> str:
+
+def assign_register_banks_to_vars(
+    mem_model: MemoryModel, insts_list: list, use_bank0: bool, verbose=False
+) -> str:
     """
     Assigns register banks to variables using vertex coloring graph algorithm.
 
@@ -187,45 +209,61 @@ def assignRegisterBanksToVars(mem_model: MemoryModel,
     """
     reduced_vars = set()
     needs_reduction = True
-    pass_counter = 0
     while needs_reduction:
-        pass_counter += 1
-        if verbose:
-            print(f"Pass {pass_counter}")
         # Extract the dependency graph for variables
-        dep_graph_vars, dest_names, source_names = __dependencyGraphForVars(insts_list)
-        only_sources = source_names - dest_names # Find which variables are ever only used as sources
-        color_dict = nx.greedy_color(dep_graph_vars) # Do coloring
+        dep_graph_vars, dest_names, source_names = dependency_graph_for_vars(insts_list)
+        only_sources = (
+            source_names - dest_names
+        )  # Find which variables are ever only used as sources
+        color_dict = nx.greedy_color(dep_graph_vars)  # Do coloring
 
         needs_reduction = False
         for var_name, bank in color_dict.items():
             if bank > 2:
                 if var_name in reduced_vars:
-                    raise RuntimeError(('Found invalid bank {} > 2 for variable {} already reduced.').format(bank,
-                                                                                                             var_name))
+                    raise RuntimeError(
+                        f"Found invalid bank {bank} > 2 for variable {var_name} already reduced."
+                    )
                 # DEBUG print
                 if verbose:
-                    print('Variable {} ({}) requires reduction.'.format(var_name, bank))
-                reduceVarDepsByVar(mem_model, insts_list, var_name)
-                reduced_vars.add(var_name) # Track reduced variable
+                    print(f"Variable {var_name} ({bank}) requires reduction.")
+                reduce_var_deps_by_var(mem_model, insts_list, var_name)
+                reduced_vars.add(var_name)  # Track reduced variable
                 needs_reduction = True
 
     # Assign banks based on coloring algo results
     for v in mem_model.variables.values():
-        if not mem_model.isMetaVar(v.name): # Skip meta variables
-            assert(v.name in color_dict)
+        if not mem_model.isMetaVar(v.name):  # Skip meta variables
+            assert v.name in color_dict
             bank = color_dict[v.name]
-            assert bank < 3, f'{v.name}, {bank}'
+            assert bank < 3, f"{v.name}, {bank}"
             # If requested, keep vars used only as sources in bank 0
-            v.suggested_bank = bank + (0 if use_bank0 and (v.name in only_sources) else 1)
+            v.suggested_bank = bank + (
+                0 if use_bank0 and (v.name in only_sources) else 1
+            )
 
     retval: str = mem_model.findUniqueVarName()
 
     return retval
 
-def preprocessPISAKernelListing(mem_model: MemoryModel,
-                                line_iter,
-                                progress_verbose: bool = False) -> list:
+
+def ntt_kernel_grammar(line):
+    """Parse NTT kernel grammar from a line."""
+    return parse_xntt.parseXNTTKernelLine(
+        line, xinst.NTT.OP_NAME_PISA, Constants.TW_GRAMMAR_SEPARATOR
+    )
+
+
+def intt_kernel_grammar(line):
+    """Parse INTT kernel grammar from a line."""
+    return parse_xntt.parseXNTTKernelLine(
+        line, xinst.iNTT.OP_NAME_PISA, Constants.TW_GRAMMAR_SEPARATOR
+    )
+
+
+def preprocess_pisa_kernel_listing(
+    mem_model: MemoryModel, line_iter, progress_verbose: bool = False
+) -> list:
     """
     Parses a P-ISA kernel listing, given as an iterator for strings, where each is
     a line representing a P-ISA instruction.
@@ -250,9 +288,6 @@ def preprocessPISAKernelListing(mem_model: MemoryModel,
               Variables in `mem_model` collection of variables will be modified to reflect
               assigned bank in `suggested_bank` attribute.
     """
-    NTT_KERNEL_GRAMMAR = lambda line: parse_xntt.parseXNTTKernelLine(line, xinst.NTT.OP_NAME_PISA, Constants.TW_GRAMMAR_SEPARATOR)
-    iNTT_KERNEL_GRAMMAR = lambda line: parse_xntt.parseXNTTKernelLine(line, xinst.iNTT.OP_NAME_PISA, Constants.TW_GRAMMAR_SEPARATOR)
-
     retval = []
 
     if progress_verbose:
@@ -265,22 +300,24 @@ def preprocessPISAKernelListing(mem_model: MemoryModel,
 
         parsed_insts = None
         if not parsed_insts:
-            parsed_op = NTT_KERNEL_GRAMMAR(s_line)
+            parsed_op = ntt_kernel_grammar(s_line)
             if not parsed_op:
-                parsed_op = iNTT_KERNEL_GRAMMAR(s_line)
+                parsed_op = intt_kernel_grammar(s_line)
             if parsed_op:
                 # Instruction is a P-ISA xntt
-                parsed_insts = parse_xntt.generateXNTT(mem_model,
-                                                       parsed_op,
-                                                       new_id = line_no)
+                parsed_insts = parse_xntt.generateXNTT(
+                    mem_model, parsed_op, new_id=line_no
+                )
         if not parsed_insts:
             # Instruction is one that is represented by single XInst
             inst = xinst.createFromPISALine(mem_model, s_line, line_no)
             if inst:
-                parsed_insts = [ inst ]
+                parsed_insts = [inst]
 
         if not parsed_insts:
-            raise SyntaxError("Line {}: unable to parse kernel instruction:\n{}".format(line_no, s_line))
+            raise SyntaxError(
+                f"Line {line_no}: unable to parse kernel instruction:\n{s_line}"
+            )
 
         retval += parsed_insts
 
