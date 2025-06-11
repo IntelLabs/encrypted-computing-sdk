@@ -46,7 +46,7 @@ class Polys:
         return self.expand(*args)
 
     def __repr__(self) -> str:
-        return self.name
+        return f"Polys(name={self.name}, parts={self.parts}, rns={self.rns})"
 
     @classmethod
     def from_polys(cls, poly: "Polys", *, mode: str | None = None) -> "Polys":
