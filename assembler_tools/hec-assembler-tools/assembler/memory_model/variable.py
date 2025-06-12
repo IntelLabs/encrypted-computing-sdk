@@ -1,9 +1,13 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import re
 from typing import NamedTuple
 
 from assembler.common import constants
 from assembler.common.config import GlobalConfig
 from assembler.common.cycle_tracking import CycleTracker, CycleType
+
 
 class Variable(CycleTracker):
     """
@@ -47,6 +51,7 @@ class Variable(CycleTracker):
             index (int): The index of the instruction in the listing.
             instruction_id (tuple): The ID of the instruction.
         """
+
         index: int
         instruction_id: tuple
 
@@ -70,7 +75,7 @@ class Variable(CycleTracker):
         """
         tokens = list(map(lambda s: s.strip(), s_pisa.split()))
         if len(tokens) > 2 or len(tokens) < 1:
-            raise ValueError(f'Invalid format for P-ISA variable: {s_pisa}.')
+            raise ValueError(f"Invalid format for P-ISA variable: {s_pisa}.")
         if len(tokens) < 2:
             # default to suggested bank -1
             tokens.append(-1)
@@ -94,17 +99,14 @@ class Variable(CycleTracker):
             name = name.strip()
         if not name:
             retval = False
-        if retval and not re.search('^[A-Za-z_][A-Za-z0-9_]*', name):
+        if retval and not re.search("^[A-Za-z_][A-Za-z0-9_]*", name):
             retval = False
         return retval
-
 
     # Constructor
     # -----------
 
-    def __init__(self,
-                 var_name: str,
-                 suggested_bank: int = -1):
+    def __init__(self, var_name: str, suggested_bank: int = -1):
         """
         Constructs a new Variable object with a specified name and suggested bank number.
 
@@ -123,11 +125,16 @@ class Variable(CycleTracker):
         self.__var_name = var_name.strip()
         # validate bank number
         if suggested_bank >= constants.MemoryModel.NUM_REGISTER_BANKS:
-            raise ValueError(("`suggested_bank`: Expected negative to indicate no "
-                             "suggestion or a bank index less than {}, but {} received.").format(
-                                 constants.MemoryModel.NUM_REGISTER_BANKS, suggested_bank))
+            raise ValueError(
+                (
+                    "`suggested_bank`: Expected negative to indicate no "
+                    "suggestion or a bank index less than {}, but {} received."
+                ).format(constants.MemoryModel.NUM_REGISTER_BANKS, suggested_bank)
+            )
 
-        super().__init__(CycleType(0, 0)) # cycle ready in the form (bundle, clock_cycle)
+        super().__init__(
+            CycleType(0, 0)
+        )  # cycle ready in the form (bundle, clock_cycle)
 
         self.__suggested_bank = suggested_bank
         # HBM data region address (zero-based word index) where this variable is stored.
@@ -135,10 +142,12 @@ class Variable(CycleTracker):
         self.hbm_address = -1
         self.__spad_address = -1
         self.__spad_dirty = False
-        self.__register = None # Register
+        self.__register = None  # Register
         self.__register_dirty = False
-        self.accessed_by_xinsts = [] # list of AccessElements containing instruction IDs that access this variable
-        self.last_x_access = None # last xinstruction that accessed this variable
+        self.accessed_by_xinsts = (
+            []
+        )  # list of AccessElements containing instruction IDs that access this variable
+        self.last_x_access = None  # last xinstruction that accessed this variable
 
     # Special methods
     # ---------------
@@ -150,10 +159,9 @@ class Variable(CycleTracker):
         Returns:
             str: A string representation.
         """
-        retval = '<{} object at {}>(var_name="{}", suggested_bank={})'.format(type(self).__name__,
-                                                                              hex(id(self)),
-                                                                              self.name,
-                                                                              self.suggested_bank)
+        retval = '<{} object at {}>(var_name="{}", suggested_bank={})'.format(
+            type(self).__name__, hex(id(self)), self.name, self.suggested_bank
+        )
         return retval
 
     def __str__(self):
@@ -221,9 +229,12 @@ class Variable(CycleTracker):
     @suggested_bank.setter
     def suggested_bank(self, value: int):
         if value >= constants.MemoryModel.NUM_REGISTER_BANKS:
-            raise ValueError('`value`: must be in range [0, {}), but {} received.'.format(constants.MemoryModel.NUM_REGISTER_BANKS,
-                                                                                          str(value)))
-        if value >= 0: # ignore negative values
+            raise ValueError(
+                "`value`: must be in range [0, {}), but {} received.".format(
+                    constants.MemoryModel.NUM_REGISTER_BANKS, str(value)
+                )
+            )
+        if value >= 0:  # ignore negative values
             self.__suggested_bank = value
 
     @property
@@ -242,14 +253,21 @@ class Variable(CycleTracker):
 
     def _set_register(self, value):
         from .register_file import Register
+
         if value:
             if not isinstance(value, Register):
-                raise ValueError(('`value`: expected a `Register`, but received a `{}`.'.format(type(value).__name__)))
+                raise ValueError(
+                    (
+                        "`value`: expected a `Register`, but received a `{}`.".format(
+                            type(value).__name__
+                        )
+                    )
+                )
             self.__register = value
         else:
             self.__register = None
             self.register_dirty = False
-        self.last_x_access = None # new Register, so, no XInst access yet
+        self.last_x_access = None  # new Register, so, no XInst access yet
 
     @property
     def register_dirty(self) -> bool:
@@ -281,7 +299,7 @@ class Variable(CycleTracker):
         self._set_spad_address(value)
 
     def _set_spad_address(self, value: int):
-        self.spad_dirty = False # SPAD is no longer dirty because we are overwriting it
+        self.spad_dirty = False  # SPAD is no longer dirty because we are overwriting it
         if value < 0:
             self.__spad_address = -1
         else:
@@ -317,19 +335,19 @@ class Variable(CycleTracker):
 
         return retval
 
-    def toPISAFormat(self) -> str:
+    def to_pisa_format(self) -> str:
         """
         Converts the variable to P-ISA kernel format.
 
         Returns:
             str: The P-ISA format of the variable.
         """
-        retval = f'{self.name}'
+        retval = f"{self.name}"
         if self.suggested_bank >= 0:
-            retval += f' ({self.suggested_bank})'
+            retval += f" ({self.suggested_bank})"
         return retval
 
-    def toXASMISAFormat(self) -> str:
+    def to_xasmisa_format(self) -> str:
         """
         Converts the variable to XInst ASM-ISA format.
 
@@ -340,10 +358,12 @@ class Variable(CycleTracker):
             RuntimeError: If the variable is not allocated to a register.
         """
         if not self.register:
-            raise RuntimeError("`Variable` object not allocated to register. Cannot convert to XInst ASM-ISA format.")
-        return self.register.toXASMISAFormat()
+            raise RuntimeError(
+                "`Variable` object not allocated to register. Cannot convert to XInst ASM-ISA format."
+            )
+        return self.register.to_xasmisa_format()
 
-    def toCASMISAFormat(self) -> str:
+    def to_casmisa_format(self) -> str:
         """
         Converts the variable to CInst ASM-ISA format.
 
@@ -354,10 +374,12 @@ class Variable(CycleTracker):
             RuntimeError: If the variable is not stored in SPAD.
         """
         if self.spad_address < 0:
-            raise RuntimeError("`Variable` object not allocated in SPAD. Cannot convert to CInst ASM-ISA format.")
+            raise RuntimeError(
+                "`Variable` object not allocated in SPAD. Cannot convert to CInst ASM-ISA format."
+            )
         return self.spad_address if GlobalConfig.hasHBM else self.name
 
-    def toMASMISAFormat(self) -> str:
+    def to_masmisa_format(self) -> str:
         """
         Converts the variable to MInst ASM-ISA format.
 
@@ -368,8 +390,11 @@ class Variable(CycleTracker):
             RuntimeError: If the variable is not stored in HBM.
         """
         if self.hbm_address < 0:
-            raise RuntimeError("`Variable` object not allocated in HBM. Cannot convert to MInst ASM-ISA format.")
+            raise RuntimeError(
+                "`Variable` object not allocated in HBM. Cannot convert to MInst ASM-ISA format."
+            )
         return self.name if GlobalConfig.useHBMPlaceHolders else self.hbm_address
+
 
 def findVarByName(vars_lst, var_name: str) -> Variable:
     """
@@ -384,6 +409,7 @@ def findVarByName(vars_lst, var_name: str) -> Variable:
     """
     return next((var for var in vars_lst if var.name == var_name), None)
 
+
 class DummyVariable(Variable):
     """
     Represents a dummy variable used as a placeholder.
@@ -395,7 +421,7 @@ class DummyVariable(Variable):
     # Constructor
     # -----------
 
-    def __init__(self, tag = None):
+    def __init__(self, tag=None):
         """
         Initializes a new DummyVariable object.
 

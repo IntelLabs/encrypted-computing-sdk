@@ -17,8 +17,8 @@ Functions:
         Parses command-line arguments for the preprocessing script.
 
 Usage:
-    This script is intended to be run as a standalone program. It requires specific command-line arguments
-    to specify input and output files and verbosity options for the preprocessing process.
+    This script is intended to be run as a standalone program. It requires specific command-line
+    arguments to specify input and output files and verbosity options for the preprocessing process.
 
 """
 import argparse
@@ -47,7 +47,7 @@ def save_pisa_listing(out_stream, instr_listing: list):
         None
     """
     for inst in instr_listing:
-        inst_line = inst.toPISAFormat()
+        inst_line = inst.to_pisa_format()
         if inst_line:
             print(inst_line, file=out_stream)
 

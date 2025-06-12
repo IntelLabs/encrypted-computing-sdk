@@ -1,6 +1,9 @@
-﻿
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 from assembler.common.cycle_tracking import CycleType
 from .cinstruction import CInstruction
+
 
 class Instruction(CInstruction):
     """
@@ -17,7 +20,7 @@ class Instruction(CInstruction):
     """
 
     @classmethod
-    def _get_OP_NAME_ASM(cls) -> str:
+    def _get_op_name_asm(cls) -> str:
         """
         Returns the ASM name of the operation.
 
@@ -26,12 +29,14 @@ class Instruction(CInstruction):
         """
         return "ifetch"
 
-    def __init__(self,
-                 id: int,
-                 bundle_id: int,
-                 throughput: int = None,
-                 latency: int = None,
-                 comment: str = ""):
+    def __init__(
+        self,
+        id: int,
+        bundle_id: int,
+        throughput: int = None,
+        latency: int = None,
+        comment: str = "",
+    ):
         """
         Constructs a new `ifetch` CInstruction.
 
@@ -51,25 +56,31 @@ class Instruction(CInstruction):
         if not latency:
             latency = Instruction._OP_DEFAULT_LATENCY
         super().__init__(id, throughput, latency, comment=comment)
-        self.bundle_id = bundle_id # Instruction number from the MINST queue for which to wait
+        self.bundle_id = (
+            bundle_id  # Instruction number from the MINST queue for which to wait
+        )
 
     def __repr__(self):
         """
         Returns a string representation of the Instruction object.
 
         Returns:
-            str: A string representation of the Instruction object, including 
+            str: A string representation of the Instruction object, including
                  its type, name, memory address, ID, bundle_id, throughput, and latency.
         """
-        retval=('<{}({}) object at {}>(id={}[0], '
-                  'bundle_id={}, '
-                  'throughput={}, latency={})').format(type(self).__name__,
-                                                           self.name,
-                                                           hex(id(self)),
-                                                           self.id,
-                                                           self.bundle_id,
-                                                           self.throughput,
-                                                           self.latency)
+        retval = (
+            "<{}({}) object at {}>(id={}[0], "
+            "bundle_id={}, "
+            "throughput={}, latency={})"
+        ).format(
+            type(self).__name__,
+            self.name,
+            hex(id(self)),
+            self.id,
+            self.bundle_id,
+            self.throughput,
+            self.latency,
+        )
         return retval
 
     def _set_dests(self, value):
@@ -119,7 +130,7 @@ class Instruction(CInstruction):
         retval = super()._schedule(cycle_count, schedule_id)
         return retval
 
-    def _toCASMISAFormat(self, *extra_args) -> str:
+    def _to_casmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to ASM format.
 
@@ -132,10 +143,10 @@ class Instruction(CInstruction):
         Raises:
             ValueError: If extra arguments are provided.
         """
-        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
+        assert len(self.dests) == Instruction._OP_NUM_DESTS
+        assert len(self.sources) == Instruction._OP_NUM_SOURCES
 
         if extra_args:
-            raise ValueError('`extra_args` not supported.')
+            raise ValueError("`extra_args` not supported.")
 
-        return super()._toCASMISAFormat(self.bundle_id)
+        return super()._to_casmisa_format(self.bundle_id)

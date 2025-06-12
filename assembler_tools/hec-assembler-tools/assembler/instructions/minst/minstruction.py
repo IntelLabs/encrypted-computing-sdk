@@ -1,5 +1,9 @@
-﻿from assembler.common.cycle_tracking import CycleType
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+from assembler.common.cycle_tracking import CycleType
 from ..instruction import BaseInstruction
+
 
 class MInstruction(BaseInstruction):
     """
@@ -13,13 +17,9 @@ class MInstruction(BaseInstruction):
         count: Returns the MInstruction counter value for this instruction.
     """
 
-    __minst_count = 0 # Internal Minst counter
+    __minst_count = 0  # Internal Minst counter
 
-    def __init__(self,
-                 id: int,
-                 throughput: int,
-                 latency: int,
-                 comment: str = ""):
+    def __init__(self, id: int, throughput: int, latency: int, comment: str = ""):
         """
         Constructs a new MInstruction.
 
@@ -56,7 +56,7 @@ class MInstruction(BaseInstruction):
         """
         return CycleType(bundle=0, cycle=0)
 
-    def _toMASMISAFormat(self, *extra_args) -> str:
+    def _to_masmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to MInst ASM-ISA format.
 
@@ -69,9 +69,7 @@ class MInstruction(BaseInstruction):
             str: The instruction in MInst ASM-ISA format.
         """
         # Instruction sources
-        extra_args = tuple(src.toMASMISAFormat() for src in self.sources) + extra_args
+        extra_args = tuple(src.to_masmisa_format() for src in self.sources) + extra_args
         # Instruction destinations
-        extra_args = tuple(dst.toMASMISAFormat() for dst in self.dests) + extra_args
-        return self.toStringFormat(None,
-                                   self.OP_NAME_ASM,
-                                   *extra_args)
+        extra_args = tuple(dst.to_masmisa_format() for dst in self.dests) + extra_args
+        return self.to_string_format(None, self.op_name_asm, *extra_args)

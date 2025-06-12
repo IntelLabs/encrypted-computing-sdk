@@ -1,14 +1,18 @@
-﻿import warnings
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+import warnings
 
 from argparse import Namespace
 
 from .xinstruction import XInstruction
 from assembler.memory_model.variable import Variable
 
+
 class Instruction(XInstruction):
     """
     Encapsulates a `sub` XInstruction.
-    
+
     This instruction performs element-wise polynomial subtraction.
 
     For more information, check the specification:
@@ -61,30 +65,32 @@ class Instruction(XInstruction):
             None: If a `sub` could not be parsed from the input.
         """
         retval = None
-        tokens = XInstruction.tokenizeFromPISALine(cls.OP_NAME_PISA, line)
+        tokens = XInstruction.tokenizeFromPISALine(cls.op_name_pisa, line)
         if tokens:
             retval = {"comment": tokens[1]}
             instr_tokens = tokens[0]
             if len(instr_tokens) > cls._OP_NUM_TOKENS:
-                warnings.warn(f'Extra tokens detected for instruction "{cls.OP_NAME_PISA}"', SyntaxWarning)
+                warnings.warn(
+                    f'Extra tokens detected for instruction "{cls.op_name_pisa}"',
+                    SyntaxWarning,
+                )
 
             retval["N"] = int(instr_tokens[0])
             retval["op_name"] = instr_tokens[1]
             params_start = 2
             params_end = params_start + cls._OP_NUM_DESTS + cls._OP_NUM_SOURCES
-            dst_src = cls.parsePISASourceDestsFromTokens(instr_tokens,
-                                                         cls._OP_NUM_DESTS,
-                                                         cls._OP_NUM_SOURCES,
-                                                         params_start)
+            dst_src = cls.parsePISASourceDestsFromTokens(
+                instr_tokens, cls._OP_NUM_DESTS, cls._OP_NUM_SOURCES, params_start
+            )
             retval.update(dst_src)
             retval["res"] = int(instr_tokens[params_end])
 
             retval = Namespace(**retval)
-            assert(retval.op_name == cls.OP_NAME_PISA)
+            assert retval.op_name == cls.op_name_pisa
         return retval
 
     @classmethod
-    def _get_OP_NAME_ASM(cls) -> str:
+    def _get_op_name_asm(cls) -> str:
         """
         Returns the ASM name of the operation.
 
@@ -93,15 +99,17 @@ class Instruction(XInstruction):
         """
         return "sub"
 
-    def __init__(self,
-                 id: int,
-                 N: int,
-                 dst: list,
-                 src: list,
-                 res: int,
-                 throughput: int = None,
-                 latency: int = None,
-                 comment: str = ""):
+    def __init__(
+        self,
+        id: int,
+        N: int,
+        dst: list,
+        src: list,
+        res: int,
+        throughput: int = None,
+        latency: int = None,
+        comment: str = "",
+    ):
         """
         Constructs a new `sub` XInstruction.
 
@@ -137,20 +145,24 @@ class Instruction(XInstruction):
         Returns a string representation of the Instruction object.
 
         Returns:
-            str: A string representation of the Instruction object, including 
+            str: A string representation of the Instruction object, including
                  its type, name, memory address, ID, residual, destinations, sources, throughput, and latency.
         """
-        retval=('<{}({}) object at {}>(id={}[0], res={}, '
-                  'dst={}, src={}, '
-                  'throughput={}, latency={})').format(type(self).__name__,
-                                                           self.name,
-                                                           hex(id(self)),
-                                                           self.id,
-                                                           self.res,
-                                                           self.dests,
-                                                           self.sources,
-                                                           self.throughput,
-                                                           self.latency)
+        retval = (
+            "<{}({}) object at {}>(id={}[0], res={}, "
+            "dst={}, src={}, "
+            "throughput={}, latency={})"
+        ).format(
+            type(self).__name__,
+            self.name,
+            hex(id(self)),
+            self.id,
+            self.res,
+            self.dests,
+            self.sources,
+            self.throughput,
+            self.latency,
+        )
         return retval
 
     def _set_dests(self, value):
@@ -164,9 +176,14 @@ class Instruction(XInstruction):
             ValueError: If the number of destinations is incorrect or if the list does not contain `Variable` objects.
         """
         if len(value) != Instruction._OP_NUM_DESTS:
-            raise ValueError(("`value`: Expected list of {} Variable objects, "
-                              "but list with {} elements received.".format(Instruction._OP_NUM_DESTS,
-                                                                           len(value))))
+            raise ValueError(
+                (
+                    "`value`: Expected list of {} Variable objects, "
+                    "but list with {} elements received.".format(
+                        Instruction._OP_NUM_DESTS, len(value)
+                    )
+                )
+            )
         if not all(isinstance(x, Variable) for x in value):
             raise ValueError("`value`: Expected list of Variable objects.")
         super()._set_dests(value)
@@ -182,14 +199,19 @@ class Instruction(XInstruction):
             ValueError: If the number of sources is incorrect or if the list does not contain `Variable` objects.
         """
         if len(value) != Instruction._OP_NUM_SOURCES:
-            raise ValueError(("`value`: Expected list of {} Variable objects, "
-                              "but list with {} elements received.".format(Instruction._OP_NUM_SOURCES,
-                                                                           len(value))))
+            raise ValueError(
+                (
+                    "`value`: Expected list of {} Variable objects, "
+                    "but list with {} elements received.".format(
+                        Instruction._OP_NUM_SOURCES, len(value)
+                    )
+                )
+            )
         if not all(isinstance(x, Variable) for x in value):
             raise ValueError("`value`: Expected list of Variable objects.")
         super()._set_sources(value)
 
-    def _toPISAFormat(self, *extra_args) -> str:
+    def _to_pisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to kernel format.
 
@@ -202,15 +224,15 @@ class Instruction(XInstruction):
         Raises:
             ValueError: If extra arguments are provided.
         """
-        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
+        assert len(self.dests) == Instruction._OP_NUM_DESTS
+        assert len(self.sources) == Instruction._OP_NUM_SOURCES
 
         if extra_args:
-            raise ValueError('`extra_args` not supported.')
+            raise ValueError("`extra_args` not supported.")
 
-        return super()._toPISAFormat()
+        return super()._to_pisa_format()
 
-    def _toXASMISAFormat(self, *extra_args) -> str:
+    def _to_xasmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to ASM format.
 
@@ -223,10 +245,10 @@ class Instruction(XInstruction):
         Raises:
             ValueError: If extra arguments are provided.
         """
-        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
+        assert len(self.dests) == Instruction._OP_NUM_DESTS
+        assert len(self.sources) == Instruction._OP_NUM_SOURCES
 
         if extra_args:
-            raise ValueError('`extra_args` not supported.')
+            raise ValueError("`extra_args` not supported.")
 
-        return super()._toXASMISAFormat()
+        return super()._to_xasmisa_format()

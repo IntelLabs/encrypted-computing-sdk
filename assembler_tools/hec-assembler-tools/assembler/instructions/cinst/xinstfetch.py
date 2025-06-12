@@ -1,6 +1,10 @@
-﻿from assembler.common import constants
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+from assembler.common import constants
 from assembler.common.cycle_tracking import CycleType
 from .cinstruction import CInstruction
+
 
 class Instruction(CInstruction):
     """
@@ -20,7 +24,7 @@ class Instruction(CInstruction):
     """
 
     @classmethod
-    def _get_OP_NAME_ASM(cls) -> str:
+    def _get_op_name_asm(cls) -> str:
         """
         Returns the ASM name of the operation.
 
@@ -29,13 +33,15 @@ class Instruction(CInstruction):
         """
         return "xinstfetch"
 
-    def __init__(self,
-                 id: int,
-                 xq_dst: int,
-                 hbm_src: int,
-                 throughput: int = None,
-                 latency: int = None,
-                 comment: str = ""):
+    def __init__(
+        self,
+        id: int,
+        xq_dst: int,
+        hbm_src: int,
+        throughput: int = None,
+        latency: int = None,
+        comment: str = "",
+    ):
         """
         Constructs a new `xinstfetch` CInstruction.
 
@@ -66,20 +72,24 @@ class Instruction(CInstruction):
         Returns a string representation of the Instruction object.
 
         Returns:
-            str: A string representation of the Instruction object, including 
+            str: A string representation of the Instruction object, including
                  its type, name, memory address, ID, xq_dst, hbm_src, throughput, and latency.
         """
-        assert(len(self.dests) > 0)
-        retval=('<{}({}) object at {}>(id={}[0], '
-                  'xq_dst={}, hbm_src={},'
-                  'throughput={}, latency={})').format(type(self).__name__,
-                                                           self.name,
-                                                           hex(id(self)),
-                                                           self.id,
-                                                           self.xq_dst,
-                                                           self.hbm_src,
-                                                           self.throughput,
-                                                           self.latency)
+        assert len(self.dests) > 0
+        retval = (
+            "<{}({}) object at {}>(id={}[0], "
+            "xq_dst={}, hbm_src={},"
+            "throughput={}, latency={})"
+        ).format(
+            type(self).__name__,
+            self.name,
+            hex(id(self)),
+            self.id,
+            self.xq_dst,
+            self.hbm_src,
+            self.throughput,
+            self.latency,
+        )
         return retval
 
     def _set_dests(self, value):
@@ -123,17 +133,26 @@ class Instruction(CInstruction):
             int: The throughput for this instruction. i.e. the number of cycles by which to advance
                  the current cycle counter.
         """
-        if self.xq_dst < 0 or self.xq_dst >= constants.MemoryModel.XINST_QUEUE_MAX_CAPACITY_WORDS:
-            raise RuntimeError(('Invalid `xq_dst` XINST queue destination address. Expected value in range '
-                                '[0, {}), but received {}.'. format(constants.MemoryModel.XINST_QUEUE_MAX_CAPACITY_WORDS,
-                                                                     self.xq_dst)))
+        if (
+            self.xq_dst < 0
+            or self.xq_dst >= constants.MemoryModel.XINST_QUEUE_MAX_CAPACITY_WORDS
+        ):
+            raise RuntimeError(
+                (
+                    "Invalid `xq_dst` XINST queue destination address. Expected value in range "
+                    "[0, {}), but received {}.".format(
+                        constants.MemoryModel.XINST_QUEUE_MAX_CAPACITY_WORDS,
+                        self.xq_dst,
+                    )
+                )
+            )
         if self.hbm_src < 0:
             raise RuntimeError("Invalid `hbm_src` negative HBM address.")
 
         retval = super()._schedule(cycle_count, schedule_id)
         return retval
 
-    def _toCASMISAFormat(self, *extra_args) -> str:
+    def _to_casmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to ASM format.
 
@@ -146,10 +165,10 @@ class Instruction(CInstruction):
         Raises:
             ValueError: If extra arguments are provided.
         """
-        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
+        assert len(self.dests) == Instruction._OP_NUM_DESTS
+        assert len(self.sources) == Instruction._OP_NUM_SOURCES
 
         if extra_args:
-            raise ValueError('`extra_args` not supported.')
+            raise ValueError("`extra_args` not supported.")
 
-        return super()._toCASMISAFormat(self.xq_dst, self.hbm_src)
+        return super()._to_casmisa_format(self.xq_dst, self.hbm_src)
