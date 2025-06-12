@@ -6,7 +6,7 @@ default_language_version:
     python: python3.10
 repos:
     - repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v4.5.0 # Updated 2024/04
+      rev: v5.0.0 # Updated 2025/06
       hooks:
         - id: trailing-whitespace
         - id: end-of-file-fixer
@@ -16,11 +16,11 @@ repos:
           args:
           - --allow-multiple-documents
     - repo: https://github.com/crate-ci/typos
-      rev: v1.20.9 # Updated 2024/04
+      rev: v1.33.1 # Updated 2025/06
       hooks:
         - id: typos
     - repo: https://github.com/Lucas-C/pre-commit-hooks
-      rev: v1.5.1 # Updated 2023/07
+      rev: v1.5.5 # Updated 2025/06
       hooks:
         - id: insert-license
           name: insert-license-shell
@@ -43,12 +43,12 @@ repos:
           files: \.(py)$
           args: [--whitespaces-count, '4']
     - repo: https://github.com/psf/black-pre-commit-mirror
-      rev: 24.4.0 # Updated 2024/04
+      rev: 25.1.0 # Updated 2025/06
       hooks:
         - id: black
           language_version: python3.10
     - repo: https://github.com/pre-commit/mirrors-mypy
-      rev: v1.9.0 # Last checked 2024/04
+      rev: v1.16.0 # Last checked 2025/06
       hooks:
         - id: mypy
     - repo: local
@@ -62,6 +62,7 @@ repos:
           - -rn # Only display messages
           - -sn # Don't display the score
           - --source-roots=p-isa_tools/kerngen # Working directory
+          - --source-roots=assembler_tools/hec-assembler-tools # Added directory
         - id: clang-format-14
           name: clang-format-14
           entry: clang-format-14
