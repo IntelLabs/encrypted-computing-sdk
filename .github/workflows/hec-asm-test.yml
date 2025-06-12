@@ -3,11 +3,11 @@ on:
   push:
     branches: [main]
     paths:
-      -  'encrypted-computing-sdk/assembler_tools/hec-assembler-tools/**'
+      - 'encrypted-computing-sdk/assembler_tools/hec-assembler-tools/**'
   pull_request:
     branches: [main]
     paths:
-      -  'encrypted-computing-sdk/assembler_tools/hec-assembler-tools/**'
+      - 'encrypted-computing-sdk/assembler_tools/hec-assembler-tools/**'
 
 permissions:
   contents: read
