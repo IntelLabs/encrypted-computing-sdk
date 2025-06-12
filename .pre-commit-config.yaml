@@ -62,6 +62,7 @@ repos:
           - -rn # Only display messages
           - -sn # Don't display the score
           - --source-roots=p-isa_tools/kerngen # Working directory
+          - --source-roots=p-isa_tools/program_mapper # Added directory
           - --source-roots=assembler_tools/hec-assembler-tools # Added directory
         - id: clang-format-14
           name: clang-format-14
