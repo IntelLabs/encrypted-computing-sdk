@@ -1,4 +1,7 @@
-﻿import warnings
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+import warnings
 from argparse import Namespace
 
 from assembler.common.cycle_tracking import CycleType
@@ -6,6 +9,7 @@ from assembler.common.decorators import *
 from .xinstruction import XInstruction
 from assembler.memory_model.variable import Variable
 from . import irshuffle
+
 
 class Instruction(XInstruction):
     """
@@ -22,13 +26,17 @@ class Instruction(XInstruction):
     """
 
     # To be initialized from ASM ISA spec
-    _OP_NUM_TOKENS       : int
-    _OP_RMOVE_LATENCY    : int
-    _OP_RMOVE_LATENCY_MAX: int
-    _OP_RMOVE_LATENCY_INC: int
+    _OP_NUM_TOKENS: int
+    _OP_REMOVE_LATENCY: int
+    _OP_REMOVE_LATENCY_MAX: int
+    _OP_REMOVE_LATENCY_INC: int
 
-    __rshuffle_global_cycle_ready = CycleType(0, 0) # Private class attribute to track cycle ready among rshuffles
-    __irshuffle_global_cycle_ready = CycleType(0, 0) # Private class attribute to track the cycle ready based on last irshuffle
+    __rshuffle_global_cycle_ready = CycleType(
+        0, 0
+    )  # Private class attribute to track cycle ready among rshuffles
+    __irshuffle_global_cycle_ready = CycleType(
+        0, 0
+    )  # Private class attribute to track the cycle ready based on last irshuffle
 
     @classmethod
     def isa_spec_as_dict(cls) -> dict:
@@ -36,23 +44,27 @@ class Instruction(XInstruction):
         Returns isa_spec attributes as dictionary.
         """
         dict = super().isa_spec_as_dict()
-        dict.update({"num_tokens": cls._OP_NUM_TOKENS,
-                     "special_latency_max": cls._OP_RMOVE_LATENCY_MAX,
-                     "special_latency_increment": cls._OP_RMOVE_LATENCY_INC})
+        dict.update(
+            {
+                "num_tokens": cls._OP_NUM_TOKENS,
+                "special_latency_max": cls._OP_REMOVE_LATENCY_MAX,
+                "special_latency_increment": cls._OP_REMOVE_LATENCY_INC,
+            }
+        )
         return dict
-    
+
     @classmethod
     def SetNumTokens(cls, val):
         cls._OP_NUM_TOKENS = val
 
     @classmethod
     def SetSpecialLatencyMax(cls, val):
-        cls._OP_RMOVE_LATENCY_MAX = val
+        cls._OP_REMOVE_LATENCY_MAX = val
 
     @classmethod
     def SetSpecialLatencyIncrement(cls, val):
-        cls._OP_RMOVE_LATENCY_INC = val
-        cls._OP_RMOVE_LATENCY = cls._OP_RMOVE_LATENCY_INC
+        cls._OP_REMOVE_LATENCY_INC = val
+        cls._OP_REMOVE_LATENCY = cls._OP_REMOVE_LATENCY_INC
 
     @classproperty
     def SpecialLatency(cls):
@@ -63,7 +75,7 @@ class Instruction(XInstruction):
         Returns:
             int: The special latency for rshuffle instructions.
         """
-        return cls._OP_RMOVE_LATENCY
+        return cls._OP_REMOVE_LATENCY
 
     @classproperty
     def SpecialLatencyMax(cls):
@@ -74,7 +86,7 @@ class Instruction(XInstruction):
         Returns:
             int: The maximum special latency for rshuffle instructions.
         """
-        return cls._OP_RMOVE_LATENCY_MAX
+        return cls._OP_REMOVE_LATENCY_MAX
 
     @classproperty
     def SpecialLatencyIncrement(cls):
@@ -85,7 +97,7 @@ class Instruction(XInstruction):
         Returns:
             int: The increment for special latency for rshuffle instructions.
         """
-        return cls._OP_RMOVE_LATENCY_INC
+        return cls._OP_REMOVE_LATENCY_INC
 
     @classproperty
     def RSHUFFLE_DATA_TYPE(cls):
@@ -126,31 +138,33 @@ class Instruction(XInstruction):
             None: If an `rshuffle` could not be parsed from the input.
         """
         retval = None
-        tokens = XInstruction.tokenizeFromPISALine(cls.OP_NAME_PISA, line)
+        tokens = XInstruction.tokenizeFromPISALine(cls.op_name_pisa, line)
         if tokens:
             retval = {"comment": tokens[1]}
             instr_tokens = tokens[0]
             if len(instr_tokens) > cls._OP_NUM_TOKENS:
-                warnings.warn(f'Extra tokens detected for instruction "{cls.OP_NAME_PISA}"', SyntaxWarning)
+                warnings.warn(
+                    f'Extra tokens detected for instruction "{cls.op_name_pisa}"',
+                    SyntaxWarning,
+                )
 
             retval["N"] = int(instr_tokens[0])
             retval["op_name"] = instr_tokens[1]
             params_start = 2
             params_end = params_start + cls._OP_NUM_DESTS + cls._OP_NUM_SOURCES
-            dst_src = cls.parsePISASourceDestsFromTokens(instr_tokens,
-                                                         cls._OP_NUM_DESTS,
-                                                         cls._OP_NUM_SOURCES,
-                                                         params_start)
+            dst_src = cls.parsePISASourceDestsFromTokens(
+                instr_tokens, cls._OP_NUM_DESTS, cls._OP_NUM_SOURCES, params_start
+            )
             retval.update(dst_src)
             # Ignore "res", but make sure it exists (syntax)
-            assert(instr_tokens[params_end] is not None)
+            assert instr_tokens[params_end] is not None
 
             retval = Namespace(**retval)
-            assert(retval.op_name == cls.OP_NAME_PISA)
+            assert retval.op_name == cls.op_name_pisa
         return retval
 
     @classmethod
-    def _get_OP_NAME_ASM(cls) -> str:
+    def _get_op_name_asm(cls) -> str:
         """
         Returns the ASM name of the operation.
 
@@ -159,15 +173,17 @@ class Instruction(XInstruction):
         """
         return "rshuffle"
 
-    def __init__(self,
-                 id: int,
-                 N: int,
-                 dst: list,
-                 src: list,
-                 wait_cyc: int = 0,
-                 throughput: int = None,
-                 latency: int = None,
-                 comment: str = ""):
+    def __init__(
+        self,
+        id: int,
+        N: int,
+        dst: list,
+        src: list,
+        wait_cyc: int = 0,
+        throughput: int = None,
+        latency: int = None,
+        comment: str = "",
+    ):
         """
         Constructs a new `rshuffle` XInstruction.
 
@@ -188,9 +204,13 @@ class Instruction(XInstruction):
             throughput = Instruction._OP_DEFAULT_THROUGHPUT
         if not latency:
             latency = Instruction._OP_DEFAULT_LATENCY
-        if latency < Instruction._OP_RMOVE_LATENCY:
-            raise ValueError((f'`latency`: expected a value greater than or equal to '
-                              '{Instruction._OP_RMOVE_LATENCY}, but {latency} received.'))
+        if latency < Instruction._OP_REMOVE_LATENCY:
+            raise ValueError(
+                (
+                    f"`latency`: expected a value greater than or equal to "
+                    "{Instruction._OP_REMOVE_LATENCY}, but {latency} received."
+                )
+            )
 
         super().__init__(id, N, throughput, latency, comment=comment)
 
@@ -203,18 +223,20 @@ class Instruction(XInstruction):
         Returns a string representation of the Instruction object.
 
         Returns:
-            str: A string representation of the Instruction object, including 
+            str: A string representation of the Instruction object, including
                  its type, name, memory address, ID, destinations, sources, and wait cycles.
         """
-        retval=('<{}({}) object at {}>(id={}[0], '
-                  'dst={}, src={}, '
-                  'wait_cyc={})').format(type(self).__name__,
-                                         self.name,
-                                         hex(id(self)),
-                                         self.id,
-                                         self.dests,
-                                         self.sources,
-                                         self.wait_cyc)
+        retval = (
+            "<{}({}) object at {}>(id={}[0], " "dst={}, src={}, " "wait_cyc={})"
+        ).format(
+            type(self).__name__,
+            self.name,
+            hex(id(self)),
+            self.id,
+            self.dests,
+            self.sources,
+            self.wait_cyc,
+        )
         return retval
 
     @classmethod
@@ -225,7 +247,7 @@ class Instruction(XInstruction):
         Parameters:
             value (CycleType): The cycle type value to set.
         """
-        if (value > cls.__rshuffle_global_cycle_ready):
+        if value > cls.__rshuffle_global_cycle_ready:
             cls.__rshuffle_global_cycle_ready = value
 
     @classmethod
@@ -236,7 +258,7 @@ class Instruction(XInstruction):
         Parameters:
             value (CycleType): The cycle type value to set.
         """
-        if (value > cls.__irshuffle_global_cycle_ready):
+        if value > cls.__irshuffle_global_cycle_ready:
             cls.__irshuffle_global_cycle_ready = value
 
     @classmethod
@@ -261,8 +283,12 @@ class Instruction(XInstruction):
             ValueError: If the number of destinations is incorrect or if the list does not contain `Variable` objects.
         """
         if len(value) != Instruction._OP_NUM_DESTS:
-            raise ValueError((f"`value`: Expected list of {Instruction._OP_NUM_DESTS} Variable objects, "
-                              "but list with {len(value)} elements received."))
+            raise ValueError(
+                (
+                    f"`value`: Expected list of {Instruction._OP_NUM_DESTS} Variable objects, "
+                    "but list with {len(value)} elements received."
+                )
+            )
         if not all(isinstance(x, Variable) for x in value):
             raise ValueError("`value`: Expected list of Variable objects.")
         super()._set_dests(value)
@@ -278,8 +304,12 @@ class Instruction(XInstruction):
             ValueError: If the number of sources is incorrect or if the list does not contain `Variable` objects.
         """
         if len(value) != Instruction._OP_NUM_SOURCES:
-            raise ValueError((f"`value`: Expected list of {Instruction._OP_NUM_SOURCES} Variable objects, "
-                              "but list with {len(value)} elements received."))
+            raise ValueError(
+                (
+                    f"`value`: Expected list of {Instruction._OP_NUM_SOURCES} Variable objects, "
+                    "but list with {len(value)} elements received."
+                )
+            )
         if not all(isinstance(x, Variable) for x in value):
             raise ValueError("`value`: Expected list of Variable objects.")
         super()._set_sources(value)
@@ -295,11 +325,13 @@ class Instruction(XInstruction):
         """
         # This will return the maximum cycle ready among this instruction
         # sources and the global cycles-ready for other rshuffles and other irshuffles.
-        # An rshuffle cannot be within _OP_RMOVE_LATENCY cycles from another rshuffle,
+        # An rshuffle cannot be within _OP_REMOVE_LATENCY cycles from another rshuffle,
         # nor within _OP_DEFAULT_LATENCY cycles from another irshuffle.
-        return max(super()._get_cycle_ready(),
-                   Instruction.__irshuffle_global_cycle_ready,
-                   Instruction.__rshuffle_global_cycle_ready)
+        return max(
+            super()._get_cycle_ready(),
+            Instruction.__irshuffle_global_cycle_ready,
+            Instruction.__rshuffle_global_cycle_ready,
+        )
 
     def _schedule(self, cycle_count: CycleType, schedule_id: int) -> int:
         """
@@ -324,13 +356,19 @@ class Instruction(XInstruction):
         """
         original_throughput = super()._schedule(cycle_count, schedule_id)
         retval = self.throughput + self.wait_cyc
-        assert(original_throughput <= retval)
-        Instruction.__set_rshuffleGlobalCycleReady(CycleType(cycle_count.bundle, cycle_count.cycle + Instruction._OP_RMOVE_LATENCY))
+        assert original_throughput <= retval
+        Instruction.__set_rshuffleGlobalCycleReady(
+            CycleType(
+                cycle_count.bundle, cycle_count.cycle + Instruction._OP_REMOVE_LATENCY
+            )
+        )
         # Avoid rshuffles and irshuffles in the same bundle
-        irshuffle.Instruction.set_rshuffleGlobalCycleReady(CycleType(cycle_count.bundle + 1, 0))
+        irshuffle.Instruction.set_rshuffleGlobalCycleReady(
+            CycleType(cycle_count.bundle + 1, 0)
+        )
         return retval
 
-    def _toPISAFormat(self, *extra_args) -> str:
+    def _to_pisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to kernel format.
 
@@ -343,16 +381,16 @@ class Instruction(XInstruction):
         Raises:
             ValueError: If extra arguments are provided.
         """
-        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
+        assert len(self.dests) == Instruction._OP_NUM_DESTS
+        assert len(self.sources) == Instruction._OP_NUM_SOURCES
 
         if extra_args:
-            raise ValueError('`extra_args` not supported.')
+            raise ValueError("`extra_args` not supported.")
 
         # N, rshuffle, dst0, dst1, src0, src1, res=0 # comment
-        return super()._toPISAFormat(0)
+        return super()._to_pisa_format(0)
 
-    def _toXASMISAFormat(self, *extra_args) -> str:
+    def _to_xasmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to ASM format.
 
@@ -365,11 +403,11 @@ class Instruction(XInstruction):
         Raises:
             ValueError: If extra arguments are provided.
         """
-        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
+        assert len(self.dests) == Instruction._OP_NUM_DESTS
+        assert len(self.sources) == Instruction._OP_NUM_SOURCES
 
         if extra_args:
-            raise ValueError('`extra_args` not supported.')
+            raise ValueError("`extra_args` not supported.")
 
         # id[0], N, op, dst_register0, dst_register1, src_register0, src_register1, wait_cycle, data_type="ntt", res=0 [# comment]
-        return super()._toXASMISAFormat(self.wait_cyc, self.RSHUFFLE_DATA_TYPE)
+        return super()._to_xasmisa_format(self.wait_cyc, self.RSHUFFLE_DATA_TYPE)

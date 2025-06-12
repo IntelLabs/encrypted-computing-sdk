@@ -51,7 +51,7 @@ def dependency_graph_for_vars(insts_list: list) -> Tuple[nx.Graph, set, set]:
                 v_next = inst.dests[v_i]
                 if v.name == v_next.name:
                     raise RuntimeError(
-                        f"Cannot write to the same variable in the same instruction more than once: {inst.toPISAFormat()}"
+                        f"Cannot write to the same variable in the same instruction more than once: {inst.to_pisa_format()}"
                     )
                 if not retval.has_edge(v.name, v_next.name):
                     retval.add_edge(v.name, v_next.name)
@@ -68,7 +68,7 @@ def dependency_graph_for_vars(insts_list: list) -> Tuple[nx.Graph, set, set]:
                 v_next = inst_all_sources[v_i]
                 if v.name == v_next.name:
                     raise RuntimeError(
-                        f"Cannot read from the same variable in the same instruction more than once: {inst.toPISAFormat()}"
+                        f"Cannot read from the same variable in the same instruction more than once: {inst.to_pisa_format()}"
                     )
                 if not retval.has_edge(v.name, v_next.name):
                     retval.add_edge(v.name, v_next.name)
@@ -250,14 +250,14 @@ def assign_register_banks_to_vars(
 def ntt_kernel_grammar(line):
     """Parse NTT kernel grammar from a line."""
     return parse_xntt.parseXNTTKernelLine(
-        line, xinst.NTT.OP_NAME_PISA, Constants.TW_GRAMMAR_SEPARATOR
+        line, xinst.NTT.op_name_pisa, Constants.TW_GRAMMAR_SEPARATOR
     )
 
 
 def intt_kernel_grammar(line):
     """Parse INTT kernel grammar from a line."""
     return parse_xntt.parseXNTTKernelLine(
-        line, xinst.iNTT.OP_NAME_PISA, Constants.TW_GRAMMAR_SEPARATOR
+        line, xinst.iNTT.op_name_pisa, Constants.TW_GRAMMAR_SEPARATOR
     )
 
 

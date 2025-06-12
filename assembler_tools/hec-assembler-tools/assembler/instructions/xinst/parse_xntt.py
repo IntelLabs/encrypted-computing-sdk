@@ -1,4 +1,7 @@
-﻿import warnings
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+import warnings
 
 from argparse import Namespace
 
@@ -8,9 +11,8 @@ from assembler.memory_model import MemoryModel
 
 __xntt_id = 0
 
-def parseXNTTKernelLine(line: str,
-                        op_name: str,
-                        tw_separator: str) -> Namespace:
+
+def parseXNTTKernelLine(line: str, op_name: str, tw_separator: str) -> Namespace:
     """
     Parses an `xntt` instruction from a P-ISA kernel instruction string.
 
@@ -37,9 +39,9 @@ def parseXNTTKernelLine(line: str,
         None: If an `xntt` could not be parsed from the input.
     """
 
-    OP_NUM_DESTS   = 2
+    OP_NUM_DESTS = 2
     OP_NUM_SOURCES = 2
-    OP_NUM_TOKENS  = 8
+    OP_NUM_TOKENS = 8
 
     retval = None
     tokens = xinst.XInstruction.tokenizeFromPISALine(op_name, line)
@@ -48,16 +50,17 @@ def parseXNTTKernelLine(line: str,
         instr_tokens = tokens[0]
 
         if len(instr_tokens) > OP_NUM_TOKENS:
-            warnings.warn(f'Extra tokens detected for instruction "{op_name}"', SyntaxWarning)
+            warnings.warn(
+                f'Extra tokens detected for instruction "{op_name}"', SyntaxWarning
+            )
 
         retval["N"] = int(instr_tokens[0])
         retval["op_name"] = instr_tokens[1]
         params_start = 2
         params_end = params_start + OP_NUM_DESTS + OP_NUM_SOURCES
-        dst_src = xinst.XInstruction.parsePISASourceDestsFromTokens(instr_tokens,
-                                                                    OP_NUM_DESTS,
-                                                                    OP_NUM_SOURCES,
-                                                                    params_start)
+        dst_src = xinst.XInstruction.parsePISASourceDestsFromTokens(
+            instr_tokens, OP_NUM_DESTS, OP_NUM_SOURCES, params_start
+        )
         retval.update(dst_src)
         twiddle = instr_tokens[params_end]
         retval["res"] = int(instr_tokens[params_end + 1])
@@ -65,17 +68,24 @@ def parseXNTTKernelLine(line: str,
         # Parse twiddle (w_<res>_<stage>_<block>, where "_" is the `tw_separator`)
         twiddle_tokens = list(map(lambda s: s.strip(), twiddle.split(tw_separator)))
         if len(twiddle_tokens) != 4:
-            raise ValueError(f'Error parsing twiddle information for "{op_name}" in line "{line}".')
+            raise ValueError(
+                f'Error parsing twiddle information for "{op_name}" in line "{line}".'
+            )
         if twiddle_tokens[0] != "w":
-            raise ValueError(f'Invalid twiddle detected for "{op_name}" in line "{line}".')
+            raise ValueError(
+                f'Invalid twiddle detected for "{op_name}" in line "{line}".'
+            )
         if int(twiddle_tokens[1]) != retval["res"]:
-            raise ValueError(f'Invalid "residual" component detected in twiddle information for "{op_name}" in line "{line}".')
+            raise ValueError(
+                f'Invalid "residual" component detected in twiddle information for "{op_name}" in line "{line}".'
+            )
         retval["stage"] = int(twiddle_tokens[2])
         retval["block"] = int(twiddle_tokens[3])
 
         retval = Namespace(**retval)
-        assert(retval.op_name == op_name)
+        assert retval.op_name == op_name
     return retval
+
 
 def __generateRMoveParsedOp(kntt_parsed_op: Namespace) -> (type, Namespace):
     """
@@ -96,22 +106,27 @@ def __generateRMoveParsedOp(kntt_parsed_op: Namespace) -> (type, Namespace):
     parsed_op["src"] = []
     parsed_op["comment"] = ""
 
-    if kntt_parsed_op.op_name == xinst.NTT.OP_NAME_PISA:
+    if kntt_parsed_op.op_name == xinst.NTT.op_name_pisa:
         xrshuffle_type = xinst.rShuffle
         parsed_op["dst"] = [d for d in kntt_parsed_op.dst]
-    elif kntt_parsed_op.op_name == xinst.iNTT.OP_NAME_PISA:
+    elif kntt_parsed_op.op_name == xinst.iNTT.op_name_pisa:
         xrshuffle_type = xinst.irShuffle
         parsed_op["dst"] = [s for s in kntt_parsed_op.src]
     else:
-        raise ValueError('`kntt_parsed_op`: cannot process operation with name "{}".'.format(kntt_parsed_op.op_name))
+        raise ValueError(
+            '`kntt_parsed_op`: cannot process operation with name "{}".'.format(
+                kntt_parsed_op.op_name
+            )
+        )
 
-    assert(xrshuffle_type)
+    assert xrshuffle_type
 
     parsed_op["src"] = parsed_op["dst"]
-    parsed_op["op_name"] = xrshuffle_type.OP_NAME_PISA
+    parsed_op["op_name"] = xrshuffle_type.op_name_pisa
 
     # rshuffle goes above corresponding intt or below corresponding ntt
     return xrshuffle_type, Namespace(**parsed_op)
+
 
 def __generateTWNTTParsedOp(xntt_parsed_op: Namespace) -> Namespace:
     """
@@ -124,13 +139,13 @@ def __generateTWNTTParsedOp(xntt_parsed_op: Namespace) -> Namespace:
         tuple: A tuple containing the twxntt type, a Namespace with the parsed operation, and a tuple with the twiddle variable name and suggested bank.
                The twxntt type is None if a twxntt is not needed for the specified xntt.
     """
-    global __xntt_id # TODO: replace by unique ID once it gets integrated into the P-ISA kernel.
+    global __xntt_id  # TODO: replace by unique ID once it gets integrated into the P-ISA kernel.
 
     retval = None
 
     parsed_op = {}
     parsed_op["N"] = xntt_parsed_op.N
-    parsed_op["op_name"] = 'tw' + str(xntt_parsed_op.op_name)
+    parsed_op["op_name"] = "tw" + str(xntt_parsed_op.op_name)
     parsed_op["res"] = xntt_parsed_op.res
     parsed_op["stage"] = xntt_parsed_op.stage
     parsed_op["block"] = xntt_parsed_op.block
@@ -140,11 +155,18 @@ def __generateTWNTTParsedOp(xntt_parsed_op: Namespace) -> Namespace:
     parsed_op["comment"] = ""
 
     # Find types depending on whether we are doing ntt or intt
-    twxntt_type = next((t for t in (xinst.twNTT, xinst.twiNTT) if t.OP_NAME_PISA == parsed_op["op_name"]), None)
-    assert(twxntt_type)
+    twxntt_type = next(
+        (
+            t
+            for t in (xinst.twNTT, xinst.twiNTT)
+            if t.op_name_pisa == parsed_op["op_name"]
+        ),
+        None,
+    )
+    assert twxntt_type
 
     # Adapted from legacy code add_tw_xntt
-    #-------------------------------------
+    # -------------------------------------
 
     ringsize = int(parsed_op["N"])
     rminustwo = ringsize - 2
@@ -153,16 +175,16 @@ def __generateTWNTTParsedOp(xntt_parsed_op: Namespace) -> Namespace:
 
     # Generate meta data look-up
     meta_rns_term = rns_term % constants.MemoryModel.MAX_RESIDUALS
-    mdata_word_sel = meta_rns_term >> 1 # 5bit word select
+    mdata_word_sel = meta_rns_term >> 1  # 5bit word select
     mdata_inword_res_sel = meta_rns_term & 1
     mdata_inword_stage_sel = rminustwo - stage
     if twxntt_type == xinst.twiNTT:
-        mdata_inword_ntt_sel = 1 # Select intt field
-    else: # xinst.twNTT
-        mdata_inword_ntt_sel = 0 # Select ntt field
-    mdata_ptr = (mdata_word_sel << 6)
-    mdata_ptr |= (mdata_inword_res_sel << 5)
-    mdata_ptr |= (mdata_inword_ntt_sel << 4)
+        mdata_inword_ntt_sel = 1  # Select intt field
+    else:  # xinst.twNTT
+        mdata_inword_ntt_sel = 0  # Select ntt field
+    mdata_ptr = mdata_word_sel << 6
+    mdata_ptr |= mdata_inword_res_sel << 5
+    mdata_ptr |= mdata_inword_ntt_sel << 4
     mdata_ptr |= mdata_inword_stage_sel
 
     block = int(parsed_op["block"])
@@ -171,12 +193,20 @@ def __generateTWNTTParsedOp(xntt_parsed_op: Namespace) -> Namespace:
         __xntt_id += 1
 
     # Generate twiddle variable name
-    tw_var_name_bank = ("w_gen_{}_{}_{}_{}".format(mdata_inword_ntt_sel, __xntt_id, rns_term, block), 1)
+    tw_var_name_bank = (
+        "w_gen_{}_{}_{}_{}".format(mdata_inword_ntt_sel, __xntt_id, rns_term, block),
+        1,
+    )
 
-    meta_data_comment  = "{} {} ".format(mdata_word_sel, mdata_inword_res_sel)
-    meta_data_comment += "{} {} w_{}_{}_{}".format(mdata_inword_ntt_sel, mdata_inword_stage_sel,
-                                                   # hop_list[6]
-                                                   parsed_op["res"], parsed_op["stage"], parsed_op["block"])
+    meta_data_comment = "{} {} ".format(mdata_word_sel, mdata_inword_res_sel)
+    meta_data_comment += "{} {} w_{}_{}_{}".format(
+        mdata_inword_ntt_sel,
+        mdata_inword_stage_sel,
+        # hop_list[6]
+        parsed_op["res"],
+        parsed_op["stage"],
+        parsed_op["block"],
+    )
 
     parsed_op["dst"] = [tw_var_name_bank]
     parsed_op["src"] = [tw_var_name_bank]
@@ -194,9 +224,10 @@ def __generateTWNTTParsedOp(xntt_parsed_op: Namespace) -> Namespace:
 
     return retval, Namespace(**parsed_op), tw_var_name_bank
 
-def generateXNTT(mem_model: MemoryModel,
-                 xntt_parsed_op: Namespace,
-                 new_id: int = 0) -> list:
+
+def generateXNTT(
+    mem_model: MemoryModel, xntt_parsed_op: Namespace, new_id: int = 0
+) -> list:
     """
     Parses an `xntt` instruction from a P-ISA kernel instruction string.
 
@@ -216,32 +247,51 @@ def generateXNTT(mem_model: MemoryModel,
     retval = []
 
     # Find xntt type depending on whether we are doing ntt or intt
-    xntt_type = next((t for t in (xinst.NTT, xinst.iNTT) if t.OP_NAME_PISA == xntt_parsed_op.op_name), None)
+    xntt_type = next(
+        (
+            t
+            for t in (xinst.NTT, xinst.iNTT)
+            if t.op_name_pisa == xntt_parsed_op.op_name
+        ),
+        None,
+    )
     if not xntt_type:
-        raise ValueError('`xntt_parsed_op`: cannot process parsed kernel operation with name "{}".'.format(xntt_parsed_op.op_name))
+        raise ValueError(
+            '`xntt_parsed_op`: cannot process parsed kernel operation with name "{}".'.format(
+                xntt_parsed_op.op_name
+            )
+        )
 
     # Generate twiddle instruction
-    #-----------------------------
+    # -----------------------------
 
-    twxntt_type, twxntt_parsed_op, last_twxinput_name = __generateTWNTTParsedOp(xntt_parsed_op)
+    twxntt_type, twxntt_parsed_op, last_twxinput_name = __generateTWNTTParsedOp(
+        xntt_parsed_op
+    )
     # print(twxntt_parsed_op)
     twxntt_inst = None
     if twxntt_type:
-        twxntt_inst = xinst.createFromParsedObj(mem_model, twxntt_type, twxntt_parsed_op, new_id)
+        twxntt_inst = xinst.createFromParsedObj(
+            mem_model, twxntt_type, twxntt_parsed_op, new_id
+        )
 
     # Generate corresponding rshuffle
-    #-----------------------------
+    # -----------------------------
 
     rshuffle_type, rshuffle_parsed_op = __generateRMoveParsedOp(xntt_parsed_op)
-    rshuffle_parsed_op.comment += (" " + twxntt_parsed_op.comment) if twxntt_parsed_op else ""
-    rshuffle_inst = xinst.createFromParsedObj(mem_model, rshuffle_type, rshuffle_parsed_op, new_id)
+    rshuffle_parsed_op.comment += (
+        (" " + twxntt_parsed_op.comment) if twxntt_parsed_op else ""
+    )
+    rshuffle_inst = xinst.createFromParsedObj(
+        mem_model, rshuffle_type, rshuffle_parsed_op, new_id
+    )
 
     # Generate xntt instruction
-    #--------------------------
+    # --------------------------
 
     # Prepare arguments for ASM ntt instruction object construction
     if twxntt_parsed_op:
-        assert(twxntt_parsed_op.stage == xntt_parsed_op.stage)
+        assert twxntt_parsed_op.stage == xntt_parsed_op.stage
     delattr(xntt_parsed_op, "block")
     xntt_parsed_op.src.append(last_twxinput_name)
     xntt_parsed_op.comment += twxntt_parsed_op.comment if twxntt_parsed_op else ""
@@ -250,18 +300,18 @@ def generateXNTT(mem_model: MemoryModel,
     xntt_inst = xinst.createFromParsedObj(mem_model, xntt_type, xntt_parsed_op, new_id)
 
     # Add instructions to return list
-    #--------------------------------
+    # --------------------------------
 
-    retval = [xntt_inst] # xntt
+    retval = [xntt_inst]  # xntt
 
-    if xntt_type == xinst.iNTT: # rshuffle
+    if xntt_type == xinst.iNTT:  # rshuffle
         # rshuffle goes above corresponding intt
         retval = [rshuffle_inst] + retval
     else:
         # rshuffle goes below corresponding ntt
         retval.append(rshuffle_inst)
 
-    if twxntt_inst: # twiddle
+    if twxntt_inst:  # twiddle
         retval.append(twxntt_inst)
 
     return retval
