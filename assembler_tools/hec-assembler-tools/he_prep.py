@@ -17,8 +17,8 @@ Functions:
         Parses command-line arguments for the preprocessing script.
 
 Usage:
-    This script is intended to be run as a standalone program. It requires specific command-line
-    arguments to specify input and output files and verbosity options for the preprocessing process.
+    This script is intended to be run as a standalone program. It requires specific command-line arguments
+    to specify input and output files and verbosity options for the preprocessing process.
 
 """
 import argparse
