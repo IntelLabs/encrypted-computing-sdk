@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: encrypted-computing-sdk/assembler_tools/hec-assembler-tools
+        working-directory: assembler_tools/hec-assembler-tools
     steps:
       - uses: actions/checkout@v4
 
