@@ -1,13 +1,17 @@
-﻿from assembler.common.cycle_tracking import CycleType
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+from assembler.common.cycle_tracking import CycleType
 from .cinstruction import CInstruction
 from assembler.memory_model.variable import Variable
+
 
 class Instruction(CInstruction):
     """
     Encapsulates the `bload` CInstruction.
 
     The `bload` instruction loads metadata from the scratchpad to special registers in the register file.
-    
+
     For more information, check the `bload` Specification:
         https://github.com/IntelLabs/hec-assembler-tools/blob/master/docsrc/inst_spec/cinst/cinst_bload.md
 
@@ -18,7 +22,7 @@ class Instruction(CInstruction):
     """
 
     @classmethod
-    def _get_OP_NAME_ASM(cls) -> str:
+    def _get_op_name_asm(cls) -> str:
         """
         Returns the ASM name for the operation.
 
@@ -27,15 +31,17 @@ class Instruction(CInstruction):
         """
         return "bload"
 
-    def __init__(self,
-                 id: int,
-                 col_num: int,
-                 m_idx: int,
-                 src: Variable,
-                 mem_model,
-                 throughput : int = None,
-                 latency : int = None,
-                 comment: str = ""):
+    def __init__(
+        self,
+        id: int,
+        col_num: int,
+        m_idx: int,
+        src: Variable,
+        mem_model,
+        throughput: int = None,
+        latency: int = None,
+        comment: str = "",
+    ):
         """
         Constructs a new `bload` CInstruction.
 
@@ -53,7 +59,7 @@ class Instruction(CInstruction):
             ValueError: If `mem_model` is None.
         """
         if not mem_model:
-            raise ValueError('`mem_model` cannot be `None`.')
+            raise ValueError("`mem_model` cannot be `None`.")
         if not throughput:
             throughput = Instruction._OP_DEFAULT_THROUGHPUT
         if not latency:
@@ -62,7 +68,7 @@ class Instruction(CInstruction):
         self.col_num = col_num
         self.m_idx = m_idx
         self.__mem_model = mem_model
-        self._set_sources( [ src ] )
+        self._set_sources([src])
 
     def __repr__(self):
         """
@@ -71,19 +77,23 @@ class Instruction(CInstruction):
         Returns:
             str: A string representation.
         """
-        assert(len(self.sources) > 0)
-        retval=('<{}({}) object at {}>(id={}[0], '
-                  'col_num={}, m_idx={}, src={}, '
-                  'mem_model, '
-                  'throughput={}, latency={})').format(type(self).__name__,
-                                                           self.name,
-                                                           hex(id(self)),
-                                                           self.id,
-                                                           self.col_num,
-                                                           self.m_idx,
-                                                           self.sources[0],
-                                                           self.throughput,
-                                                           self.latency)
+        assert len(self.sources) > 0
+        retval = (
+            "<{}({}) object at {}>(id={}[0], "
+            "col_num={}, m_idx={}, src={}, "
+            "mem_model, "
+            "throughput={}, latency={})"
+        ).format(
+            type(self).__name__,
+            self.name,
+            hex(id(self)),
+            self.id,
+            self.col_num,
+            self.m_idx,
+            self.sources[0],
+            self.throughput,
+            self.latency,
+        )
         return retval
 
     def _set_dests(self, value):
@@ -96,7 +106,9 @@ class Instruction(CInstruction):
         Raises:
             RuntimeError: Always, as `bload` does not have destination parameters.
         """
-        raise RuntimeError(f"Instruction `{self.name}` does not have destination parameters.")
+        raise RuntimeError(
+            f"Instruction `{self.name}` does not have destination parameters."
+        )
 
     def _set_sources(self, value):
         """
@@ -109,9 +121,14 @@ class Instruction(CInstruction):
             ValueError: If the value is not a list of the expected number of `Variable` objects.
         """
         if len(value) != Instruction._OP_NUM_SOURCES:
-            raise ValueError(("`value`: Expected list of {} `Variable` objects, "
-                              "but list with {} elements received.".format(Instruction._OP_NUM_SOURCES,
-                                                                           len(value))))
+            raise ValueError(
+                (
+                    "`value`: Expected list of {} `Variable` objects, "
+                    "but list with {} elements received.".format(
+                        Instruction._OP_NUM_SOURCES, len(value)
+                    )
+                )
+            )
         if not all(isinstance(x, Variable) for x in value):
             raise ValueError("`value`: Expected list of `Variable` objects.")
         super()._set_sources(value)
@@ -131,25 +148,34 @@ class Instruction(CInstruction):
             int: The throughput for this instruction, i.e., the number of cycles by which to advance
             the current cycle counter.
         """
-        assert(Instruction._OP_NUM_SOURCES > 0 and len(self.sources) == Instruction._OP_NUM_SOURCES)
+        assert (
+            Instruction._OP_NUM_SOURCES > 0
+            and len(self.sources) == Instruction._OP_NUM_SOURCES
+        )
 
-        variable: Variable = self.sources[0] # expected sources to contain a Variable
+        variable: Variable = self.sources[0]  # expected sources to contain a Variable
         if variable.spad_address < 0:
-            raise RuntimeError(f'Null Access Violation: Variable "{variable}" not allocated in SPAD.')
+            raise RuntimeError(
+                f'Null Access Violation: Variable "{variable}" not allocated in SPAD.'
+            )
         if self.m_idx < 0:
             raise RuntimeError(f"Invalid negative index `m_idx`.")
         if self.col_num not in range(4):
-            raise RuntimeError(f"Invalid `col_num`: {self.col_num}. Must be in range [0, 4).")
+            raise RuntimeError(
+                f"Invalid `col_num`: {self.col_num}. Must be in range [0, 4)."
+            )
 
         retval = super()._schedule(cycle_count, schedule_id)
         # Track last access to SPAD address
-        spad_access_tracking = self.__mem_model.spad.getAccessTracking(variable.spad_address)
+        spad_access_tracking = self.__mem_model.spad.getAccessTracking(
+            variable.spad_address
+        )
         spad_access_tracking.last_cload = self
         # No need to sync to any previous MLoads after bload
         spad_access_tracking.last_mload = None
         return retval
 
-    def _toCASMISAFormat(self, *extra_args) -> str:
+    def _to_casmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to ASM format.
 
@@ -162,20 +188,18 @@ class Instruction(CInstruction):
         Returns:
             str: The ASM format string of the instruction.
         """
-        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
+        assert len(self.dests) == Instruction._OP_NUM_DESTS
+        assert len(self.sources) == Instruction._OP_NUM_SOURCES
 
         if extra_args:
-            raise ValueError('`extra_args` not supported.')
+            raise ValueError("`extra_args` not supported.")
 
         # `op, target_idx, spad_src [# comment]`
         preamble = []
         # Instruction sources
-        extra_args = (self.col_num, )
-        extra_args = tuple(src.toCASMISAFormat() for src in self.sources) + extra_args
+        extra_args = (self.col_num,)
+        extra_args = tuple(src.to_casmisa_format() for src in self.sources) + extra_args
         # Instruction destinations
-        extra_args = tuple(dst.toCASMISAFormat() for dst in self.dests) + extra_args
-        extra_args = (self.m_idx, ) + extra_args
-        return self.toStringFormat(preamble,
-                                   self.OP_NAME_ASM,
-                                   *extra_args)
+        extra_args = tuple(dst.to_casmisa_format() for dst in self.dests) + extra_args
+        extra_args = (self.m_idx,) + extra_args
+        return self.to_string_format(preamble, self.op_name_asm, *extra_args)

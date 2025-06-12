@@ -1,5 +1,12 @@
-﻿from assembler.common.cycle_tracking import CycleType
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""CInstruction base class for C-instructions in the assembler."""
+
+from typing import List, Any
+from assembler.common.cycle_tracking import CycleType
 from ..instruction import BaseInstruction
+
 
 class CInstruction(BaseInstruction):
     """
@@ -18,22 +25,33 @@ class CInstruction(BaseInstruction):
     # Constructor
     # -----------
 
-    def __init__(self,
-                 id: int,
-                 throughput : int,
-                 latency : int,
-                 comment: str = ""):
+    def __init__(
+        self, instruction_id: int, throughput: int, latency: int, comment: str = ""
+    ):
         """
         Constructs a new CInstruction.
 
         Parameters:
-            id (int): User-defined ID for the instruction. It will be bundled with a nonce to form a unique ID.
+            instruction_id (int): User-defined ID for the instruction. It will be bundled with a nonce to form a unique ID.
             throughput (int): The throughput of the instruction.
             latency (int): The latency of the instruction.
             comment (str, optional): An optional comment for the instruction.
         """
-        super().__init__(id, throughput, latency, comment=comment)
+        super().__init__(instruction_id, throughput, latency, comment=comment)
 
+    @classmethod
+    def _get_op_name_asm(cls) -> str:
+        """
+        Returns the ASM name for the operation.
+
+        This method must be implemented by derived CInstruction classes.
+
+        Returns:
+            str: The ASM name for the operation.
+        """
+        raise NotImplementedError(
+            "Derived CInstruction must implement _get_op_name_asm."
+        )
 
     # Methods and properties
     # ----------------------
@@ -47,9 +65,9 @@ class CInstruction(BaseInstruction):
         Returns:
             CycleType: A CycleType object with bundle and cycle set to 0.
         """
-        return CycleType(bundle = 0, cycle = 0)
+        return CycleType(bundle=0, cycle=0)
 
-    def _toCASMISAFormat(self, *extra_args) -> str:
+    def _to_casmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to CInst ASM-ISA format.
 
@@ -63,11 +81,9 @@ class CInstruction(BaseInstruction):
             str: The CInst ASM-ISA format string of the instruction.
         """
 
-        preamble = []
+        preamble: List[Any] = []
         # instruction sources
-        extra_args = tuple(src.toCASMISAFormat() for src in self.sources) + extra_args
+        extra_args = tuple(src.to_casmisa_format() for src in self.sources) + extra_args
         # instruction destinations
-        extra_args = tuple(dst.toCASMISAFormat() for dst in self.dests) + extra_args
-        return self.toStringFormat(preamble,
-                                   self.OP_NAME_ASM,
-                                   *extra_args)
+        extra_args = tuple(dst.to_casmisa_format() for dst in self.dests) + extra_args
+        return self.to_string_format(preamble, self.op_name_asm, *extra_args)

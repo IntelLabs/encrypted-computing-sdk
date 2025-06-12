@@ -1,4 +1,7 @@
 #! /usr/bin/env python3
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 """
 This module provides functionality for assembling pre-processed P-ISA kernel programs into valid assembly code for execution queues: MINST, CINST, and XINST.
 
@@ -50,6 +53,7 @@ DEFAULT_CINST_FILE_EXT = "cinst"
 DEFAULT_MINST_FILE_EXT = "minst"
 DEFAULT_MEM_FILE_EXT = "mem"
 
+
 class AssemblerRunConfig(RunConfig):
     """
     Maintains the configuration data for the run.
@@ -59,7 +63,7 @@ class AssemblerRunConfig(RunConfig):
             Returns the configuration as a dictionary.
     """
 
-    __initialized = False # specifies whether static members have been initialized
+    __initialized = False  # specifies whether static members have been initialized
     # contains the dictionary of all configuration items supported and their
     # default value (or None if no default)
     __default_config = {}
@@ -98,13 +102,15 @@ class AssemblerRunConfig(RunConfig):
         for config_name, default_value in self.__default_config.items():
             value = kwargs.get(config_name)
             if value is not None:
-                assert(not hasattr(self, config_name))
+                assert not hasattr(self, config_name)
                 setattr(self, config_name, value)
             else:
                 if not hasattr(self, config_name):
                     setattr(self, config_name, default_value)
                     if getattr(self, config_name) is None:
-                        raise TypeError(f'Expected value for configuration `{config_name}`, but `None` received.')
+                        raise TypeError(
+                            f"Expected value for configuration `{config_name}`, but `None` received."
+                        )
 
         # class members
         self.input_prefix = ""
@@ -120,8 +126,9 @@ class AssemblerRunConfig(RunConfig):
         self.input_prefix = os.path.splitext(os.path.basename(self.input_file))[0]
 
         if not self.input_mem_file:
-            self.input_mem_file = "{}.{}".format(os.path.join(input_dir, self.input_prefix),
-                                                 DEFAULT_MEM_FILE_EXT)
+            self.input_mem_file = "{}.{}".format(
+                os.path.join(input_dir, self.input_prefix), DEFAULT_MEM_FILE_EXT
+            )
         self.input_mem_file = makeUniquePath(self.input_mem_file)
 
     @classmethod
@@ -130,23 +137,23 @@ class AssemblerRunConfig(RunConfig):
         Initializes static members of the class.
         """
         if not cls.__initialized:
-            cls.__default_config["input_file"]        = None
-            cls.__default_config["input_mem_file"]    = ""
-            cls.__default_config["output_dir"]        = ""
-            cls.__default_config["output_prefix"]     = ""
-            cls.__default_config["has_hbm"]           = True
-            cls.__default_config["hbm_size"]          = cls.DEFAULT_HBM_SIZE_KB
-            cls.__default_config["spad_size"]         = cls.DEFAULT_SPAD_SIZE_KB
-            cls.__default_config["repl_policy"]       = cls.DEFAULT_REPL_POLICY
-            cls.__default_config["use_xinstfetch"]    = GlobalConfig.useXInstFetch
+            cls.__default_config["input_file"] = None
+            cls.__default_config["input_mem_file"] = ""
+            cls.__default_config["output_dir"] = ""
+            cls.__default_config["output_prefix"] = ""
+            cls.__default_config["has_hbm"] = True
+            cls.__default_config["hbm_size"] = cls.DEFAULT_HBM_SIZE_KB
+            cls.__default_config["spad_size"] = cls.DEFAULT_SPAD_SIZE_KB
+            cls.__default_config["repl_policy"] = cls.DEFAULT_REPL_POLICY
+            cls.__default_config["use_xinstfetch"] = GlobalConfig.useXInstFetch
             cls.__default_config["suppress_comments"] = GlobalConfig.suppressComments
-            cls.__default_config["debug_verbose"]     = GlobalConfig.debugVerbose
+            cls.__default_config["debug_verbose"] = GlobalConfig.debugVerbose
             cls.__initialized = True
 
     def __str__(self):
         """
         Provides a string representation of the configuration.
-    
+
         Returns:
             str: The string for the configuration.
         """
@@ -166,14 +173,22 @@ class AssemblerRunConfig(RunConfig):
         """
         retval = super().as_dict()
         tmp_self_dict = vars(self)
-        retval.update({ config_name: tmp_self_dict[config_name] for config_name in self.__default_config })
+        retval.update(
+            {
+                config_name: tmp_self_dict[config_name]
+                for config_name in self.__default_config
+            }
+        )
         return retval
 
-def asmisaAssemble(run_config,
-                   output_minst_filename: str,
-                   output_cinst_filename: str,
-                   output_xinst_filename: str,
-                   b_verbose=True) -> tuple:
+
+def asmisaAssemble(
+    run_config,
+    output_minst_filename: str,
+    output_cinst_filename: str,
+    output_xinst_filename: str,
+    b_verbose=True,
+) -> tuple:
     """
     Assembles the P-ISA kernel into ASM-ISA instructions and saves them to specified output files.
 
@@ -193,21 +208,27 @@ def asmisaAssemble(run_config,
 
     max_bundle_size = 64
 
-    input_filename: str         = run_config.input_file
-    mem_filename: str           = run_config.input_mem_file
-    hbm_capcity_words: int      = constants.convertBytes2Words(run_config.hbm_size * constants.Constants.KILOBYTE)
-    spad_capacity_words: int    = constants.convertBytes2Words(run_config.spad_size * constants.Constants.KILOBYTE)
-    num_register_banks: int     = constants.MemoryModel.NUM_REGISTER_BANKS
-    register_range: range       = None
+    input_filename: str = run_config.input_file
+    mem_filename: str = run_config.input_mem_file
+    hbm_capacity_words: int = constants.convertBytes2Words(
+        run_config.hbm_size * constants.Constants.KILOBYTE
+    )
+    spad_capacity_words: int = constants.convertBytes2Words(
+        run_config.spad_size * constants.Constants.KILOBYTE
+    )
+    num_register_banks: int = constants.MemoryModel.NUM_REGISTER_BANKS
+    register_range: range = None
 
     if b_verbose:
         print("Assembling!")
         print("Reloading kernel from intermediate...")
 
-    hec_mem_model = MemoryModel(hbm_capcity_words, spad_capacity_words, num_register_banks, register_range)
+    hec_mem_model = MemoryModel(
+        hbm_capacity_words, spad_capacity_words, num_register_banks, register_range
+    )
 
     insts_listing = []
-    with open(input_filename, 'r') as insts:
+    with open(input_filename, "r") as insts:
         for line_no, s_line in enumerate(insts, 1):
             parsed_insts = None
             if GlobalConfig.debugVerbose:
@@ -216,35 +237,44 @@ def asmisaAssemble(run_config,
             # instruction is one that is represented by single XInst
             inst = xinst.createFromPISALine(hec_mem_model, s_line, line_no)
             if inst:
-                parsed_insts = [ inst ]
+                parsed_insts = [inst]
 
             if not parsed_insts:
-                raise SyntaxError("Line {}: unable to parse kernel instruction:\n{}".format(line_no, s_line))
+                raise SyntaxError(
+                    "Line {}: unable to parse kernel instruction:\n{}".format(
+                        line_no, s_line
+                    )
+                )
 
             insts_listing += parsed_insts
 
     if b_verbose:
         print("Interpreting variable meta information...")
-    with open(mem_filename, 'r') as mem_ifnum:
+    with open(mem_filename, "r") as mem_ifnum:
         mem_meta_info = mem_info.MemInfo.from_iter(mem_ifnum)
     mem_info.updateMemoryModelWithMemInfo(hec_mem_model, mem_meta_info)
 
     if b_verbose:
         print("Generating dependency graph...")
     start_time = time.time()
-    dep_graph = scheduler.generateInstrDependencyGraph(insts_listing,
-                                                       sys.stdout if b_verbose else None)
-    scheduler.enforceKeygenOrdering(dep_graph, hec_mem_model, sys.stdout if b_verbose else None)
+    dep_graph = scheduler.generateInstrDependencyGraph(
+        insts_listing, sys.stdout if b_verbose else None
+    )
+    scheduler.enforceKeygenOrdering(
+        dep_graph, hec_mem_model, sys.stdout if b_verbose else None
+    )
     deps_end = time.time() - start_time
 
     if b_verbose:
         print("Preparing to schedule ASM-ISA instructions...")
     start_time = time.time()
-    minsts, cinsts, xinsts, num_idle_cycles = scheduleASMISAInstructions(dep_graph,
-                                                                         max_bundle_size, # max number of instructions in a bundle
-                                                                         hec_mem_model,
-                                                                         run_config.repl_policy,
-                                                                         b_verbose)
+    minsts, cinsts, xinsts, num_idle_cycles = scheduleASMISAInstructions(
+        dep_graph,
+        max_bundle_size,  # max number of instructions in a bundle
+        hec_mem_model,
+        run_config.repl_policy,
+        b_verbose,
+    )
     sched_end = time.time() - start_time
     num_nops = 0
     num_xinsts = 0
@@ -252,36 +282,37 @@ def asmisaAssemble(run_config,
         for xinstr in bundle_xinsts:
             num_xinsts += 1
             if isinstance(xinstr, xinst.Exit):
-                break # stop counting instructions after bundle exit
+                break  # stop counting instructions after bundle exit
             if isinstance(xinstr, xinst.Nop):
                 num_nops += 1
 
     if b_verbose:
         print("Saving minst...")
-    with open(output_minst_filename, 'w') as outnum:
+    with open(output_minst_filename, "w") as outnum:
         for idx, inst in enumerate(minsts):
-            inst_line = inst.toMASMISAFormat()
+            inst_line = inst.to_masmisa_format()
             if inst_line:
                 print(f"{idx}, {inst_line}", file=outnum)
 
     if b_verbose:
         print("Saving cinst...")
-    with open(output_cinst_filename, 'w') as outnum:
+    with open(output_cinst_filename, "w") as outnum:
         for idx, inst in enumerate(cinsts):
-            inst_line = inst.toCASMISAFormat()
+            inst_line = inst.to_casmisa_format()
             if inst_line:
                 print(f"{idx}, {inst_line}", file=outnum)
 
     if b_verbose:
         print("Saving xinst...")
-    with open(output_xinst_filename, 'w') as outnum:
+    with open(output_xinst_filename, "w") as outnum:
         for bundle_i, bundle_data in enumerate(xinsts):
             for inst in bundle_data[0]:
-                inst_line = inst.toXASMISAFormat()
+                inst_line = inst.to_xasmisa_format()
                 if inst_line:
                     print(f"F{bundle_i}, {inst_line}", file=outnum)
 
     return num_xinsts, num_nops, num_idle_cycles, deps_end, sched_end
+
 
 def main(config: AssemblerRunConfig, verbose: bool = False):
     """
@@ -303,27 +334,29 @@ def main(config: AssemblerRunConfig, verbose: bool = False):
     config = AssemblerRunConfig(**config.as_dict())
 
     # create output directory to store outputs (if it doesn't already exist)
-    pathlib.Path(config.output_dir).mkdir(exist_ok = True, parents=True)
+    pathlib.Path(config.output_dir).mkdir(exist_ok=True, parents=True)
 
     # initialize output filenames
 
-    output_basef = os.path.join(config.output_dir, config.output_prefix) \
-                   if config.output_prefix \
-                   else os.path.join(config.output_dir, config.input_prefix)
+    output_basef = (
+        os.path.join(config.output_dir, config.output_prefix)
+        if config.output_prefix
+        else os.path.join(config.output_dir, config.input_prefix)
+    )
 
-    output_xinst_file = f'{output_basef}.{DEFAULT_XINST_FILE_EXT}'
-    output_cinst_file = f'{output_basef}.{DEFAULT_CINST_FILE_EXT}'
-    output_minst_file = f'{output_basef}.{DEFAULT_MINST_FILE_EXT}'
+    output_xinst_file = f"{output_basef}.{DEFAULT_XINST_FILE_EXT}"
+    output_cinst_file = f"{output_basef}.{DEFAULT_CINST_FILE_EXT}"
+    output_minst_file = f"{output_basef}.{DEFAULT_MINST_FILE_EXT}"
 
     # test output is writable
     for filename in (output_minst_file, output_cinst_file, output_xinst_file):
         try:
-            with open(filename, 'w') as outnum:
+            with open(filename, "w") as outnum:
                 print("", file=outnum)
         except Exception as ex:
             raise Exception(f'Failed to write to output location "{filename}"') from ex
 
-    GlobalConfig.useHBMPlaceHolders = True #config.use_hbm_placeholders
+    GlobalConfig.useHBMPlaceHolders = True  # config.use_hbm_placeholders
     GlobalConfig.useXInstFetch = config.use_xinstfetch
     GlobalConfig.suppressComments = config.suppress_comments
     GlobalConfig.hasHBM = config.has_hbm
@@ -331,12 +364,13 @@ def main(config: AssemblerRunConfig, verbose: bool = False):
 
     Counter.reset()
 
-    num_xinsts, num_nops, num_idle_cycles, deps_end, sched_end = \
-        asmisaAssemble(config,
-                       output_minst_file,
-                       output_cinst_file,
-                       output_xinst_file,
-                       b_verbose=verbose)
+    num_xinsts, num_nops, num_idle_cycles, deps_end, sched_end = asmisaAssemble(
+        config,
+        output_minst_file,
+        output_cinst_file,
+        output_xinst_file,
+        b_verbose=verbose,
+    )
 
     if verbose:
         print(f"Output:")
@@ -347,6 +381,7 @@ def main(config: AssemblerRunConfig, verbose: bool = False):
         print(f"--- Scheduling time: {sched_end} seconds ---")
         print(f"--- Minimum idle cycles: {num_idle_cycles} ---")
         print(f"--- Minimum nops required: {num_nops} ---")
+
 
 def parse_args():
     """
@@ -359,39 +394,99 @@ def parse_args():
         argparse.Namespace: Parsed command-line arguments.
     """
     parser = argparse.ArgumentParser(
-        description=("HERACLES Assembler.\n"
-                     "The assembler takes a pre-processed P-ISA kernel program and generates "
-                     "valid assembly code for each of the three execution queues: MINST, CINST, and XINST."))
-    parser.add_argument("input_file",
-                        help=("Input pre-processed P-ISA kernel file. "
-                              "File must be the result of pre-processing a P-ISA kernel with he_prep.py"))
-    parser.add_argument("--isa_spec", default="", dest="isa_spec_file",
-                        help=("Input ISA specification (.json) file."))
-    parser.add_argument("--mem_spec", default="", dest="mem_spec_file",
-                        help=("Input Mem specification (.json) file."))
-    parser.add_argument("--input_mem_file", default="", help=("Input memory mapping file associated with the kernel. "
-                                                              "Defaults to the same name as the input file, but with `.mem` extension."))
-    parser.add_argument("--output_dir", default="", help=("Directory where to store all intermediate files and final output. "
-                                              "This will be created if it doesn't exists. "
-                                              "Defaults to the same directory as the input file."))
-    parser.add_argument("--output_prefix", default="", help=("Prefix for the output files. "
-                                                 "Defaults to the same the input file without extension."))
+        description=(
+            "HERACLES Assembler.\n"
+            "The assembler takes a pre-processed P-ISA kernel program and generates "
+            "valid assembly code for each of the three execution queues: MINST, CINST, and XINST."
+        )
+    )
+    parser.add_argument(
+        "input_file",
+        help=(
+            "Input pre-processed P-ISA kernel file. "
+            "File must be the result of pre-processing a P-ISA kernel with he_prep.py"
+        ),
+    )
+    parser.add_argument(
+        "--isa_spec",
+        default="",
+        dest="isa_spec_file",
+        help=("Input ISA specification (.json) file."),
+    )
+    parser.add_argument(
+        "--mem_spec",
+        default="",
+        dest="mem_spec_file",
+        help=("Input Mem specification (.json) file."),
+    )
+    parser.add_argument(
+        "--input_mem_file",
+        default="",
+        help=(
+            "Input memory mapping file associated with the kernel. "
+            "Defaults to the same name as the input file, but with `.mem` extension."
+        ),
+    )
+    parser.add_argument(
+        "--output_dir",
+        default="",
+        help=(
+            "Directory where to store all intermediate files and final output. "
+            "This will be created if it doesn't exists. "
+            "Defaults to the same directory as the input file."
+        ),
+    )
+    parser.add_argument(
+        "--output_prefix",
+        default="",
+        help=(
+            "Prefix for the output files. "
+            "Defaults to the same the input file without extension."
+        ),
+    )
     parser.add_argument("--spad_size", type=int, help="Scratchpad size in KB.")
     parser.add_argument("--hbm_size", type=int, help="HBM size in KB.")
-    parser.add_argument("--no_hbm", dest="has_hbm", action="store_false",
-                        help="If set, this flag tells he_prep there is no HBM in the target chip.")
-    parser.add_argument("--repl_policy", choices=constants.Constants.REPLACEMENT_POLICIES,
-                        help="Replacement policy for cache evictions.")
-    parser.add_argument("--use_xinstfetch", dest="use_xinstfetch", action="store_true",
-                        help=("When enabled, `xinstfetch` instructions are generated in the CInstQ."))
-    parser.add_argument("--suppress_comments", "--no_comments", dest="suppress_comments", action="store_true",
-                        help=("When enabled, no comments will be emited on the output generated by the assembler."))
-    parser.add_argument("-v", "--verbose", dest="debug_verbose", action="count", default=0,
-                        help=("If enabled, extra information and progress reports are printed to stdout. "
-                              "Increase level of verbosity by specifying flag multiple times, e.g. -vv"))
+    parser.add_argument(
+        "--no_hbm",
+        dest="has_hbm",
+        action="store_false",
+        help="If set, this flag tells he_prep there is no HBM in the target chip.",
+    )
+    parser.add_argument(
+        "--repl_policy",
+        choices=constants.Constants.REPLACEMENT_POLICIES,
+        help="Replacement policy for cache evictions.",
+    )
+    parser.add_argument(
+        "--use_xinstfetch",
+        dest="use_xinstfetch",
+        action="store_true",
+        help=("When enabled, `xinstfetch` instructions are generated in the CInstQ."),
+    )
+    parser.add_argument(
+        "--suppress_comments",
+        "--no_comments",
+        dest="suppress_comments",
+        action="store_true",
+        help=(
+            "When enabled, no comments will be emitted on the output generated by the assembler."
+        ),
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        dest="debug_verbose",
+        action="count",
+        default=0,
+        help=(
+            "If enabled, extra information and progress reports are printed to stdout. "
+            "Increase level of verbosity by specifying flag multiple times, e.g. -vv"
+        ),
+    )
     args = parser.parse_args()
 
     return args
+
 
 if __name__ == "__main__":
     module_dir = os.path.dirname(__file__)
@@ -399,10 +494,14 @@ if __name__ == "__main__":
 
     # Initialize Defaults
     args = parse_args()
-    args.isa_spec_file = ISASpecConfig.initialize_isa_spec(module_dir, args.isa_spec_file)
-    args.mem_spec_file = MemSpecConfig.initialize_mem_spec(module_dir, args.mem_spec_file)
+    args.isa_spec_file = ISASpecConfig.initialize_isa_spec(
+        module_dir, args.isa_spec_file
+    )
+    args.mem_spec_file = MemSpecConfig.initialize_mem_spec(
+        module_dir, args.mem_spec_file
+    )
 
-    config = AssemblerRunConfig(**vars(args)) # convert argsparser into a dictionary
+    config = AssemblerRunConfig(**vars(args))  # convert argsparser into a dictionary
 
     if args.debug_verbose > 0:
         print(module_name)
@@ -413,7 +512,7 @@ if __name__ == "__main__":
         print("=================")
         print()
 
-    main(config, verbose = args.debug_verbose > 1)
+    main(config, verbose=args.debug_verbose > 1)
 
     if args.debug_verbose > 0:
         print()

@@ -1,10 +1,16 @@
-﻿from typing import final
-from typing import NamedTuple
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""BaseInstruction and related classes for assembler instructions."""
+from typing import final, NamedTuple, List, Optional
+
+# pylint: disable=too-many-instance-attributes, too-many-public-methods
 
 from assembler.common.config import GlobalConfig
 from assembler.common.counter import Counter
 from assembler.common.cycle_tracking import CycleTracker, CycleType
-from assembler.common.decorators import *
+from assembler.common.decorators import classproperty
+
 
 class ScheduleTiming(NamedTuple):
     """
@@ -14,8 +20,10 @@ class ScheduleTiming(NamedTuple):
         cycle (CycleType): The cycle in which the instruction was scheduled.
         index (int): The index for the instruction in its schedule listing.
     """
+
     cycle: CycleType
     index: int
+
 
 class BaseInstruction(CycleTracker):
     """
@@ -26,29 +34,29 @@ class BaseInstruction(CycleTracker):
 
     Class Properties:
         name (str): Returns the name of the represented operation.
-        OP_NAME_ASM (str): ASM-ISA name for the instruction.
-        OP_NAME_PISA (str): P-ISA name for the instruction.
+        op_name_asm (str): ASM-ISA name for the instruction.
+        op_name_pisa (str): P-ISA name for the instruction.
 
     Class Methods:
-        _get_name(cls) -> str: Derived classes should implement this method and return the correct
+        _get_name(self) -> str: Derived classes should implement this method and return the correct
             name for the instruction. Defaults to the ASM-ISA name.
-        _get_OP_NAME_ASM(cls) -> str: Derived classes should implement this method and return the correct
+        _get_op_name_asm(self) -> str: Derived classes should implement this method and return the correct
             ASM name for the operation. Default throws not implemented.
-        _get_OP_NAME_PISA(cls) -> str: Derived classes should implement this method and return the correct
+        _get_op_name_pisa(self) -> str: Derived classes should implement this method and return the correct
             P-ISA name for the operation. Defaults to the ASM-ISA name.
 
     Constructors:
-        __init__(self, id: int, throughput: int, latency: int, comment: str = ""): 
+        __init__(self, id: int, throughput: int, latency: int, comment: str = ""):
             Initializes a new BaseInstruction object.
 
     Attributes:
-        _dests (list[CycleTracker]): List of destination objects. Derived classes can override 
+        _dests (list[CycleTracker]): List of destination objects. Derived classes can override
             _set_dests to validate this attribute.
         _frozen_cisa (str): Contains frozen CInst in ASM ISA format after scheduling. Empty string if not frozen.
         _frozen_misa (str): Contains frozen MInst in ASM ISA format after scheduling. Empty string if not frozen.
         _frozen_pisa (str): Contains frozen P-ISA format after scheduling. Empty string if not frozen.
         _frozen_xisa (str): Contains frozen XInst in ASM ISA format after scheduling. Empty string if not frozen.
-        _sources (list[CycleTracker]): List of source objects. Derived classes can override 
+        _sources (list[CycleTracker]): List of source objects. Derived classes can override
             _set_sources to validate this attribute.
         comment (str): Comment for the instruction.
 
@@ -60,7 +68,7 @@ class BaseInstruction(CycleTracker):
         is_scheduled (bool): Returns whether the instruction has been scheduled (True) or not (False).
         latency (int): Returns the latency of the represented operation. This is the number
             of clock cycles before the results of the operation are ready in the destination.
-        schedule_timing (ScheduleTiming): Gets the cycle and index in which this instruction was scheduled or 
+        schedule_timing (ScheduleTiming): Gets the cycle and index in which this instruction was scheduled or
             None if not scheduled yet. Index is subject to change and it is not final until the second pass of scheduling.
         sources (list): Gets or sets the list of source objects. The elements of the list are derived dependent.
             Calls _set_sources to set value.
@@ -74,121 +82,109 @@ class BaseInstruction(CycleTracker):
         __str__(self): Returns a string representation of the BaseInstruction object.
 
     Methods:
-        _schedule(self, cycle_count: CycleType, schedule_idx: int) -> int: 
+        _schedule(self, cycle_count: CycleType, schedule_idx: int) -> int:
             Schedules the instruction, simulating timings of executing this instruction. Derived
             classes should override with their scheduling functionality.
-        _toCASMISAFormat(self, *extra_args) -> str: Converts the instruction to CInst ASM-ISA format. 
+        _to_casmisa_format(self, *extra_args) -> str: Converts the instruction to CInst ASM-ISA format.
             Derived classes should override with their functionality.
-        _toMASMISAFormat(self, *extra_args) -> str: Converts the instruction to MInst ASM-ISA format. 
+        _to_masmisa_format(self, *extra_args) -> str: Converts the instruction to MInst ASM-ISA format.
             Derived classes should override with their functionality.
-        _toPISAFormat(self, *extra_args) -> str: Converts the instruction to P-ISA kernel format. 
+        _to_pisa_format(self, *extra_args) -> str: Converts the instruction to P-ISA kernel format.
             Derived classes should override with their functionality.
-        _toXASMISAFormat(self, *extra_args) -> str: Converts the instruction to XInst ASM-ISA format. 
+        _to_xasmisa_format(self, *extra_args) -> str: Converts the instruction to XInst ASM-ISA format.
             Derived classes should override with their functionality.
         freeze(self): Called immediately after _schedule() to freeze the instruction after scheduling
             to preserve the instruction string representation to output into the listing.
             Changes made to the instruction and its components after freezing are ignored.
-        schedule(self, cycle_count: CycleType, schedule_idx: int) -> int: 
+        schedule(self, cycle_count: CycleType, schedule_idx: int) -> int:
             Schedules and freezes the instruction, simulating timings of executing this instruction.
-        toStringFormat(self, preamble, op_name: str, *extra_args) -> str: 
+        to_string_format(self, preamble, op_name: str, *extra_args) -> str:
             Converts the instruction to a string format.
-        toPISAFormat(self) -> str: Converts the instruction to P-ISA kernel format.
-        toXASMISAFormat(self) -> str: Converts the instruction to ASM-ISA format.
-        toCASMISAFormat(self) -> str: Converts the instruction to CInst ASM-ISA format.
-        toMASMISAFormat(self) -> str: Converts the instruction to MInst ASM-ISA format.
+        to_pisa_format(self) -> str: Converts the instruction to P-ISA kernel format.
+        to_xasmisa_format(self) -> str: Converts the instruction to ASM-ISA format.
+        to_casmisa_format(self) -> str: Converts the instruction to CInst ASM-ISA format.
+        to_masmisa_format(self) -> str: Converts the instruction to MInst ASM-ISA format.
     """
-    # To be initialized from ASM ISA spec
-    _OP_NUM_DESTS          : int
-    _OP_NUM_SOURCES        : int
-    _OP_DEFAULT_THROUGHPUT : int
-    _OP_DEFAULT_LATENCY    : int
 
-    __id_count = Counter.count(0) # internal unique sequence counter to generate unique IDs
+    # To be initialized from ASM ISA spec
+    _OP_NUM_DESTS: int
+    _OP_NUM_SOURCES: int
+    _OP_DEFAULT_THROUGHPUT: int
+    _OP_DEFAULT_LATENCY: int
+
+    __id_count = Counter.count(
+        0
+    )  # internal unique sequence counter to generate unique IDs
 
     # Class methods and properties
     # ----------------------------
     @classmethod
     def isa_spec_as_dict(cls) -> dict:
-        """
-        Returns attributes as dictionary.
-        """
-        dict = {"num_dests": cls._OP_NUM_DESTS, 
-                "num_sources": cls._OP_NUM_SOURCES,
-                "default_throughput": cls._OP_DEFAULT_THROUGHPUT,
-                "default_latency": cls._OP_DEFAULT_LATENCY}
-        return dict
-    
+        """Returns attributes as dictionary."""
+        spec = {
+            "num_dests": cls._OP_NUM_DESTS,
+            "num_sources": cls._OP_NUM_SOURCES,
+            "default_throughput": cls._OP_DEFAULT_THROUGHPUT,
+            "default_latency": cls._OP_DEFAULT_LATENCY,
+        }
+        return spec
+
     @classmethod
-    def SetNumDests(cls, val):
+    def set_num_dests(cls, val):
+        """Set the number of destination operands."""
         cls._OP_NUM_DESTS = val
 
     @classmethod
-    def SetNumSources(cls, val):
+    def set_num_sources(cls, val):
+        """Set the number of source operands."""
         cls._OP_NUM_SOURCES = val
 
     @classmethod
-    def SetDefaultThroughput(cls, val):
+    def set_default_throughput(cls, val):
+        """Set the default throughput."""
         cls._OP_DEFAULT_THROUGHPUT = val
 
     @classmethod
-    def SetDefaultLatency(cls, val):
+    def set_default_latency(cls, val):
+        """Set the default latency."""
         cls._OP_DEFAULT_LATENCY = val
 
     @classproperty
-    def name(cls) -> str:
-        """
-        Name for the instruction.
-        """
-        return cls._get_name()
+    def name(self) -> str:
+        """Name for the instruction."""
+        return self._get_name()
 
     @classmethod
     def _get_name(cls) -> str:
-        """
-        Derived classes should implement this method and return correct
-        name for the instruction. Defaults to the ASM-ISA name.
-        """
-        return cls.OP_NAME_ASM
+        """Derived classes should implement this method and return correct name for the instruction."""
+        return cls.op_name_asm
 
     @classproperty
-    def OP_NAME_PISA(cls) -> str:
-        """
-        P-ISA name for the instruction.
-        """
-        return cls._get_OP_NAME_PISA()
+    def op_name_pisa(self) -> str:
+        """P-ISA name for the instruction."""
+        return self._get_op_name_pisa()
 
     @classmethod
-    def _get_OP_NAME_PISA(cls) -> str:
-        """
-        Derived classes should implement this method and return correct
-        P-ISA name for the operation. Defaults to the ASM-ISA name.
-        """
-        return cls.OP_NAME_ASM
+    def _get_op_name_pisa(cls) -> str:
+        """Derived classes should implement this method and return correct P-ISA name for the operation."""
+        return cls.op_name_asm
 
     @classproperty
-    def OP_NAME_ASM(cls) -> str:
-        """
-        ASM-ISA name for instruction.
-
-        Will throw if no ASM-ISA name for instruction.
-        """
-        return cls._get_OP_NAME_ASM()
+    def op_name_asm(self) -> str:
+        """ASM-ISA name for instruction."""
+        return self._get_op_name_asm()
 
     @classmethod
-    def _get_OP_NAME_ASM(cls) -> str:
-        """
-        Derived classes should implement this method and return correct
-        ASM name for the operation.
-        """
-        raise NotImplementedError('Abstract method not implemented.')
+    def _get_op_name_asm(cls) -> str:
+        """Derived classes should implement this method and return correct ASM name for the operation."""
+        raise NotImplementedError("Abstract method not implemented.")
 
     # Constructor
     # -----------
 
-    def __init__(self,
-                 id: int,
-                 throughput : int,
-                 latency : int,
-                 comment: str = ""):
+    def __init__(
+        self, instruction_id: int, throughput: int, latency: int, comment: str = ""
+    ):
         """
         Initializes a new BaseInstruction object.
 
@@ -208,62 +204,53 @@ class BaseInstruction(CycleTracker):
         """
         # validate inputs
         if throughput < 1:
-            raise ValueError(("`throughput`: must be a positive number, "
-                              "but {} received.".format(throughput)))
+            raise ValueError(
+                (
+                    f"`throughput`: must be a positive number, "
+                    f"but {throughput} received."
+                )
+            )
         if latency < throughput:
-            raise ValueError(("`latency`: cannot be less than throughput. "
-                              "Expected, at least, {}, but {} received.".format(throughput, latency)))
+            raise ValueError(
+                (
+                    f"`latency`: cannot be less than throughput. "
+                    f"Expected, at least, {throughput}, but {latency} received."
+                )
+            )
 
-        super().__init__((0, 0))
-
-        self.__id = (id, next(BaseInstruction.__id_count)) # Mix with unique sequence counter
-        self.__throughput = throughput # read_only throughput of the operation
-        self.__latency = latency # read_only latency of the operation
-        self._dests = []
-        self._sources = []
-        self.comment = " id: {}{}{}".format(self.__id,
-                                            "; " if comment.strip() else "",
-                                            comment)
-        self.__schedule_timing: ScheduleTiming = None # Tracks when was this instruction scheduled, or None if not scheduled yet
-
-        self._frozen_pisa = "" # To contain frozen P-ISA format after scheduling
-        self._frozen_xisa = "" # To contain frozen XInst in ASM ISA format after scheduling
-        self._frozen_cisa = "" # To contain frozen CInst in ASM ISA format after scheduling
-        self._frozen_misa = "" # To contain frozen MInst in ASM ISA format after scheduling
+        super().__init__(CycleType(0, 0))
+        self.__id = (instruction_id, next(BaseInstruction.__id_count))
+        self.__throughput = throughput
+        self.__latency = latency
+        self._dests: List[CycleTracker] = []
+        self._sources: List[CycleTracker] = []
+        self.comment = f" id: {self.__id}{'; ' if comment.strip() else ''}{comment}"
+        self.__schedule_timing: Optional[ScheduleTiming] = None
+        self._frozen_pisa = ""
+        self._frozen_xisa = ""
+        self._frozen_cisa = ""
+        self._frozen_misa = ""
 
     def __repr__(self):
-        """
-        Returns a string representation of the BaseInstruction object.
-        """
-        retval = ('<{}({}) object at {}>(id={}[0], '
-                  'dst={}, src={}, '
-                  'throughput={}, latency={})').format(type(self).__name__,
-                                                           self.OP_NAME_PISA,
-                                                           hex(id(self)),
-                                                           self.id,
-                                                           self.dests,
-                                                           self.sources,
-                                                           self.throughput,
-                                                           self.latency)
+        """Returns a string representation of the BaseInstruction object."""
+        retval = (
+            f"<{type(self).__name__}({self.op_name_pisa}) object at {hex(id(self))}>(id={self.id}[0], "
+            f"dst={self.dests}, src={self.sources}, "
+            f"throughput={self.throughput}, latency={self.latency})"
+        )
         return retval
 
     def __eq__(self, other):
-        """
-        Checks equality between two BaseInstruction objects.
-        """
-        return self is other #other.id == self.id
+        """Checks equality between two BaseInstruction objects."""
+        return self is other
 
     def __hash__(self):
-        """
-        Returns the hash of the BaseInstruction object.
-        """
+        """Returns the hash of the BaseInstruction object."""
         return hash(self.id)
 
     def __str__(self):
-        """
-        Returns a string representation of the BaseInstruction object.
-        """
-        return f'{self.name} {self.id}'
+        """Returns a string representation of the BaseInstruction object."""
+        return f"{self.name} {self.id}"
 
     # Methods and properties
     # ----------------------------
@@ -299,9 +286,12 @@ class BaseInstruction(CycleTracker):
             ValueError: If the value is less than 0.
         """
         if value < 0:
-            raise ValueError("`value`: expected a value of `0` or greater for `schedule_timing.index`.")
-        self.__schedule_timing = ScheduleTiming(cycle = self.__schedule_timing.cycle,
-                                                index=value)
+            raise ValueError(
+                "`value`: expected a value of `0` or greater for `schedule_timing.index`."
+            )
+        self.__schedule_timing = ScheduleTiming(
+            cycle=self.__schedule_timing.cycle, index=value
+        )
 
     @property
     def is_scheduled(self) -> bool:
@@ -311,7 +301,7 @@ class BaseInstruction(CycleTracker):
         Returns:
             bool: True if the instruction is scheduled, False otherwise.
         """
-        return True if self.schedule_timing else False
+        return bool(self.schedule_timing)
 
     @property
     def throughput(self) -> int:
@@ -365,7 +355,7 @@ class BaseInstruction(CycleTracker):
         """
         if not all(isinstance(x, CycleTracker) for x in value):
             raise ValueError("`value`: Expected list of `CycleTracker` objects.")
-        self._dests = [ x for x in value ]
+        self._dests = list(value)
 
     @property
     def sources(self) -> list:
@@ -399,7 +389,7 @@ class BaseInstruction(CycleTracker):
         """
         if not all(isinstance(x, CycleTracker) for x in value):
             raise ValueError("`value`: Expected list of `CycleTracker` objects.")
-        self._sources = [ x for x in value ]
+        self._sources = list(value)
 
     def _get_cycle_ready(self):
         """
@@ -423,9 +413,9 @@ class BaseInstruction(CycleTracker):
             retval = max(retval, *(src.cycle_ready for src in self.sources))
         if self.dests:
             # dests cycle ready is a special case:
-            # dests are ready to be read or writen to at their cycle_ready, but instructions can
+            # dests are ready to be read or written to at their cycle_ready, but instructions can
             # start the following cycle when their dests are ready minus the latency of
-            # the instruction because the dests will be writen to in the last cycle of
+            # the instruction because the dests will be written to in the last cycle of
             # the instruction:
             # Cycle decode_phase    write_phase dests_ready latency
             #     1 INST1                                   5
@@ -435,10 +425,12 @@ class BaseInstruction(CycleTracker):
             #     5 INST6           INST1                   5
             #     6 INST7           INST2       INST1       5
             #     7 INST8           INST3       INST2       5
-            # INST1's dests are ready in cycle 6 and they are writen to in cycle 5.
+            # INST1's dests are ready in cycle 6 and they are written to in cycle 5.
             # If INST2 uses any INST1 dest as its dest, INST2 can start the cycle
             # following INST1, 2, because INST2 will write to the same dest in cycle 6.
-            retval = max(retval, *(dst.cycle_ready - self.latency + 1 for dst in self.dests))
+            retval = max(
+                retval, *(dst.cycle_ready - self.latency + 1 for dst in self.dests)
+            )
         return retval
 
     def freeze(self):
@@ -463,12 +455,14 @@ class BaseInstruction(CycleTracker):
             RuntimeError: If the instruction has not been scheduled yet.
         """
         if not self.is_scheduled:
-            raise RuntimeError(f"Instruction `{self.name}` (id = {self.id}) is not yet scheduled.")
+            raise RuntimeError(
+                f"Instruction `{self.name}` (id = {self.id}) is not yet scheduled."
+            )
 
-        self._frozen_pisa = self._toPISAFormat()
-        self._frozen_xisa = self._toXASMISAFormat()
-        self._frozen_cisa = self._toCASMISAFormat()
-        self._frozen_misa = self._toMASMISAFormat()
+        self._frozen_pisa = self._to_pisa_format()
+        self._frozen_xisa = self._to_xasmisa_format()
+        self._frozen_cisa = self._to_casmisa_format()
+        self._frozen_misa = self._to_masmisa_format()
 
     def _schedule(self, cycle_count: CycleType, schedule_idx: int) -> int:
         """
@@ -493,17 +487,20 @@ class BaseInstruction(CycleTracker):
             the current cycle counter.
         """
         if self.is_scheduled:
-            raise RuntimeError(f"Instruction `{self.name}` (id = {self.id}) is already scheduled.")
+            raise RuntimeError(
+                f"Instruction `{self.name}` (id = {self.id}) is already scheduled."
+            )
         if schedule_idx < 1:
             raise ValueError("`schedule_idx`: expected a value of `1` or greater.")
         if len(cycle_count) < 2:
-            raise ValueError("`cycle_count`: expected a pair/tuple with two components.")
+            raise ValueError(
+                "`cycle_count`: expected a pair/tuple with two components."
+            )
         if cycle_count < self.cycle_ready:
-            raise RuntimeError(("Instruction {}, id: {}, not ready to schedule. "
-                                "Ready cycle is {}, but current cycle is {}.").format(self.name,
-                                                                                      self.id,
-                                                                                      self.cycle_ready,
-                                                                                      cycle_count))
+            raise RuntimeError(
+                f"Instruction {self.name}, id: {self.id}, not ready to schedule. "
+                f"Ready cycle is {self.cycle_ready}, but current cycle is {cycle_count}."
+            )
         self.__schedule_timing = ScheduleTiming(cycle_count, schedule_idx)
         return self.throughput
 
@@ -534,10 +531,7 @@ class BaseInstruction(CycleTracker):
         self.freeze()
         return retval
 
-    def toStringFormat(self,
-                       preamble,
-                       op_name: str,
-                       *extra_args) -> str:
+    def to_string_format(self, preamble, op_name: str, *extra_args) -> str:
         """
         Converts the instruction to a string format.
 
@@ -555,16 +549,16 @@ class BaseInstruction(CycleTracker):
             raise ValueError("`op_name` cannot be empty.")
         retval = op_name
         if preamble:
-            retval = ('{}, '.format(', '.join(str(x) for x in preamble))) + retval
+            retval = f'{", ".join(str(x) for x in preamble)}, {retval}'
         if extra_args:
-            retval += ', {}'.format(', '.join([str(extra) for extra in extra_args]))
+            retval += f', {", ".join([str(extra) for extra in extra_args])}'
         if not GlobalConfig.suppressComments:
             if self.comment:
-                retval += ' #{}'.format(self.comment)
+                retval += f" #{self.comment}"
         return retval
 
     @final
-    def toPISAFormat(self) -> str:
+    def to_pisa_format(self) -> str:
         """
         Converts the instruction to P-ISA kernel format.
 
@@ -573,19 +567,19 @@ class BaseInstruction(CycleTracker):
             `N, op, dst0 (bank), dst1 (bank), ..., dst_d (bank), src0 (bank), src1 (bank), ..., src_s (bank) [, extra0, extra1, ..., extra_e] [, res] [# comment]`
             where `extra_e` are instruction specific extra arguments.
         """
-        return self._frozen_pisa if self._frozen_pisa else self._toPISAFormat()
+        return self._frozen_pisa if self._frozen_pisa else self._to_pisa_format()
 
     @final
-    def toXASMISAFormat(self) -> str:
+    def to_xasmisa_format(self) -> str:
         """
         Converts the instruction to ASM-ISA format.
 
         If instruction is frozen, this returns the frozen result, otherwise, it attempts to
         generate the string representation on the fly.
 
-        Internally calls method `_toXASMISAFormat()`.
+        Internally calls method `_to_xasmisa_format()`.
 
-        Derived classes can override method `_toXASMISAFormat()` to provide their own conversion.
+        Derived classes can override method `_to_xasmisa_format()` to provide their own conversion.
 
         Returns:
             str: A string representation of the instruction in ASM-ISA format. The string has the form:
@@ -594,19 +588,19 @@ class BaseInstruction(CycleTracker):
             Since the residual is mandatory in the format, it is set to `0` in the output if the
             instruction does not support residual.
         """
-        return self._frozen_xisa if self._frozen_xisa else self._toXASMISAFormat()
+        return self._frozen_xisa if self._frozen_xisa else self._to_xasmisa_format()
 
     @final
-    def toCASMISAFormat(self) -> str:
+    def to_casmisa_format(self) -> str:
         """
         Converts the instruction to CInst ASM-ISA format.
 
         If instruction is frozen, this returns the frozen result, otherwise, it attempts to
         generate the string representation on the fly.
 
-        Internally calls method `_toCASMISAFormat()`.
+        Internally calls method `__to_casmisa_format()`.
 
-        Derived classes can override method `_toCASMISAFormat()` to provide their own conversion.
+        Derived classes can override method `__to_casmisa_format()` to provide their own conversion.
 
         Returns:
             str: A string representation of the instruction in ASM-ISA format. The string has the form:
@@ -615,28 +609,28 @@ class BaseInstruction(CycleTracker):
             Since the ring size is mandatory in the format, it is set to `0` in the output if the
             instruction does not support it.
         """
-        return self._frozen_cisa if self._frozen_cisa else self._toCASMISAFormat()
+        return self._frozen_cisa if self._frozen_cisa else self._to_casmisa_format()
 
     @final
-    def toMASMISAFormat(self) -> str:
+    def to_masmisa_format(self) -> str:
         """
         Converts the instruction to MInst ASM-ISA format.
 
         If instruction is frozen, this returns the frozen result, otherwise, it attempts to
         generate the string representation on the fly.
 
-        Internally calls method `_toMASMISAFormat()`.
+        Internally calls method `_to_masmisa_format()`.
 
-        Derived classes can override method `_toMASMISAFormat()` to provide their own conversion.
+        Derived classes can override method `_to_masmisa_format()` to provide their own conversion.
 
         Returns:
             str: A string representation of the instruction in ASM-ISA format. The string has the form:
             `op, dst0, dst1, ..., dst_d, src0, src1, ..., src_s [, extra0, extra1, ..., extra_e], [# comment]`
             where `extra_e` are instruction specific extra arguments.
         """
-        return self._frozen_misa if self._frozen_misa else self._toMASMISAFormat()
+        return self._frozen_misa if self._frozen_misa else self._to_masmisa_format()
 
-    def _toPISAFormat(self, *extra_args) -> str:
+    def _to_pisa_format(self, *extra_args) -> str:  # pylint: disable=unused-argument
         """
         Converts the instruction to P-ISA kernel format.
 
@@ -648,7 +642,7 @@ class BaseInstruction(CycleTracker):
         """
         return ""
 
-    def _toXASMISAFormat(self, *extra_args) -> str:
+    def _to_xasmisa_format(self, *extra_args) -> str:  # pylint: disable=unused-argument
         """
         Converts the instruction to XInst ASM-ISA format.
 
@@ -662,7 +656,7 @@ class BaseInstruction(CycleTracker):
         """
         return ""
 
-    def _toCASMISAFormat(self, *extra_args) -> str:
+    def _to_casmisa_format(self, *extra_args) -> str:  # pylint: disable=unused-argument
         """
         Converts the instruction to CInst ASM-ISA format.
 
@@ -674,7 +668,7 @@ class BaseInstruction(CycleTracker):
         """
         return ""
 
-    def _toMASMISAFormat(self, *extra_args) -> str:
+    def _to_masmisa_format(self, *extra_args) -> str:  # pylint: disable=unused-argument
         """
         Converts the instruction to MInst ASM-ISA format.
 

@@ -1,4 +1,8 @@
-﻿from .xinstruction import XInstruction
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+from .xinstruction import XInstruction
+
 
 class Instruction(XInstruction):
     """
@@ -12,7 +16,7 @@ class Instruction(XInstruction):
     """
 
     @classmethod
-    def _get_OP_NAME_ASM(cls) -> str:
+    def _get_op_name_asm(cls) -> str:
         """
         Returns the operation name in ASM format.
 
@@ -21,11 +25,9 @@ class Instruction(XInstruction):
         """
         return "bexit"
 
-    def __init__(self,
-                 id: int,
-                 throughput : int = None,
-                 latency : int = None,
-                 comment: str = ""):
+    def __init__(
+        self, id: int, throughput: int = None, latency: int = None, comment: str = ""
+    ):
         """
         Initializes an Instruction object with the given parameters.
 
@@ -49,13 +51,16 @@ class Instruction(XInstruction):
         Returns:
             str: A string representation.
         """
-        retval=('<{}({}) object at {}>(id={}[0], '
-                  'throughput={}, latency={})').format(type(self).__name__,
-                                                           self.name,
-                                                           hex(id(self)),
-                                                           self.id,
-                                                           self.throughput,
-                                                           self.latency)
+        retval = (
+            "<{}({}) object at {}>(id={}[0], " "throughput={}, latency={})"
+        ).format(
+            type(self).__name__,
+            self.name,
+            hex(id(self)),
+            self.id,
+            self.throughput,
+            self.latency,
+        )
         return retval
 
     def _set_dests(self, value):
@@ -68,7 +73,9 @@ class Instruction(XInstruction):
         Raises:
             RuntimeError: Always raised as `bexit` does not have parameters.
         """
-        raise RuntimeError(f"Instruction `{self.OP_NAME_PISA}` does not have parameters.")
+        raise RuntimeError(
+            f"Instruction `{self.op_name_pisa}` does not have parameters."
+        )
 
     def _set_sources(self, value):
         """
@@ -80,9 +87,11 @@ class Instruction(XInstruction):
         Raises:
             RuntimeError: Always raised as `bexit` does not have parameters.
         """
-        raise RuntimeError(f"Instruction `{self.OP_NAME_PISA}` does not have parameters.")
+        raise RuntimeError(
+            f"Instruction `{self.op_name_pisa}` does not have parameters."
+        )
 
-    def _toPISAFormat(self, *extra_args) -> str:
+    def _to_pisa_format(self, *extra_args) -> str:
         """
         This instruction has no PISA equivalent.
 
@@ -94,7 +103,7 @@ class Instruction(XInstruction):
         """
         return None
 
-    def _toXASMISAFormat(self, *extra_args) -> str:
+    def _to_xasmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to ASM format.
 
@@ -107,10 +116,10 @@ class Instruction(XInstruction):
         Returns:
             str: The instruction in ASM format.
         """
-        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
+        assert len(self.dests) == Instruction._OP_NUM_DESTS
+        assert len(self.sources) == Instruction._OP_NUM_SOURCES
 
         if extra_args:
-            raise ValueError('`extra_args` not supported.')
+            raise ValueError("`extra_args` not supported.")
 
-        return super()._toXASMISAFormat()
+        return super()._to_xasmisa_format()
