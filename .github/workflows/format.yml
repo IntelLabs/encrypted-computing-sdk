@@ -20,9 +20,11 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Python Dependencies
-        run: pip install -r assembler_tools/hec-assembler-tools/requirements.txt
+      - name: Install Development Dependencies
         run: pip install -r requirements-dev.txt
+
+      - name: Installing Component-specific Dependencies
+        run: pip install -r assembler_tools/hec-assembler-tools/requirements.txt
 
       - name: Install Apt Dependencies
         run: sudo apt install -y clang-format-14
