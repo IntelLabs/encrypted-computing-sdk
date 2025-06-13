@@ -1,4 +1,5 @@
-// Copyright (C) 2023 Intel Corporation
+// Copyright (C) 2024 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
 
 #include "pisa_test_generator.h"
 #include "functional_modeler/data_handlers/json_data_handler.h"

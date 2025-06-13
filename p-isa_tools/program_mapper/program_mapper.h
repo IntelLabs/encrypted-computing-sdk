@@ -1,4 +1,5 @@
-// Copyright (C) 2023 Intel Corporation
+// Copyright (C) 2024 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
@@ -54,7 +55,7 @@ public:
     {
     }
 
-    void generatePisaProgramFromHEProgam(std::shared_ptr<pisa::poly::PolyProgram> program_trace);
+    void generatePisaProgramFromHEProgram(std::shared_ptr<pisa::poly::PolyProgram> program_trace);
 
     // Generate PISAKernels(ninja kernels) as needed by the program trace.
     // Checks for each kernel the HE operation and parameters and calls

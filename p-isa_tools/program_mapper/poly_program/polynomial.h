@@ -1,4 +1,5 @@
-// Copyright (C) 2023 Intel Corporation
+// Copyright (C) 2024 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
@@ -47,7 +48,7 @@ public:
     bool in_montgomery_form   = true;
     int num_of_polynomials    = 2;
     int num_of_rns_terms      = 1;
-    int num_of_coefficents    = 8192;
+    int num_of_coefficients   = 8192;
     OPERAND_TYPE operand_type = OPERAND_TYPE::POLYNOMIAL;
 
 private:

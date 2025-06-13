@@ -1,4 +1,5 @@
-// Copyright (C) 2023 Intel Corporation
+// Copyright (C) 2024 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
 
 #include <algorithm>
 #include <filesystem>
@@ -118,7 +119,7 @@ int main(int argc, char **argv)
 
         pisa::ProgramMapper<DATA_TYPE> program_mapper;
         program_mapper.setArguments(arguments);
-        program_mapper.generatePisaProgramFromHEProgam(program_trace);
+        program_mapper.generatePisaProgramFromHEProgram(program_trace);
 
         return 0;
     }

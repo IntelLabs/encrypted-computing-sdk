@@ -1,4 +1,5 @@
-// Copyright (C) 2023 Intel Corporation
+// Copyright (C) 2024 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
 
 #include "pisa_graph_optimizer.h"
 
@@ -102,7 +103,7 @@ void PISAGraphOptimizer::isolateGraphVariables(graph::Graph<pisa::PISAInstructio
     return;
 }
 
-void PISAGraphOptimizer::applyDuplicateInputVariableSeperation(std::vector<pisa::PISAInstruction *> &instr_order)
+void PISAGraphOptimizer::applyDuplicateInputVariableSeparation(std::vector<pisa::PISAInstruction *> &instr_order)
 {
     std::vector<pisa::PISAInstruction *> newOrder;
     for (auto instr : instr_order)

@@ -1,4 +1,5 @@
-// Copyright (C) 2023 Intel Corporation
+// Copyright (C) 2024 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
 
 #include <algorithm>
 #include <filesystem>
@@ -36,9 +37,9 @@ inline std::string genKernInput(const pisa::poly::PolyOperation &op)
     // CONTEXT
     input << "CONTEXT " << toString(op.parentProgram()->scheme())
           << " " << op.parentProgram()->getPolyModulusDegree()
-	  << " " << op.parentProgram()->getKeyRns()
+          << " " << op.parentProgram()->getKeyRns()
           << " " << op.getInputOperand(0).num_of_rns_terms
-	  << "\n";
+          << "\n";
 
     // DATA
     // NOTE: CipherDegree is tied to HEOperation not Operand
@@ -465,8 +466,8 @@ void pisa::kernel::PISAKernel::determineVariableNamingViaGraph()
     auto outputs           = instruction_graph.getOutputNodes();
     auto immediates        = instruction_graph.getInputNodes(false, true, false);
 
-    auto non_repeat_inputs = nonRepeatingRootsNode(inputs);
-    auto non_repeat_outpus = nonRepeatingRootsNode(outputs);
+    auto non_repeat_inputs  = nonRepeatingRootsNode(inputs);
+    auto non_repeat_outputs = nonRepeatingRootsNode(outputs);
     for (auto &input : non_repeat_inputs)
     {
         input_names.push_back(input);
@@ -482,15 +483,15 @@ void pisa::kernel::PISAKernel::determineVariableNamingViaGraph()
     // Attempt #2, just sort inputs if the label contains "input"
     // Leave the rest of the list alone
     // TODO: Generalize Function
-    auto comp = [] (const std::string &a, const std::string &b) {
+    auto comp = [](const std::string &a, const std::string &b) {
         if (containsString(a, "input") && containsString(b, "input"))
-	    return a < b;
+            return a < b;
         else
-            return false;		
+            return false;
     };
     std::sort(input_names.begin(), input_names.end(), comp);
 
-    for (auto &output : non_repeat_outpus)
+    for (auto &output : non_repeat_outputs)
     {
         output_names.push_back(output);
         naming_map[output] = output;

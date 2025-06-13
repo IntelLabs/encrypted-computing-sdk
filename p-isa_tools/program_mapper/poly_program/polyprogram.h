@@ -1,13 +1,14 @@
-// Copyright (C) 2023 Intel Corporation
+// Copyright (C) 2024 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
+#include <iostream>
 #include <map>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <iostream>
 
 #include "operations/core.h"
 #include "polynomial.h"

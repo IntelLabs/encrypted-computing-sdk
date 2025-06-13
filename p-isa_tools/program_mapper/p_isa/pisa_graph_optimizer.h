@@ -1,4 +1,5 @@
-// Copyright (C) 2023 Intel Corporation
+// Copyright (C) 2024 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
@@ -14,7 +15,7 @@ public:
 
     void isolateGraphVariables(graph::Graph<pisa::PISAInstruction> &p_isa_graph, std::vector<std::vector<graph::NetworkNode<pisa::PISAInstruction>>> &layers);
 
-    void applyDuplicateInputVariableSeperation(std::vector<pisa::PISAInstruction *> &instr_order);
+    void applyDuplicateInputVariableSeparation(std::vector<pisa::PISAInstruction *> &instr_order);
 
     void nodeLocklist(graph::NetworkNode<pisa::PISAInstruction> &node, graph::Graph<pisa::PISAInstruction> &p_isa_graph);
     void nodeVariableAdjustment(graph::NetworkNode<pisa::PISAInstruction> &node, graph::Graph<pisa::PISAInstruction> &p_isa_graph);

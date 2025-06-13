@@ -1,11 +1,12 @@
-// Copyright (C) 2023 Intel Corporation
+// Copyright (C) 2024 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
 
 #include "program_mapper.h"
 
 namespace pisa {
 
 template <typename T>
-void ProgramMapper<T>::generatePisaProgramFromHEProgam(std::shared_ptr<pisa::poly::PolyProgram> program_trace)
+void ProgramMapper<T>::generatePisaProgramFromHEProgram(std::shared_ptr<pisa::poly::PolyProgram> program_trace)
 {
     // Generates a map from raw seal trace to V0 trace to allow for
     // input/output variable name alignment with trace file to support
@@ -66,7 +67,7 @@ void ProgramMapper<T>::generatePisaProgramFromHEProgam(std::shared_ptr<pisa::pol
 
     /* Apply instruction graph rewritter and instruction hardware fixes and optimization */
     PISAGraphOptimizer graph_optimizer;
-    graph_optimizer.applyDuplicateInputVariableSeperation(combined_instructions);
+    graph_optimizer.applyDuplicateInputVariableSeparation(combined_instructions);
 
     /* generates graph from combined p_isa instructions */
     auto p_isa_graph      = graph::Graph<pisa::PISAInstruction>::createGraph(combined_instructions);

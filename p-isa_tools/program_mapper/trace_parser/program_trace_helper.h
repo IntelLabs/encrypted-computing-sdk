@@ -1,4 +1,5 @@
-// Copyright (C) 2023 Intel Corporation
+// Copyright (C) 2024 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
@@ -60,7 +61,7 @@ struct PolynomialProgramHelper
     static void parse_KEY_RNS(const std::string &component, std::shared_ptr<pisa::poly::PolyOperation> instr);
     static void parse_PARAM(const std::pair<std::string, std::pair<std::string, pisa::poly::ValueType>> component, std::shared_ptr<pisa::poly::PolyOperation> instr);
 
-    //CSV Writting functions
+    //CSV Writing functions
     static void extract_OP_NAME(std::string &component, const std::shared_ptr<pisa::poly::PolyOperation> instr, int component_index);
     static void extract_CIPHER_DEGREE(std::string &component, const std::shared_ptr<pisa::poly::PolyOperation> instr, int component_index);
     static void extract_INPUT_ARGUMENT(std::string &component, const std::shared_ptr<pisa::poly::PolyOperation> instr, int component_index);

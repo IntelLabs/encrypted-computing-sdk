@@ -1,4 +1,5 @@
-// Copyright (C) 2023 Intel Corporation
+// Copyright (C) 2024 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
 
 #include "polyprogram.h"
 #include <stdexcept>
@@ -377,7 +378,7 @@ SCHEME toPolyProgram(heracles::common::Scheme scheme)
             return SCHEME::CKKS;
         }
         else
-            throw std::runtime_error("unknown scheme converstion request");
+            throw std::runtime_error("unknown scheme conversion request");
     }
     catch (...)
     {

@@ -117,9 +117,6 @@ OPTIONS:
 --remove_cache, --rm_cache, -rc
  Remove the kernel cache directory at the end of the program
 
---straceV0, --st0, -t0 <path_to_seal_v0_trace_file>
- Location of a seal trace file in v0 format
-
 --verbose, -v
  Enables more verbose execution reporting to std out
 
