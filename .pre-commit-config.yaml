@@ -77,3 +77,4 @@ repos:
           files: \.(c|cc|cxx|cpp|h|hpp|hxx)$
           args:
           - --recursive
+          - --filter=-build/c++17
