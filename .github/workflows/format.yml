@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   format:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
@@ -20,14 +20,12 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
+      - name: Install Python Dependencies
         run: pip install -r assembler_tools/hec-assembler-tools/requirements.txt
+        run: pip install -r requirements-dev.txt
 
-      - name: Install pre-commit
-        run: pip install pre-commit
-
-      - name: Install pylint
-        run: pip install pylint
+      - name: Install Apt Dependencies
+        run: sudo apt install -y clang-format-14
 
       - name: Fetch main branch for diff
         run: git fetch origin main
