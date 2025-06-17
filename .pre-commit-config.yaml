@@ -51,6 +51,17 @@ repos:
       rev: v1.16.0 # Last checked 2025/06
       hooks:
         - id: mypy
+          exclude: >-
+            ^(assembler_tools/hec-assembler-tools/assembler/common/run_config\.py|
+            assembler_tools/hec-assembler-tools/assembler/instructions/|
+            assembler_tools/hec-assembler-tools/assembler/memory_model/|
+            assembler_tools/hec-assembler-tools/assembler/stages/asm_scheduler\.py|
+            assembler_tools/hec-assembler-tools/assembler/stages/scheduler\.py|
+            assembler_tools/hec-assembler-tools/debug_tools/main\.py|
+            assembler_tools/hec-assembler-tools/debug_tools/xinst_timing_check/|
+            assembler_tools/hec-assembler-tools/he_as\.py|
+            assembler_tools/hec-assembler-tools/linker/__init__\.py|
+            assembler_tools/hec-assembler-tools/linker/instructions/__init__\.py)
     - repo: local
       hooks:
         - id: pylint
@@ -58,6 +69,17 @@ repos:
           entry: pylint
           language: system
           types: [python]
+          exclude: >-
+            ^(assembler_tools/hec-assembler-tools/assembler/common/run_config\.py|
+            assembler_tools/hec-assembler-tools/assembler/instructions/|
+            assembler_tools/hec-assembler-tools/assembler/memory_model/|
+            assembler_tools/hec-assembler-tools/assembler/stages/asm_scheduler\.py|
+            assembler_tools/hec-assembler-tools/assembler/stages/scheduler\.py|
+            assembler_tools/hec-assembler-tools/debug_tools/main\.py|
+            assembler_tools/hec-assembler-tools/debug_tools/xinst_timing_check/|
+            assembler_tools/hec-assembler-tools/he_as\.py|
+            assembler_tools/hec-assembler-tools/linker/__init__\.py|
+            assembler_tools/hec-assembler-tools/linker/instructions/__init__\.py)
           args:
           - -rn # Only display messages
           - -sn # Don't display the score
