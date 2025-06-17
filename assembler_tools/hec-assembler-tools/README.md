@@ -42,7 +42,7 @@ P-ISA kernels, along with corresponding memory metadata required as input to the
 
 ## Outputs
 
-On a successful run, given a P-ISA kernel in file `filename.csv` (and corresponding memory metadata file), the assmebler generates three files:
+On a successful run, given a P-ISA kernel in file `filename.csv` (and corresponding memory metadata file), the assembler generates three files:
 
 - `filename.minst`: contains the list of instructions for the MINST queue.
 - `filename.cinst`: contains the list of instructions for the CINST queue.
