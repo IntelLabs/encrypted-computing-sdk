@@ -1,4 +1,4 @@
-﻿# HCGF Instruction Specification {#HCGF_specs}
+﻿# Instruction Specification
 
 Terms used in this document are defined in the HERACLES Instruction Set Architecture (ISA).
 
@@ -6,18 +6,18 @@ Terms used in this document are defined in the HERACLES Instruction Set Architec
 
 ## Table of Contents
 1. [Introduction](#introduction)
-2. [Memory Specification](#mem_spec)
-   1. [Word Size](#word_spec)
-   2. [High-Bandwidth Memory (HBM)](#hbm_spec)
-   3. [Scratch Pad (SPAD)](#spad_spec)
-   4. [Register Banks](#registers_spec)
-3. [Output File Formats](#output_format)
-   1. [XINST File](#output_xinst)
-   2. [CINST File](#output_cinst)
-   3. [MINST File](#output_minst)
-4. [Instruction Set](#instr_spec)
+2. [Memory Specification](#memory-specification)
+   1. [Word Size](#word-size)
+   2. [High-Bandwidth Memory (HBM)](#high-bandwidth-memory-hbm)
+   3. [Scratch Pad (SPAD)](#scratch-pad-spad)
+   4. [Register Banks](#register-banks)
+3. [Output File Formats](#output-file-formats)
+   1. [XINST File](#xinst-file)
+   2. [CINST File](#cinst-file)
+   3. [MINST File](#minst-file)
+4. [Instruction Set](#instruction-set)
 
-## Introduction <a name="introduction"></a>
+## Introduction
 
 HERACLES architecture allows fine-grained control of memory movement between DRAM, SRAM, and register files. The architecture features three execution queues that control memory movement among the different levels, as well as control of the compute engine.
 
@@ -45,7 +45,7 @@ The three queues must work in concert to ensure memory consistency and optimized
 
 The output of the assembler tool is composed of three files containing the instructions for each of the three execution queues for the HERACLES respectively.
 
-## Memory Specification <a name="mem_spec"></a>
+## Memory Specification
 
 #### Summary of Sizes and Memory Capacities in HERACLES Instructions and Memory Model
 
@@ -70,7 +70,7 @@ The output of the assembler tool is composed of three files containing the instr
 
 See HERACLES ISA for more information.
 
-### Word Size <a name="word_spec_"></a>
+### Word Size
 
 A "word" is the *smallest addressable data unit* in the HERACLES memory model.
 
@@ -88,7 +88,7 @@ Data sizes in bytes are offered for *reference purposes only*. Since the smalles
 
 Note that the information included here is at the abstraction level that concerns the assembler. The HERACLES architecture further partitions the memory into blocks, and the compute engine into 64 compute tile pairs. For more information on the low level architecture refer to the HERACLES architecture documentation.
 
-### High-Bandwidth Memory (HBM) <a name="hbm_spec"></a>
+### High-Bandwidth Memory (HBM)
 
 **HBM capacity**: 48GB == 1,572,864 words.
 
@@ -111,7 +111,7 @@ Instruction pointers for MINST and CINST queues will automatically start once th
 
 Execution of XINST queue, however is controlled by CInst.
 
-### Scratch Pad (SPAD)  <a name="spad_spec"></a>
+### Scratch Pad (SPAD)
 
 **SPAD capacity**: 48MB == 1,536 words.
 
@@ -125,7 +125,7 @@ Data transfers from SPAD into the CE's register file are available in the corres
 
 **Temporary Store Queue Buffer capacity**: 4 words.
 
-### Register Banks <a name="registers_spec"></a>
+### Register Banks
 
 The CE features 64 compute tile pairs (these are the compute units of the CE) arranged in 8 rows of 8 tile pairs. Each tile pair has 4 register banks with 72 registers. Each register has a capacity of 512 bytes. However, the architecture will ensure that all tile pairs will execute the same instruction on the same clock cycle on the same registers; therefore, we can treat the CE as a unit with the characteristics listed below.
 
@@ -143,7 +143,7 @@ As a unit, the CE features a register file with 4 **register banks**.
 
 - A register bank can be accessed for a single read and a single write simulataneously in the same cycle.
 
-## Output File Formats <a name="output_format"></a>
+## Output File Formats
 
 The assembler provides its output in three csv-style files.
 
@@ -153,7 +153,7 @@ All output files support inline comments using the hash symbol `#`. All text to 
 
 Note that full line comments are not supported, and every line must contain an instruction.
 
-### XINST File <a name="output_xinst"></a>
+### XINST File
 
 Contains the instructions for the XINST execution queue.
 
@@ -185,7 +185,7 @@ F99, 1056, ntt, r24b2, r25b3, r60b2, r61b3, r35b1, 13, 12 # dst: r24b2, r25b3, s
 
 Check instruction specification for exceptions.
 
-### CINST File <a name="output_cinst"></a>
+### CINST File
 
 Contains the instructions for the CINST execution queue.
 
@@ -215,7 +215,7 @@ Example:
 
 Check instruction specification for exceptions.
 
-### MINST File <a name="output_minst"></a>
+### MINST File
 
 Contains the instructions for the MINST execution queue.
 
@@ -245,7 +245,7 @@ Example:
 
 Check instruction specification for exceptions.
 
-## Instruction Set <a name="instr_spec"></a>
+## Instruction Set
 
 Instructions are pipelined. Thus, they will have a throughput time and a total latency.
 

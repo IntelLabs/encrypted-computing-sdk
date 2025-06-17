@@ -2,7 +2,7 @@
 
 This folder contains a collection of scripts designed to assist with debugging and testing various aspects of the assembler and instruction scheduling processes.
 
-## Dependencies <a name="dependencies"></a>
+## Dependencies
 
 These tools are Python based. Dependencies for these scripts are the same as [those](../README.md#dependencies) for the parent project.
 
@@ -17,7 +17,7 @@ Below is a detailed description and usage example for each tool.
 
 ## Tools Overview
 
-### `main.py`
+### main.py
 
   This script serves as the main entry point for running ASM-ISA assembly and P-ISA scheduling processes. It handles the preprocessing, assembly, and scheduling of instructions, transforming them from high-level representations to executable formats.
 
@@ -34,7 +34,7 @@ Below is a detailed description and usage example for each tool.
 
 ---
 
-### `isolation_test.py`
+### isolation_test.py
 
   This script isolates specific variables in P-ISA by replacing instructions that do not affect the specified variables with NOPs (no operation instructions). The isolation test is used to focus on specific variables within a P-ISA kernel, allowing developers to analyze the impact of these variables.
 
@@ -50,7 +50,7 @@ Below is a detailed description and usage example for each tool.
 
 ---
 
-### `deadlock_test.py`
+### deadlock_test.py
 
   This script checks for deadlocks in the CInstQ and MInstQ caused by sync instructions. It raises an exception if a deadlock is found, indicating a potential issue in instruction scheduling.
 
@@ -63,7 +63,7 @@ Below is a detailed description and usage example for each tool.
 
 ---
 
-### `order_test.py`
+### order_test.py
   This script tests all registers in an XInstQ to determine if any register is used out of order based on the P-ISA instruction order. It is specifically designed for kernels that do not involve evictions.
 
   The script helps ensure that registers are accessed in the correct sequence, which is crucial for maintaining the integrity of instruction execution in systems where register order matters. This is particularly important for debugging and optimizing instruction scheduling.
@@ -75,7 +75,7 @@ Below is a detailed description and usage example for each tool.
   - `--input_file`: Specifies the input (.xinst) file containing the XInstQ instructions.
   - `-v`: Enables verbose mode for detailed output, providing insights into the processing steps and results.
 
-### `xinst_timing_check/inject_bundles.py`
+### xinst_timing_check/inject_bundles.py
 
   This script injects dummy bundles into instruction files after the first bundle, simulating additional instruction loads for testing purposes. The injection of dummy bundles is used to test the system's handling of instruction loads and synchronization points.
 
@@ -93,7 +93,7 @@ Below is a detailed description and usage example for each tool.
 
 ---
 
-### `xinst_timing_check/xtiming_check.py`
+### xinst_timing_check/xtiming_check.py
 
   This script checks timing for register access, ensuring registers are not read before their write completes, and checks for bank write conflicts.
 
