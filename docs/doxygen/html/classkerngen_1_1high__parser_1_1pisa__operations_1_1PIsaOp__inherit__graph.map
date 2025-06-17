@@ -1,0 +1,15 @@
+<map id="kerngen.high_parser.pisa_operations.PIsaOp" name="kerngen.high_parser.pisa_operations.PIsaOp">
+<area shape="rect" id="node1" title="Abstract class for p&#45;isa operation." alt="" coords="103,332,287,373"/>
+<area shape="rect" id="node3" href="$classkerngen_1_1high__parser_1_1pisa__operations_1_1Add.html" title="Class representing the p&#45;isa addition operation." alt="" coords="335,5,519,47"/>
+<area shape="rect" id="node4" href="$classkerngen_1_1high__parser_1_1pisa__operations_1_1Comment.html" title="Comment." alt="" coords="335,71,519,112"/>
+<area shape="rect" id="node5" href="$classkerngen_1_1high__parser_1_1pisa__operations_1_1Copy.html" title="Class representing the p&#45;isa movement operation." alt="" coords="335,136,519,177"/>
+<area shape="rect" id="node6" href="$classkerngen_1_1high__parser_1_1pisa__operations_1_1INTT.html" title="Class representing the p&#45;isa INTT operation." alt="" coords="335,201,519,243"/>
+<area shape="rect" id="node7" href="$classkerngen_1_1high__parser_1_1pisa__operations_1_1Mac.html" title="Class representing the p&#45;isa multiplication and accumulate operation." alt="" coords="335,267,519,308"/>
+<area shape="rect" id="node8" href="$classkerngen_1_1high__parser_1_1pisa__operations_1_1Maci.html" title="Class representing the p&#45;isa multiplication and accumulate operation with immediates." alt="" coords="335,332,519,373"/>
+<area shape="rect" id="node9" href="$classkerngen_1_1high__parser_1_1pisa__operations_1_1Mov.html" title="Class representing the p&#45;isa movement operation." alt="" coords="335,397,519,439"/>
+<area shape="rect" id="node10" href="$classkerngen_1_1high__parser_1_1pisa__operations_1_1Mul.html" title="Class representing the p&#45;isa multiplication operation." alt="" coords="335,463,519,504"/>
+<area shape="rect" id="node11" href="$classkerngen_1_1high__parser_1_1pisa__operations_1_1Muli.html" title="Class representing the p&#45;isa multiplication operation with immediates." alt="" coords="335,528,519,569"/>
+<area shape="rect" id="node12" href="$classkerngen_1_1high__parser_1_1pisa__operations_1_1NTT.html" title="Class representing the p&#45;isa NTT operation." alt="" coords="335,593,519,635"/>
+<area shape="rect" id="node13" href="$classkerngen_1_1high__parser_1_1pisa__operations_1_1Sub.html" title="Class representing the p&#45;isa subtraction operation." alt="" coords="335,659,519,700"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,339,55,366"/>
+</map>

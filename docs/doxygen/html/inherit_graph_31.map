@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" title=" " alt="" coords="5,46,92,73"/>
+<area shape="rect" id="node2" href="$classkerngen_1_1high__parser_1_1generators_1_1GeneratorError.html" title="Class representing errors raised by the Generators class." alt="" coords="140,5,371,47"/>
+<area shape="rect" id="node3" href="$classkerngen_1_1high__parser_1_1types_1_1PolyOutOfBoundsError.html" title="Exception for Poly attributes being out of bounds." alt="" coords="157,71,354,112"/>
+</map>

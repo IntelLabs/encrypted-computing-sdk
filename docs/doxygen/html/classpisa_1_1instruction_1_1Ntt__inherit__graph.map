@@ -1,0 +1,5 @@
+<map id="pisa::instruction::Ntt" name="pisa::instruction::Ntt">
+<area shape="rect" id="node1" title="The Ntt class represents an ntt instruction in P_ISA." alt="" coords="6,155,161,181"/>
+<area shape="rect" id="node2" href="$classpisa_1_1PISAInstruction.html" title="The PISAInstruction class represents an instruction in the P&#45;ISA instruction set. It is designed to b..." alt="" coords="5,80,161,107"/>
+<area shape="rect" id="node3" href="$classISAInstruction.html" title="The ISAInstruction class used to represent an generic ISA instruction." alt="" coords="27,5,140,32"/>
+</map>

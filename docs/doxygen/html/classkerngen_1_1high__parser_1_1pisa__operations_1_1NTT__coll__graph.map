@@ -1,0 +1,6 @@
+<map id="kerngen.high_parser.pisa_operations.NTT" name="kerngen.high_parser.pisa_operations.NTT">
+<area shape="rect" id="node1" title="Class representing the p&#45;isa NTT operation." alt="" coords="335,39,519,80"/>
+<area shape="rect" id="node2" href="$classkerngen_1_1high__parser_1_1pisa__operations_1_1Butterfly.html" title="Common arguments for butterfly operations." alt="" coords="103,5,287,47"/>
+<area shape="rect" id="node3" href="$classkerngen_1_1high__parser_1_1pisa__operations_1_1PIsaOp.html" title="Abstract class for p&#45;isa operation." alt="" coords="103,71,287,112"/>
+<area shape="rect" id="node4" title=" " alt="" coords="5,78,55,105"/>
+</map>

@@ -1,0 +1,22 @@
+<map id="instructions.xinst.xinstruction.XInstruction" name="instructions.xinst.xinstruction.XInstruction">
+<area shape="rect" id="node1" title="This class is used to encapsulate the properties and behaviors of an xinstruction,..." alt="" coords="380,494,599,535"/>
+<area shape="rect" id="node4" href="$classinstructions_1_1xinst_1_1add_1_1Instruction.html" title="Represents an add instruction in the assembler with specific properties and methods for parsing,..." alt="" coords="649,5,883,32"/>
+<area shape="rect" id="node5" href="$classinstructions_1_1xinst_1_1copy_1_1Instruction.html" title="Encapsulates a move instruction when used to copy a variable into another variable through registers." alt="" coords="681,57,851,98"/>
+<area shape="rect" id="node6" href="$classinstructions_1_1xinst_1_1exit_1_1Instruction.html" title="Represents a bexit instruction in the assembler with specific properties and methods for scheduling a..." alt="" coords="683,122,849,163"/>
+<area shape="rect" id="node7" href="$classinstructions_1_1xinst_1_1intt_1_1Instruction.html" title="Represents an intt instruction in the assembler with specific properties and methods for parsing,..." alt="" coords="684,187,848,229"/>
+<area shape="rect" id="node8" href="$classinstructions_1_1xinst_1_1irshuffle_1_1Instruction.html" title="Represents an instruction in the assembler with specific properties and methods for parsing,..." alt="" coords="669,253,863,294"/>
+<area shape="rect" id="node9" href="$classinstructions_1_1xinst_1_1mac_1_1Instruction.html" title="Represents a mac (multiply&#45;accumulate) instruction in an assembly language." alt="" coords="647,319,885,345"/>
+<area shape="rect" id="node10" href="$classinstructions_1_1xinst_1_1maci_1_1Instruction.html" title="Represents a maci (multiply&#45;accumulate immediate) instruction in an assembly language." alt="" coords="679,370,853,411"/>
+<area shape="rect" id="node11" href="$classinstructions_1_1xinst_1_1move_1_1Instruction.html" title="Encapsulates a move instruction used to copy data from one register to a different one." alt="" coords="677,435,855,477"/>
+<area shape="rect" id="node12" href="$classinstructions_1_1xinst_1_1mul_1_1Instruction.html" title="Represents a mul (multiply) instruction in an assembly language." alt="" coords="648,501,884,528"/>
+<area shape="rect" id="node13" href="$classinstructions_1_1xinst_1_1muli_1_1Instruction.html" title="Represents a muli (multiply immediate) instruction in an assembly language." alt="" coords="681,553,851,594"/>
+<area shape="rect" id="node14" href="$classinstructions_1_1xinst_1_1nop_1_1Instruction.html" title="Represents a nop (no operation) instruction in an assembly language." alt="" coords="649,619,883,645"/>
+<area shape="rect" id="node15" href="$classinstructions_1_1xinst_1_1ntt_1_1Instruction.html" title="Represents an ntt (Number Theoretic Transform) instruction in an assembly language." alt="" coords="651,669,881,696"/>
+<area shape="rect" id="node16" href="$classinstructions_1_1xinst_1_1rshuffle_1_1Instruction.html" title="Encapsulates an rshuffle XInstruction." alt="" coords="671,721,861,762"/>
+<area shape="rect" id="node17" href="$classinstructions_1_1xinst_1_1sub_1_1Instruction.html" title="Encapsulates a sub XInstruction." alt="" coords="649,787,883,813"/>
+<area shape="rect" id="node18" href="$classinstructions_1_1xinst_1_1twintt_1_1Instruction.html" title="Encapsulates a twintt XInstruction." alt="" coords="676,838,856,879"/>
+<area shape="rect" id="node19" href="$classinstructions_1_1xinst_1_1twntt_1_1Instruction.html" title="Encapsulates a twntt XInstruction." alt="" coords="678,903,854,945"/>
+<area shape="rect" id="node20" href="$classinstructions_1_1xinst_1_1xstore_1_1Instruction.html" title="Encapsulates an xstore MInstruction." alt="" coords="675,969,857,1010"/>
+<area shape="rect" id="node2" href="$classinstructions_1_1instruction_1_1BaseInstruction.html" title="The base class for all instructions." alt="" coords="157,494,332,535"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,501,109,528"/>
+</map>

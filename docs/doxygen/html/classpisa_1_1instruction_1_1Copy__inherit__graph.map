@@ -1,0 +1,5 @@
+<map id="pisa::instruction::Copy" name="pisa::instruction::Copy">
+<area shape="rect" id="node1" title="The copy class represents an copy instruction in P_ISA. This instruction copies the value stored at t..." alt="" coords="5,155,172,181"/>
+<area shape="rect" id="node2" href="$classpisa_1_1PISAInstruction.html" title="The PISAInstruction class represents an instruction in the P&#45;ISA instruction set. It is designed to b..." alt="" coords="11,80,167,107"/>
+<area shape="rect" id="node3" href="$classISAInstruction.html" title="The ISAInstruction class used to represent an generic ISA instruction." alt="" coords="32,5,145,32"/>
+</map>

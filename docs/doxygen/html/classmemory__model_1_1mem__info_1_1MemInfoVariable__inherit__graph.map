@@ -1,0 +1,4 @@
+<map id="memory_model.mem_info.MemInfoVariable" name="memory_model.mem_info.MemInfoVariable">
+<area shape="rect" id="node1" title="Represents a memory information variable with a name and an HBM address." alt="" coords="5,5,237,47"/>
+<area shape="rect" id="node2" href="$classmemory__model_1_1mem__info_1_1MemInfoKeygenVariable.html" title="Represents a memory information key generation variable." alt="" coords="5,95,237,136"/>
+</map>

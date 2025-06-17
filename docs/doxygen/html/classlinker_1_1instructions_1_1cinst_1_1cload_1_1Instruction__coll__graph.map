@@ -1,0 +1,5 @@
+<map id="linker.instructions.cinst.cload.Instruction" name="linker.instructions.cinst.cload.Instruction">
+<area shape="rect" id="node1" title="Encapsulates a cload CInstruction." alt="" coords="26,184,241,225"/>
+<area shape="rect" id="node2" href="$classlinker_1_1instructions_1_1cinst_1_1cinstruction_1_1CInstruction.html" title="Represents a CInstruction, inheriting from BaseInstruction." alt="" coords="5,95,261,136"/>
+<area shape="rect" id="node3" href="$classlinker_1_1instructions_1_1instruction_1_1BaseInstruction.html" title="Base class for all instructions." alt="" coords="26,5,241,47"/>
+</map>

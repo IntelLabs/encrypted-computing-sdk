@@ -1,0 +1,20 @@
+<map id="kerngen.high_parser.types.HighOp" name="kerngen.high_parser.types.HighOp">
+<area shape="rect" id="node1" title="An abstract class to help define/enforce API." alt="" coords="103,397,300,438"/>
+<area shape="rect" id="node3" href="$classkerngen_1_1pisa__generators_1_1basic_1_1CartesianOp.html" title="Class representing the high&#45;level cartesian operation." alt="" coords="365,23,589,65"/>
+<area shape="rect" id="node6" href="$classkerngen_1_1pisa__generators_1_1basic_1_1Copy.html" title="Class representing the high&#45;level copy operation." alt="" coords="348,89,605,116"/>
+<area shape="rect" id="node7" href="$classkerngen_1_1pisa__generators_1_1basic_1_1KeyMul.html" title="Class representing a key multiplication operation." alt="" coords="365,141,589,182"/>
+<area shape="rect" id="node8" href="$classkerngen_1_1pisa__generators_1_1basic_1_1Mul.html" title="Class representing the high&#45;level multiplication operation." alt="" coords="353,207,601,233"/>
+<area shape="rect" id="node9" href="$classkerngen_1_1pisa__generators_1_1basic_1_1Muli.html" title="Class representing the high&#45;level multiplication operation." alt="" coords="351,257,603,284"/>
+<area shape="rect" id="node10" href="$classkerngen_1_1pisa__generators_1_1decomp_1_1DigitDecompExtend.html" title="Class representing Digit decomposition and base extension." alt="" coords="355,309,598,350"/>
+<area shape="rect" id="node11" href="$classkerngen_1_1pisa__generators_1_1mod_1_1Mod.html" title="Class representing mod down operation." alt="" coords="353,375,600,401"/>
+<area shape="rect" id="node12" href="$classkerngen_1_1pisa__generators_1_1mod_1_1ModUp.html" title="Class representing mod switch up operation." alt="" coords="367,426,586,467"/>
+<area shape="rect" id="node13" href="$classkerngen_1_1pisa__generators_1_1ntt_1_1INTT.html" title="Class representing the INTT." alt="" coords="357,492,596,519"/>
+<area shape="rect" id="node14" href="$classkerngen_1_1pisa__generators_1_1ntt_1_1NTT.html" title="Class representing the NTT." alt="" coords="359,543,594,569"/>
+<area shape="rect" id="node15" href="$classkerngen_1_1pisa__generators_1_1relin_1_1Relin.html" title="Class representing relinearization operation." alt="" coords="367,594,586,635"/>
+<area shape="rect" id="node16" href="$classkerngen_1_1pisa__generators_1_1rescale_1_1Rescale.html" title="Class representing mod down operation." alt="" coords="358,659,595,701"/>
+<area shape="rect" id="node17" href="$classkerngen_1_1pisa__generators_1_1rotate_1_1Rotate.html" title="Class representing rotate operation." alt="" coords="362,725,591,766"/>
+<area shape="rect" id="node18" href="$classkerngen_1_1pisa__generators_1_1square_1_1Square.html" title="Class representing the high&#45;level squaring operation." alt="" coords="359,790,594,831"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,404,55,431"/>
+<area shape="rect" id="node4" href="$classkerngen_1_1pisa__generators_1_1basic_1_1Add.html" title="Class representing the high&#45;level addition operation." alt="" coords="653,5,903,32"/>
+<area shape="rect" id="node5" href="$classkerngen_1_1pisa__generators_1_1basic_1_1Sub.html" title="Class representing the high&#45;level subtraction operation." alt="" coords="654,56,902,83"/>
+</map>
