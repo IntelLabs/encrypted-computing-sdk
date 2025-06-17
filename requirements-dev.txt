@@ -13,3 +13,6 @@ mypy==1.16.0
 
 # C++ linting
 cpplint>=1.6.0
+
+# Documentation
+doxypypy>=0.8.8.7
