@@ -1,11 +1,22 @@
 #! /usr/bin/env python3
 
 """
-@file
-@brief This module provides functionality for preprocessing P-ISA abstract kernels before further assembling for HERACLES.
+This module provides functionality for preprocessing P-ISA abstract kernels before further assembling for HERACLES.
 
-This script is intended to be run as a standalone program. It requires specific command-line arguments
-to specify input and output files and verbosity options for the preprocessing process.
+Functions:
+    __savePISAListing(out_stream, instr_listing: list)
+        Stores instructions to a stream in P-ISA format.
+
+    main(output_file_name: str, input_file_name: str, b_verbose: bool)
+        Preprocesses the P-ISA kernel and saves the output to a specified file.
+
+    parse_args() -> argparse.Namespace
+        Parses command-line arguments for the preprocessing script.
+
+Usage:
+    This script is intended to be run as a standalone program. It requires specific command-line arguments
+    to specify input and output files and verbosity options for the preprocessing process.
+
 """
 import argparse
 import os
@@ -20,14 +31,17 @@ from assembler.memory_model import MemoryModel
 def __savePISAListing(out_stream,
                       instr_listing: list):
     """
-    @brief Stores the instructions to a stream in P-ISA format.
+    Stores the instructions to a stream in P-ISA format.
 
     This function iterates over a list of instructions and prints each instruction in P-ISA format
     to the specified output stream.
 
-    @param out_stream The output stream to which the instructions are printed.
-    @param instr_listing A list of instructions to be printed in P-ISA format.
-    @return None
+    Args:
+        out_stream: The output stream to which the instructions are printed.
+        instr_listing (list): A list of instructions to be printed in P-ISA format.
+
+    Returns:
+        None
     """
     for inst in instr_listing:
         inst_line = inst.toPISAFormat()
@@ -38,15 +52,18 @@ def main(output_file_name: str,
          input_file_name: str,
          b_verbose: bool):
     """
-    @brief Preprocesses the P-ISA kernel and saves the output to a specified file.
+    Preprocesses the P-ISA kernel and saves the output to a specified file.
 
     This function reads an input kernel file, preprocesses it to transform instructions into ASM-ISA format,
     assigns register banks to variables, and saves the processed instructions to an output file.
 
-    @param output_file_name The name of the output file where processed instructions are saved.
-    @param input_file_name The name of the input file containing the P-ISA kernel.
-    @param b_verbose Flag indicating whether verbose output is enabled.
-    @return None
+    Args:
+        output_file_name (str): The name of the output file where processed instructions are saved.
+        input_file_name (str): The name of the input file containing the P-ISA kernel.
+        b_verbose (bool): Flag indicating whether verbose output is enabled.
+
+    Returns:
+        None
     """
     # used for timings
     insts_end: int = 0
@@ -95,12 +112,13 @@ def main(output_file_name: str,
 
 def parse_args():
     """
-    @brief Parses command-line arguments for the preprocessing script.
+    Parses command-line arguments for the preprocessing script.
 
     This function sets up the argument parser and defines the expected arguments for the script.
     It returns a Namespace object containing the parsed arguments.
 
-    @return Parsed command-line arguments.
+    Returns:
+        argparse.Namespace: Parsed command-line arguments.
     """
     parser = argparse.ArgumentParser(
         description="HERACLES Assembling Pre-processor.\nThis program performs the preprocessing of P-ISA abstract kernels before further assembling.")

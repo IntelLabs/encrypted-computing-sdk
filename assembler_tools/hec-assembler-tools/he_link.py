@@ -1,11 +1,26 @@
 #! /usr/bin/env python3
 # encoding: utf-8
 """
-@file
-@brief This module provides functionality for linking assembled kernels into a full HERACLES program for execution queues: MINST, CINST, and XINST.
+This module provides functionality for linking assembled kernels into a full HERACLES program for execution queues: MINST, CINST, and XINST.
 
-This script is intended to be run as a standalone program. It requires specific command-line arguments
-to specify input and output files and configuration options for the linking process.
+Classes:
+    LinkerRunConfig
+        Maintains the configuration data for the run.
+
+    KernelFiles
+        Structure for kernel files.
+
+Functions:
+    main(run_config: LinkerRunConfig, verbose_stream=None)
+        Executes the linking process using the provided configuration.
+
+    parse_args() -> argparse.Namespace
+        Parses command-line arguments for the linker script.
+
+Usage:
+    This script is intended to be run as a standalone program. It requires specific command-line arguments
+    to specify input and output files and configuration options for the linking process.
+
 """
 import argparse
 import io
@@ -33,7 +48,11 @@ from linker.steps import program_linker
 
 class LinkerRunConfig(RunConfig):
     """
-    @brief Maintains the configuration data for the run.
+    Maintains the configuration data for the run.
+
+    Methods:
+        as_dict() -> dict
+            Returns the configuration as a dictionary.
     """
 
     __initialized = False # specifies whether static members have been initialized
@@ -43,27 +62,34 @@ class LinkerRunConfig(RunConfig):
 
     def __init__(self, **kwargs):
         """
-        @brief Constructs a new LinkerRunConfig Object from input parameters.
+        Constructs a new LinkerRunConfig Object from input parameters.
 
         See base class constructor for more parameters.
 
-        @param kwargs Dictionary of configuration parameters:
-          - input_prefixes: List of input prefixes, including full path. For an input prefix, linker will
+        Args:
+            input_prefixes (list[str]):
+                List of input prefixes, including full path. For an input prefix, linker will
                 assume there are three files named `input_prefixes[i] + '.minst'`,
                 `input_prefixes[i] + '.cinst'`, and `input_prefixes[i] + '.xinst'`.
                 This list must not be empty.
-          - output_prefix: Prefix for the output file names.
+            output_prefix (str):
+                Prefix for the output file names.
                 Three files will be generated:
                 `output_dir/output_prefix.minst`, `output_dir/output_prefix.cinst`, and
                 `output_dir/output_prefix.xinst`.
                 Output filenames cannot match input file names.
-          - input_mem_file: Input memory file associated with the result kernel.
-          - output_dir: OPTIONAL directory where to store all intermediate files and final output.
+            input_mem_file (str):
+                Input memory file associated with the result kernel.
+            output_dir (str): current working directory
+                OPTIONAL directory where to store all intermediate files and final output.
                 This will be created if it doesn't exists.
                 Defaults to current working directory.
 
-        @throws TypeError A mandatory configuration value was missing.
-        @throws ValueError At least, one of the arguments passed is invalid.
+        Raises:
+            TypeError:
+                A mandatory configuration value was missing.
+            ValueError:
+                At least, one of the arguments passed is invalid.
         """
 
         self.init_default_config()
@@ -87,7 +113,7 @@ class LinkerRunConfig(RunConfig):
     @classmethod
     def init_default_config(cls):
         """
-        @brief Initializes static members of the class.
+        Initializes static members of the class.
         """
         if not cls.__initialized:
             cls.__default_config["input_prefixes"]  = None
@@ -103,9 +129,10 @@ class LinkerRunConfig(RunConfig):
 
     def __str__(self):
         """
-        @brief Provides a string representation of the configuration.
+        Provides a string representation of the configuration.
     
-        @return The string for the configuration.
+        Returns:
+            str: The string for the configuration.
         """
         self_dict = self.as_dict()
         with io.StringIO() as retval_f:
@@ -116,9 +143,10 @@ class LinkerRunConfig(RunConfig):
 
     def as_dict(self) -> dict:
         """
-        @brief Provides the configuration as a dictionary.
+        Provides the configuration as a dictionary.
 
-        @return The configuration.
+        Returns:
+            dict: The configuration.
         """
         retval = super().as_dict()
         tmp_self_dict = vars(self)
@@ -127,12 +155,17 @@ class LinkerRunConfig(RunConfig):
 
 class KernelFiles(NamedTuple):
     """
-    @brief Structure for kernel files.
+    Structure for kernel files.
 
-    @var minst Index = 0. Name for file containing MInstructions for represented kernel.
-    @var cinst Index = 1. Name for file containing CInstructions for represented kernel.
-    @var xinst Index = 2. Name for file containing XInstructions for represented kernel.
-    @var prefix Index = 3
+    Attributes:
+        minst (str):
+            Index = 0. Name for file containing MInstructions for represented kernel.
+        cinst (str):
+            Index = 1. Name for file containing CInstructions for represented kernel.
+        xinst (str):
+            Index = 2. Name for file containing XInstructions for represented kernel.
+        prefix (str):
+            Index = 3
     """
     minst: str
     cinst: str
@@ -141,14 +174,17 @@ class KernelFiles(NamedTuple):
 
 def main(run_config: LinkerRunConfig, verbose_stream = None):
     """
-    @brief Executes the linking process using the provided configuration.
+    Executes the linking process using the provided configuration.
 
     This function prepares input and output file names, initializes the memory model, discovers variables,
     and links each kernel, writing the output to specified files.
 
-    @param run_config The configuration object containing run parameters.
-    @param verbose_stream The stream to which verbose output is printed. Defaults to None.
-    @return None
+    Args:
+        run_config (LinkerRunConfig): The configuration object containing run parameters.
+        verbose_stream: The stream to which verbose output is printed. Defaults to None.
+
+    Returns:
+        None
     """
     if verbose_stream:
         print("Linking...", file=verbose_stream)
@@ -277,12 +313,13 @@ def main(run_config: LinkerRunConfig, verbose_stream = None):
 
 def parse_args():
     """
-    @brief Parses command-line arguments for the linker script.
+    Parses command-line arguments for the linker script.
 
     This function sets up the argument parser and defines the expected arguments for the script.
     It returns a Namespace object containing the parsed arguments.
 
-    @return Parsed command-line arguments.
+    Returns:
+        argparse.Namespace: Parsed command-line arguments.
     """
     parser = argparse.ArgumentParser(
         description=("HERACLES Linker.\n"
