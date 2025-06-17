@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Intel Corporation
+# Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
 import os
@@ -15,7 +15,8 @@ from assembler.stages.scheduler import schedulePISAInstructions
 from assembler.stages.asm_scheduler import scheduleASMISAInstructions
 from assembler.memory_model import MemoryModel
 from assembler.memory_model import mem_info
-from assembler.isa_spec import SpecConfig
+from assembler.spec_config.isa_spec import ISASpecConfig
+from assembler.spec_config.mem_spec import MemSpecConfig
 
 
 def parse_args():
@@ -28,7 +29,7 @@ def parse_args():
     Returns:
         argparse.Namespace: Parsed command-line arguments.
     """
-    parser = argparse.ArgumentParser(description=("Main Test.\n"))
+    parser = argparse.ArgumentParser(description="Main Test.\n")
     parser.add_argument("--mem_file", default="", help="Input memory file.")
     parser.add_argument(
         "--prefix",
@@ -42,6 +43,12 @@ def parse_args():
         default="",
         dest="isa_spec_file",
         help=("Input ISA specification (.json) file."),
+    )
+    parser.add_argument(
+        "--mem_spec",
+        default="",
+        dest="mem_spec_file",
+        help=("Input memory specification (.json) file."),
     )
     parser.add_argument(
         "-v",
@@ -115,18 +122,19 @@ def asmisa_preprocessing(
     hec_mem_model = MemoryModel(
         constants.MemoryModel.HBM.MAX_CAPACITY_WORDS,
         constants.MemoryModel.SPAD.MAX_CAPACITY_WORDS,
+        constants.MemoryModel.NUM_REGISTER_BANKS,
     )
 
     start_time = time.time()
 
     with open(input_filename, "r") as insts:
-        insts_listing = preprocessor.preprocessPISAKernelListing(
+        insts_listing = preprocessor.preprocess_pisa_kernel_listing(
             hec_mem_model, insts, progress_verbose=b_verbose
         )
 
     if b_verbose:
         print("Assigning register banks to variables...")
-    preprocessor.assignRegisterBanksToVars(
+    preprocessor.assign_register_banks_to_vars(
         hec_mem_model, insts_listing, use_bank0=b_use_bank_0
     )
 
@@ -153,7 +161,7 @@ def asmisa_assembly(
     max_bundle_size: int,
     hbm_capacity_words: int,
     spad_capacity_words: int,
-    num_register_banks: int = constants.MemoryModel.NUM_REGISTER_BANKS,
+    num_register_banks: int,
     register_range: range = None,
     b_verbose=True,
 ) -> tuple:
@@ -296,7 +304,7 @@ def main_asmisa(args):
         all_base_names = args.base_names
     else:
         raise argparse.ArgumentError(
-            f"Please provide one or more input file prefixes using `--prefix` option."
+            message=f"Please provide one or more input file prefixes using `--prefix` option."
         )
 
     for base_name in all_base_names:
@@ -355,7 +363,6 @@ def main_pisa(args):
     b_use_bank_0: bool = False
     b_verbose = True if args.verbose > 0 else False
 
-    max_bundle_size = 8
     hec_mem_model = MemoryModel(
         constants.MemoryModel.HBM.MAX_CAPACITY_WORDS // 2, 16, 4, range(8)
     )
@@ -375,9 +382,6 @@ def main_pisa(args):
     in_kernel = f"{base_name}.csv"
     mid_kernel = f"{base_name}.tw.csv"
     out_kernel = f"{base_name}.tw.new.csv"
-    out_xinst = f"{base_name}.xinst"
-    out_cinst = f"{base_name}.cinst"
-    out_minst = f"{base_name}.minst"
 
     insts_listing = []
     start_time = time.time()
@@ -470,7 +474,8 @@ if __name__ == "__main__":
     args = parse_args()
 
     repo_dir = os.path.join(module_dir, "..")
-    args.isa_spec_file = SpecConfig.initialize_isa_spec(repo_dir, args.isa_spec_file)
+    args.isa_spec_file = ISASpecConfig.initialize_isa_spec(repo_dir, args.isa_spec_file)
+    args.mem_spec_file = MemSpecConfig.initialize_mem_spec(repo_dir, args.mem_spec_file)
     if args.verbose > 0:
         print(f"ISA Spec: {args.isa_spec_file}")
 
