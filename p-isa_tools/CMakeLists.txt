@@ -28,7 +28,7 @@ message(ENABLE_DATA_FORMATS="${ENABLE_DATA_FORMATS}")
 option(ENABLE_FUNCTIONAL_MODELER "Enable building of functional modeler" ON)
 message(ENABLE_FUNCTIONAL_MODELER="${ENABLE_FUNCTIONAL_MODELER}")
 
-option(ENABLE_PROGRAM_MAPPER "Enable building of program mapper" OFF)
+option(ENABLE_PROGRAM_MAPPER "Enable building of program mapper" ON)
 message(ENABLE_PROGRAM_MAPPER="${ENABLE_PROGRAM_MAPPER}")
 
 option(ENABLE_P_ISA_UTILITIES "Enable building of p-isa utilities" OFF)
