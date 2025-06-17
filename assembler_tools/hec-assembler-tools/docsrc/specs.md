@@ -55,9 +55,9 @@ The output of the assembler tool is composed of three files containing the instr
 | XINST Queue Capacity | 1 | MB | 512 | Capacity of XInst queue in Cfetch engine. |
 | CINST Queue Capacity | 128 | KB | 4 | Capacity of CInst queue in Cfetch engine. |
 | MINST Queue Capacity | 128 | KB | 4 | Capacity of MInst queue in Mfetch engine. |
-| XINST Intruction width | 64 | bits | | Size of instructions in the Xinst queue. |
-| CINST Intruction width | 64 | bits | | Size of instructions in the Cinst queue. |
-| MINST Intruction width | 64 | bits | | Size of instructions in the Minst queue. |
+| XINST Instruction width | 64 | bits | | Size of instructions in the Xinst queue. |
+| CINST Instruction width | 64 | bits | | Size of instructions in the Cinst queue. |
+| MINST Instruction width | 64 | bits | | Size of instructions in the Minst queue. |
 | XINST bundle size | 64 | instructions | | Number of instructions in an XInst bundle. |
 | HBM Capacity`*` | 48 | GB | 1,572,864 | Capacity of DRAM. |
 | SPAD Capacity`*` | 48 | MB | 1,536 | Capacity of SRAM/cache. |
@@ -141,7 +141,7 @@ As a unit, the CE features a register file with 4 **register banks**.
 
 - A register bank cannot be accessed for writing more than once in the same cycle. Writes normally occur on the last cycle of instructions.
 
-- A register bank can be accessed for a single read and a single write simulataneously in the same cycle.
+- A register bank can be accessed for a single read and a single write simultaneously in the same cycle.
 
 ## Output File Formats
 
@@ -261,7 +261,7 @@ The following instruction set functionally matches those of HERACLES ISA. It is 
 
 | MINST | CINST | XINST |
 |-|-|-|
-| [msyncc](inst_spec/minst/minst_msyncc.md) | [bload](inst_spec/cinst/cinst_bload.md) | [move](inst_spec/xinst/xinst_move.md) |
+| [msyncc](inst_spec/minst/minst_msyncc.md) | [bloat](inst_spec/cinst/cinst_bload.md) | [move](inst_spec/xinst/xinst_move.md) |
 | [mload](inst_spec/minst/minst_mload.md) | [bones](inst_spec/cinst/cinst_bones.md) | [xstore](inst_spec/xinst/xinst_xstore.md) |
 | [mstore](inst_spec/minst/minst_mstore.md) | [nload](inst_spec/cinst/cinst_nload.md) | [rshuffle](inst_spec/xinst/xinst_rshuffle.md) |
 |  | [xinstfetch](inst_spec/cinst/cinst_xinstfetch.md) | [ntt](inst_spec/xinst/xinst_ntt.md) |
