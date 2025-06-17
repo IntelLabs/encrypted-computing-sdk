@@ -1,12 +1,30 @@
-# Copyright (C) 2024 Intel Corporation
+# Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""Configuration for the Xinst Timing Check ISA specification."""
+
 import os
-import xinst
-from assembler.isa_spec import SpecConfig
+from assembler.spec_config.isa_spec import ISASpecConfig
+
+import xinst  # pylint: disable=import-error
 
 
-class XTC_SpecConfig(SpecConfig):
+class XTCSpecConfig(ISASpecConfig):
+    """
+    Configuration class for the Xinst Timing Check ISA specification.
+    This class defines the target operations, attributes, and methods for
+    initializing the ISA specification from a JSON file.
+
+    Methods:
+        dump_isa_spec_to_json: Unimplemented for this child class.
+        initialize_isa_spec: Initializes the ISA specification from a JSON file.
+        dump_isa_spec_to_json: Unimplemented for this child class.
+    Attributes:
+        __target_xops: Dictionary mapping operation names to their corresponding
+                       instruction classes in the xinst module.
+        _target_ops: Dictionary containing the target operations for this ISA spec.
+        _target_attributes: Dictionary mapping attribute names to their setter methods.
+    """
 
     __target_xops = {
         "add": xinst.add.Instruction,

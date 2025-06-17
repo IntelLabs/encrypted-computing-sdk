@@ -5,7 +5,7 @@ import argparse
 import os
 
 from xinst import xinstruction
-from spec_config import XTC_SpecConfig
+from spec_config import XTCSpecConfig
 
 # Injects dummy bundles after bundle 1
 
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     parser.add_argument("-b", "--dummy_bundles", dest="nbundles", type=int, default=0)
     parser.add_argument("-ne", "--skip_exit", dest="b_use_exit", action="store_false")
     args = parser.parse_args()
-    args.isa_spec_file = XTC_SpecConfig.initialize_isa_spec(
+    args.isa_spec_file = XTCSpecConfig.initialize_isa_spec(
         module_dir, args.isa_spec_file
     )
 
