@@ -27,9 +27,9 @@ Below is a detailed description and usage example for each tool.
   ```bash
   python main.py --mem_file <memory_file> --prefix <input_prefix> --isa_spec <isa_spec_file> -v
   ```
-  - `--mem_file`: Specifies the input memory file.  
-  - `--prefix`: One or more input prefixes to process, representing different instructions or kernels.  
-  - `--isa_spec`: Input ISA specification (.json) file that defines the parameters of the instruction set architecture.  
+  - `--mem_file`: Specifies the input memory file.
+  - `--prefix`: One or more input prefixes to process, representing different instructions or kernels.
+  - `--isa_spec`: Input ISA specification (.json) file that defines the parameters of the instruction set architecture.
   - `-v`: Enables verbose mode.
 
 ---
@@ -42,10 +42,10 @@ Below is a detailed description and usage example for each tool.
   ```bash
   python isolation_test.py --pisa_file <pisa_file> --xinst_file <xinst_file> --out_file <output_file> --track <variables_to_track> -v
   ```
-  - `--pisa_file`: Input P-ISA prep (.csv) file containing instructions.  
-  - `--xinst_file`: Input XInst instruction file.  
-  - `--out_file`: Output file name where the modified instructions will be saved.  
-  - `--track`: Set of variables to track.  
+  - `--pisa_file`: Input P-ISA prep (.csv) file containing instructions.
+  - `--xinst_file`: Input XInst instruction file.
+  - `--out_file`: Output file name where the modified instructions will be saved.
+  - `--track`: Set of variables to track.
   - `-v`: Enables verbose mode.
 
 ---
@@ -58,7 +58,7 @@ Below is a detailed description and usage example for each tool.
   ```bash
   python deadlock_test.py <input_dir> [input_prefix]
   ```
-  - `<input_dir>`: Directory containing instruction files, typically organized by prefixes.  
+  - `<input_dir>`: Directory containing instruction files, typically organized by prefixes.
   - `[input_prefix]`: Optional prefix for instruction files, used to specify particular sets of instructions.
 
 ---
@@ -83,12 +83,12 @@ Below is a detailed description and usage example for each tool.
   ```bash
   python inject_bundles.py <input_dir> <output_dir> [input_prefix] [output_prefix] --isa_spec <isa_spec_file> -b <dummy_bundles> -ne
   ```
-  - `<input_dir>`: Directory containing input files to be processed.  
-  - `<output_dir>`: Directory to save output files with injected bundles.  
-  - `[input_prefix]`: Optional prefix for input files, specifying the target instruction set.  
-  - `[output_prefix]`: Optional prefix for output files, defining the naming convention for saved files.  
-  - `--isa_spec`: Input ISA specification (.json) file, providing architectural details.  
-  - `-b`: Number of dummy bundles to insert, simulating additional instruction loads.  
+  - `<input_dir>`: Directory containing input files to be processed.
+  - `<output_dir>`: Directory to save output files with injected bundles.
+  - `[input_prefix]`: Optional prefix for input files, specifying the target instruction set.
+  - `[output_prefix]`: Optional prefix for output files, defining the naming convention for saved files.
+  - `--isa_spec`: Input ISA specification (.json) file, providing architectural details.
+  - `-b`: Number of dummy bundles to insert, simulating additional instruction loads.
   - `-ne`: Skip exit in dummy bundles, altering the behavior of injected instructions.
 
 ---
@@ -101,8 +101,8 @@ Below is a detailed description and usage example for each tool.
   ```bash
   python xtiming_check.py <input_dir> [input_prefix] --isa_spec <isa_spec_file>
   ```
-  - `<input_dir>`: Directory containing input files for timing analysis.  
-  - `[input_prefix]`: Optional prefix for input files, specifying the target instruction set.  
+  - `<input_dir>`: Directory containing input files for timing analysis.
+  - `[input_prefix]`: Optional prefix for input files, specifying the target instruction set.
   - `--isa_spec`: Input ISA specification (.json) file, providing architectural details for timing validation.
 
 ---
