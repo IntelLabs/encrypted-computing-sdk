@@ -1,0 +1,6 @@
+<map id="instructions.minst.mload.Instruction" name="instructions.minst.mload.Instruction">
+<area shape="rect" id="node1" title="Encapsulates an mload MInstruction." alt="" coords="26,259,214,300"/>
+<area shape="rect" id="node2" href="$classinstructions_1_1minst_1_1minstruction_1_1MInstruction.html" title="Represents a memory&#45;level instruction (MInstruction)." alt="" coords="5,169,235,211"/>
+<area shape="rect" id="node3" href="$classinstructions_1_1instruction_1_1BaseInstruction.html" title="The base class for all instructions." alt="" coords="33,80,207,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="68,5,172,32"/>
+</map>

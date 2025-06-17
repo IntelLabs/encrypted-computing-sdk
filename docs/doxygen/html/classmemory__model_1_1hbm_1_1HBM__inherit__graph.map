@@ -1,0 +1,4 @@
+<map id="memory_model.hbm.HBM" name="memory_model.hbm.HBM">
+<area shape="rect" id="node1" title="Encapsulates the high&#45;bandwidth DRAM memory model, also known as HBM." alt="" coords="5,95,199,121"/>
+<area shape="rect" id="node2" href="$classmemory__model_1_1memory__bank_1_1MemoryBank.html" title="Base class for memory banks." alt="" coords="10,5,194,47"/>
+</map>

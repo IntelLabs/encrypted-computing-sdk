@@ -1,0 +1,6 @@
+<map id="kerngen.pisa_generators.basic.Add" name="kerngen.pisa_generators.basic.Add">
+<area shape="rect" id="node1" title="Class representing the high&#45;level addition operation." alt="" coords="5,259,255,285"/>
+<area shape="rect" id="node2" href="$classkerngen_1_1pisa__generators_1_1basic_1_1CartesianOp.html" title="Class representing the high&#45;level cartesian operation." alt="" coords="18,169,242,211"/>
+<area shape="rect" id="node3" href="$classkerngen_1_1high__parser_1_1types_1_1HighOp.html" title="An abstract class to help define/enforce API." alt="" coords="31,80,229,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="105,5,155,32"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="linker.instructions.cinst.cinstruction.CInstruction" name="linker.instructions.cinst.cinstruction.CInstruction">
+<area shape="rect" id="node1" title="Represents a CInstruction, inheriting from BaseInstruction." alt="" coords="5,95,261,136"/>
+<area shape="rect" id="node2" href="$classlinker_1_1instructions_1_1instruction_1_1BaseInstruction.html" title="Base class for all instructions." alt="" coords="26,5,241,47"/>
+</map>

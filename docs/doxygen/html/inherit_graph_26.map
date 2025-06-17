@@ -1,0 +1,43 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" title=" " alt="" coords="5,1167,109,1194"/>
+<area shape="rect" id="node2" href="$classinstructions_1_1instruction_1_1BaseInstruction.html" title="The base class for all instructions." alt="" coords="189,1040,364,1081"/>
+<area shape="rect" id="node39" href="$classmemory__model_1_1register__file_1_1Register.html" title="Represents a register in the register file." alt="" coords="187,1160,366,1201"/>
+<area shape="rect" id="node40" href="$classmemory__model_1_1variable_1_1Variable.html" title="Class to represent a variable within a memory model." alt="" coords="157,1335,396,1362"/>
+<area shape="rect" id="node3" href="$classinstructions_1_1cinst_1_1cinstruction_1_1CInstruction.html" title="Represents a CInstruction, which is a type of BaseInstruction." alt="" coords="455,431,672,472"/>
+<area shape="rect" id="node17" href="$classinstructions_1_1minst_1_1minstruction_1_1MInstruction.html" title="Represents a memory&#45;level instruction (MInstruction)." alt="" coords="449,953,678,995"/>
+<area shape="rect" id="node21" href="$classinstructions_1_1xinst_1_1xinstruction_1_1XInstruction.html" title="This class is used to encapsulate the properties and behaviors of an xinstruction,..." alt="" coords="454,1481,673,1523"/>
+<area shape="rect" id="node4" href="$classinstructions_1_1cinst_1_1bload_1_1Instruction.html" title="Encapsulates the bload CInstruction." alt="" coords="761,5,939,47"/>
+<area shape="rect" id="node5" href="$classinstructions_1_1cinst_1_1bones_1_1Instruction.html" title="Encapsulates a bones CInstruction." alt="" coords="760,71,940,112"/>
+<area shape="rect" id="node6" href="$classinstructions_1_1cinst_1_1cexit_1_1Instruction.html" title="Represents a cexit CInstruction." alt="" coords="763,136,937,177"/>
+<area shape="rect" id="node7" href="$classinstructions_1_1cinst_1_1cload_1_1Instruction.html" title="Encapsulates a cload CInstruction." alt="" coords="762,201,938,243"/>
+<area shape="rect" id="node8" href="$classinstructions_1_1cinst_1_1cnop_1_1Instruction.html" title="Represents a &#39;cnop&#39; CInstruction from the ASM ISA specification." alt="" coords="764,267,936,308"/>
+<area shape="rect" id="node9" href="$classinstructions_1_1cinst_1_1cstore_1_1Instruction.html" title="Encapsulates a cstore CInstruction." alt="" coords="759,332,941,373"/>
+<area shape="rect" id="node10" href="$classinstructions_1_1cinst_1_1csyncm_1_1Instruction.html" title="Encapsulates a csyncm CInstruction." alt="" coords="755,397,945,439"/>
+<area shape="rect" id="node11" href="$classinstructions_1_1cinst_1_1ifetch_1_1Instruction.html" title="Encapsulates an ifetch CInstruction." alt="" coords="761,463,939,504"/>
+<area shape="rect" id="node12" href="$classinstructions_1_1cinst_1_1kgload_1_1Instruction.html" title="Encapsulates kg_load CInstruction." alt="" coords="757,528,943,569"/>
+<area shape="rect" id="node13" href="$classinstructions_1_1cinst_1_1kgseed_1_1Instruction.html" title="Encapsulates kg_seed CInstruction." alt="" coords="756,593,944,635"/>
+<area shape="rect" id="node14" href="$classinstructions_1_1cinst_1_1kgstart_1_1Instruction.html" title="Encapsulates kg_start CInstruction." alt="" coords="757,659,943,700"/>
+<area shape="rect" id="node15" href="$classinstructions_1_1cinst_1_1nload_1_1Instruction.html" title="Encapsulates an nload CInstruction." alt="" coords="761,724,939,765"/>
+<area shape="rect" id="node16" href="$classinstructions_1_1cinst_1_1xinstfetch_1_1Instruction.html" title="Encapsulates an xinstfetch CInstruction." alt="" coords="747,789,953,831"/>
+<area shape="rect" id="node18" href="$classinstructions_1_1minst_1_1mload_1_1Instruction.html" title="Encapsulates an mload MInstruction." alt="" coords="756,855,944,896"/>
+<area shape="rect" id="node19" href="$classinstructions_1_1minst_1_1mstore_1_1Instruction.html" title="Encapsulates an mstore MInstruction." alt="" coords="753,920,947,961"/>
+<area shape="rect" id="node20" href="$classinstructions_1_1minst_1_1msyncc_1_1Instruction.html" title="Encapsulates an msyncc MInstruction." alt="" coords="751,985,949,1027"/>
+<area shape="rect" id="node22" href="$classinstructions_1_1xinst_1_1add_1_1Instruction.html" title="Represents an add instruction in the assembler with specific properties and methods for parsing,..." alt="" coords="733,1051,967,1078"/>
+<area shape="rect" id="node23" href="$classinstructions_1_1xinst_1_1copy_1_1Instruction.html" title="Encapsulates a move instruction when used to copy a variable into another variable through registers." alt="" coords="765,1103,935,1144"/>
+<area shape="rect" id="node24" href="$classinstructions_1_1xinst_1_1exit_1_1Instruction.html" title="Represents a bexit instruction in the assembler with specific properties and methods for scheduling a..." alt="" coords="767,1168,933,1209"/>
+<area shape="rect" id="node25" href="$classinstructions_1_1xinst_1_1intt_1_1Instruction.html" title="Represents an intt instruction in the assembler with specific properties and methods for parsing,..." alt="" coords="768,1233,932,1275"/>
+<area shape="rect" id="node26" href="$classinstructions_1_1xinst_1_1irshuffle_1_1Instruction.html" title="Represents an instruction in the assembler with specific properties and methods for parsing,..." alt="" coords="753,1299,947,1340"/>
+<area shape="rect" id="node27" href="$classinstructions_1_1xinst_1_1mac_1_1Instruction.html" title="Represents a mac (multiply&#45;accumulate) instruction in an assembly language." alt="" coords="731,1365,969,1391"/>
+<area shape="rect" id="node28" href="$classinstructions_1_1xinst_1_1maci_1_1Instruction.html" title="Represents a maci (multiply&#45;accumulate immediate) instruction in an assembly language." alt="" coords="763,1416,937,1457"/>
+<area shape="rect" id="node29" href="$classinstructions_1_1xinst_1_1move_1_1Instruction.html" title="Encapsulates a move instruction used to copy data from one register to a different one." alt="" coords="761,1481,939,1523"/>
+<area shape="rect" id="node30" href="$classinstructions_1_1xinst_1_1mul_1_1Instruction.html" title="Represents a mul (multiply) instruction in an assembly language." alt="" coords="732,1547,968,1574"/>
+<area shape="rect" id="node31" href="$classinstructions_1_1xinst_1_1muli_1_1Instruction.html" title="Represents a muli (multiply immediate) instruction in an assembly language." alt="" coords="765,1599,935,1640"/>
+<area shape="rect" id="node32" href="$classinstructions_1_1xinst_1_1nop_1_1Instruction.html" title="Represents a nop (no operation) instruction in an assembly language." alt="" coords="733,1665,967,1691"/>
+<area shape="rect" id="node33" href="$classinstructions_1_1xinst_1_1ntt_1_1Instruction.html" title="Represents an ntt (Number Theoretic Transform) instruction in an assembly language." alt="" coords="735,1715,965,1742"/>
+<area shape="rect" id="node34" href="$classinstructions_1_1xinst_1_1rshuffle_1_1Instruction.html" title="Encapsulates an rshuffle XInstruction." alt="" coords="755,1767,945,1808"/>
+<area shape="rect" id="node35" href="$classinstructions_1_1xinst_1_1sub_1_1Instruction.html" title="Encapsulates a sub XInstruction." alt="" coords="733,1833,967,1859"/>
+<area shape="rect" id="node36" href="$classinstructions_1_1xinst_1_1twintt_1_1Instruction.html" title="Encapsulates a twintt XInstruction." alt="" coords="760,1884,940,1925"/>
+<area shape="rect" id="node37" href="$classinstructions_1_1xinst_1_1twntt_1_1Instruction.html" title="Encapsulates a twntt XInstruction." alt="" coords="762,1949,938,1991"/>
+<area shape="rect" id="node38" href="$classinstructions_1_1xinst_1_1xstore_1_1Instruction.html" title="Encapsulates an xstore MInstruction." alt="" coords="759,2015,941,2056"/>
+<area shape="rect" id="node41" href="$classmemory__model_1_1variable_1_1DummyVariable.html" title="Represents a dummy variable used as a placeholder." alt="" coords="444,1547,683,1588"/>
+</map>

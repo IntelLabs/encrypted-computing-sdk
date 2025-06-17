@@ -1,0 +1,5 @@
+<map id="linker.instructions.minst.msyncc.Instruction" name="linker.instructions.minst.msyncc.Instruction">
+<area shape="rect" id="node1" title="Encapsulates an msyncc MInstruction." alt="" coords="21,184,257,225"/>
+<area shape="rect" id="node2" href="$classlinker_1_1instructions_1_1minst_1_1minstruction_1_1MInstruction.html" title="Represents an MInstruction, inheriting from BaseInstruction." alt="" coords="5,95,273,136"/>
+<area shape="rect" id="node3" href="$classlinker_1_1instructions_1_1instruction_1_1BaseInstruction.html" title="Base class for all instructions." alt="" coords="32,5,247,47"/>
+</map>

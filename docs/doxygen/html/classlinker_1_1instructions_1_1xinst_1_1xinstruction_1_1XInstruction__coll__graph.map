@@ -1,0 +1,4 @@
+<map id="linker.instructions.xinst.xinstruction.XInstruction" name="linker.instructions.xinst.xinstruction.XInstruction">
+<area shape="rect" id="node1" title="Represents an XInstruction, inheriting from BaseInstruction." alt="" coords="5,95,264,136"/>
+<area shape="rect" id="node2" href="$classlinker_1_1instructions_1_1instruction_1_1BaseInstruction.html" title="Base class for all instructions." alt="" coords="27,5,242,47"/>
+</map>

@@ -1,0 +1,21 @@
+var searchData=
+[
+  ['table_5fidx_4066',['table_idx',['../classinstructions_1_1cinst_1_1nload_1_1Instruction.html#a656bb174ae395d6cbdc220dfc03993ef',1,'instructions::cinst::nload::Instruction']]],
+  ['tag_4067',['tag',['../classcommon_1_1cycle__tracking_1_1CycleTracker.html#a8bd5f70f4a816a70fbf88ef7e43d34d9',1,'common.cycle_tracking.CycleTracker.tag()'],['../classmemory__model_1_1variable_1_1DummyVariable.html#aad12157714300b393d1093720c3e74fa',1,'memory_model.variable.DummyVariable.tag()']]],
+  ['templates_5fpath_4068',['templates_path',['../namespaceconf.html#ae850ae634911b713e036b43894fdd525',1,'conf']]],
+  ['throughput_4069',['throughput',['../classxinst_1_1xinstruction_1_1XInstruction.html#a7ac6751dd90f6039089ddc77f6059065',1,'xinst.xinstruction.XInstruction.throughput()'],['../structpisa_1_1PerformanceModels_1_1InstructionPerfCharacteristics.html#ad577daa0d99691d1d5dfb54b56b9242e',1,'pisa::PerformanceModels::InstructionPerfCharacteristics::throughput()']]],
+  ['tmp_5fsplit_4070',['tmp_split',['../namespaceisolation__test.html#a1b704ef8e61237b305d99417ba2a8215',1,'isolation_test']]],
+  ['topo_5fsort_4071',['topo_sort',['../classstages_1_1asm__scheduler_1_1Simulation.html#a2255f3ea48a38c766dd1cf090f7782fb',1,'stages::asm_scheduler::Simulation']]],
+  ['topo_5fstart_5fidx_4072',['topo_start_idx',['../classstages_1_1asm__scheduler_1_1Simulation.html#a9c705d80cb12234c357b30d5e88c4811',1,'stages::asm_scheduler::Simulation']]],
+  ['total_5fcycles_5fused_4073',['total_cycles_used',['../structpisa_1_1performance_1_1PerformanceReport.html#abad28058e7a6d02464c76c7c9aded83b',1,'pisa::performance::PerformanceReport']]],
+  ['total_5fidle_5fcycles_4074',['total_idle_cycles',['../classstages_1_1asm__scheduler_1_1Simulation.html#a1e2534c94a8dabf3eb8a44b1ec77e132',1,'stages::asm_scheduler::Simulation']]],
+  ['total_5finput_5fmemory_5fread_4075',['total_input_memory_read',['../structpisa_1_1performance_1_1PerformanceReport.html#a8ea151dfb30f8ba097f8c3ae7875ab0f',1,'pisa::performance::PerformanceReport']]],
+  ['total_5finputs_4076',['total_inputs',['../structpisa_1_1performance_1_1PerformanceReport.html#a3eeca080a0088673af6a2459f1c88af0',1,'pisa::performance::PerformanceReport']]],
+  ['total_5fnops_5fissued_4077',['total_nops_issued',['../structpisa_1_1performance_1_1PerformanceReport.html#af51642c9b2b131e603081a14346a1fcc',1,'pisa::performance::PerformanceReport']]],
+  ['total_5foutput_5fmemory_5fwritten_4078',['total_output_memory_written',['../structpisa_1_1performance_1_1PerformanceReport.html#aeaa3a2464ce5a00461ba8461fca9b216',1,'pisa::performance::PerformanceReport']]],
+  ['total_5foutputs_4079',['total_outputs',['../structpisa_1_1performance_1_1PerformanceReport.html#a43cff708ef162804bce0dc6128fefa9b',1,'pisa::performance::PerformanceReport']]],
+  ['trace_5ffile_4080',['trace_file',['../classPisaTestGenerator.html#af8ee4831d3a07bd5aa68614a29ed6517',1,'PisaTestGenerator']]],
+  ['twintt_4081',['twiNTT',['../namespaceinstructions_1_1xinst.html#a04460230b4f3ea980f7fa62f564d7485',1,'instructions.xinst.twiNTT()'],['../namespacexinst.html#a1433deba61f1c92b5b507053a7e9dfe7',1,'xinst.twiNTT()'],['../namespacelinker_1_1instructions_1_1xinst.html#ac40dc934626d8d63e11bf1695245cec5',1,'linker.instructions.xinst.twiNTT()']]],
+  ['twntt_4082',['twNTT',['../namespaceinstructions_1_1xinst.html#a3eac8bda7bb9b2f64e746e4a52b973a2',1,'instructions.xinst.twNTT()'],['../namespacexinst.html#aac9fe483761ac672b59d4c9d0a428e48',1,'xinst.twNTT()'],['../namespacelinker_1_1instructions_1_1xinst.html#a3d3d5c80d9f9dc6d1a2ff3156a364cc8',1,'linker.instructions.xinst.twNTT()']]],
+  ['type_4083',['type',['../classgraph_1_1Node.html#a87dd1c1821550b1d86f061173a3b2c42',1,'graph::Node::type()'],['../namespaceinject__bundles.html#a166f81885d04de1c153282832d73ab18',1,'inject_bundles.type()']]]
+];

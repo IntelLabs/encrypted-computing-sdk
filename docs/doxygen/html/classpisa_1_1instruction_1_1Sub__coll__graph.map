@@ -1,0 +1,7 @@
+<map id="pisa::instruction::Sub" name="pisa::instruction::Sub">
+<area shape="rect" id="node1" title="The Sub class represents a Sub instruction in P_ISA. It receives as input 2 source registers which ar..." alt="" coords="119,171,277,197"/>
+<area shape="rect" id="node2" href="$classpisa_1_1PISAInstruction.html" title="The PISAInstruction class represents an instruction in the P&#45;ISA instruction set. It is designed to b..." alt="" coords="120,95,276,121"/>
+<area shape="rect" id="node3" href="$classISAInstruction.html" title="The ISAInstruction class used to represent an generic ISA instruction." alt="" coords="5,5,119,32"/>
+<area shape="rect" id="node4" href="$classpisa_1_1WParam.html" title="The WParam class w_&lt;res&gt;_&lt;stage&gt;_&lt;block&gt;" alt="" coords="143,5,253,32"/>
+<area shape="rect" id="node5" href="$structpisa_1_1InstructionDesc.html" title="The InstructionDesc struct stores a vector of param type objects used to describe the type of paramet..." alt="" coords="277,5,436,32"/>
+</map>
