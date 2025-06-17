@@ -1,2 +1,9 @@
+[default]
+#extend-ignore-re = ["helo byd"]
+
+[default.extend-identifiers]
+
+
 [default.extend-words]
-bload = "bload"
+# variation of params
+parms = "parms"
