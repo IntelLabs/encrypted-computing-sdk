@@ -1,4 +1,4 @@
-﻿# Instruction Specification
+﻿# HERACLES Instruction Specification
 
 Terms used in this document are defined in the HERACLES Instruction Set Architecture (ISA).
 

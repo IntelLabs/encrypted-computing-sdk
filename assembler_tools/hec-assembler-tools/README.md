@@ -50,7 +50,8 @@ On a successful run, given a P-ISA kernel in file `filename.csv` (and correspond
 
 ### Assembler Output Instruction Specs
 
-The format for the output files and instruction set can be found at [HCGF Instruction Specification](docsrc/specs.md).
+The format for the output files and instruction set for HERACLES can be found
+at [Instruction Specification](docsrc/specs.md).
 
 ## Executing the Assembler
 ### Running for a Pre-Generated Kernel
