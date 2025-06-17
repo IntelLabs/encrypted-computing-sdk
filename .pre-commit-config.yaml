@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Intel Corporation
+# Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
 default_language_version:
@@ -61,9 +61,7 @@ repos:
           args:
           - -rn # Only display messages
           - -sn # Don't display the score
-          - --source-roots=p-isa_tools/kerngen # Working directory
-          - --source-roots=p-isa_tools/program_mapper # Added directory
-          - --source-roots=assembler_tools/hec-assembler-tools # Added directory
+          - --source-roots=p-isa_tools/kerngen,assembler_tools/hec-assembler-tools
         - id: clang-format-14
           name: clang-format-14
           entry: clang-format-14
