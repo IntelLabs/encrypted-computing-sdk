@@ -37,7 +37,7 @@ def dependency_graph_for_vars(insts_list: list) -> Tuple[nx.Graph, set, set]:
             - set: Set of all variables (name) that are destinations in the input `insts_list`.
             - set: Set of all variables (name) that are sources in the input `insts_list`.
     """
-    retval = nx.Graph()
+    retval: nx.Graph = nx.Graph()
     all_dests_vars = set()
     all_sources_vars = set()
 
@@ -288,7 +288,7 @@ def preprocess_pisa_kernel_listing(
               Variables in `mem_model` collection of variables will be modified to reflect
               assigned bank in `suggested_bank` attribute.
     """
-    retval = []
+    retval: list = []
 
     if progress_verbose:
         print("0")

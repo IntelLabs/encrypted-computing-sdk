@@ -51,6 +51,7 @@ repos:
       rev: v1.16.0 # Last checked 2025/06
       hooks:
         - id: mypy
+          language: system
           exclude: >-
             ^(assembler_tools/hec-assembler-tools/assembler/common/run_config\.py|
             *assembler_tools/hec-assembler-tools/assembler/instructions/|
