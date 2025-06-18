@@ -6,6 +6,8 @@ pytest>=7.4.0
 
 # Python development tools
 pylint>=3.0.0
+types-networkx>=3.0
+types-pytest>=7.4.0
 
 # Optional: For IDE integration and manual use (pre-commit handles these automatically)
 black==25.1.0
