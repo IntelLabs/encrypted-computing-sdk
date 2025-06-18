@@ -1,8 +1,12 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import argparse
 import os
+from typing import List, Optional, Tuple, TypeVar
 
 import xinst
-from spec_config import XTC_SpecConfig
+from spec_config import XTCSpecConfig
 
 # Checks timing for register access.
 # - Checks if a register is being read from before its write completes.
@@ -10,6 +14,7 @@ from spec_config import XTC_SpecConfig
 # - Checks for bank write conflicts between rshuffles and other instructions.
 
 NUM_BUNDLE_INSTRUCTIONS = 64
+
 
 def makeUniquePath(path: str):
     """
@@ -22,6 +27,7 @@ def makeUniquePath(path: str):
         str: The normalized and expanded file path.
     """
     return os.path.normcase(os.path.realpath(os.path.expanduser(path)))
+
 
 def computeXBundleLatency(xinstr_bundle: list) -> int:
     """
@@ -37,9 +43,9 @@ def computeXBundleLatency(xinstr_bundle: list) -> int:
         RuntimeError: If the bundle size is invalid.
     """
     if len(xinstr_bundle) != NUM_BUNDLE_INSTRUCTIONS:
-        raise RuntimeError('Invalid bundle size for bundle. Expected {} instructions, but {} found.'.format(bundle_id,
-                                                                                                            NUM_BUNDLE_INSTRUCTIONS,
-                                                                                                            len(xinstrs[idx:])))
+        raise RuntimeError(
+            f"Invalid bundle size for bundle. Expected {NUM_BUNDLE_INSTRUCTIONS} instructions, but {len(xinstr_bundle)} found."
+        )
     current_bundle_cycle_count = 0  # Tracks number of cycles since last sync point (bundle start is the first sync point)
     current_bundle_latency = 0
     for xinstr in xinstr_bundle:
@@ -60,6 +66,7 @@ def computeXBundleLatency(xinstr_bundle: list) -> int:
 
     return current_bundle_latency
 
+
 def computeXBundleLatencies(xinstrs: list) -> list:
     """
     Computes latencies for all bundles of XInstructions.
@@ -70,14 +77,18 @@ def computeXBundleLatencies(xinstrs: list) -> list:
     Returns:
         list: A list of latencies for each bundle.
     """
-    print('WARNING: Check latency for `exit` XInstruction.')
-    print('Computing x bundle latencies')
+    print("WARNING: Check latency for `exit` XInstruction.")
+    print("Computing x bundle latencies")
     retval = []
     total_xinstr = len(xinstrs)
     bundle_id = 0
     while xinstrs:
         if bundle_id % 1000 == 0:
-            print("{}% - {}/{}".format((total_xinstr - len(xinstrs)) * 100 // total_xinstr, (total_xinstr - len(xinstrs)), total_xinstr))
+            print(
+                f"{(total_xinstr - len(xinstrs)) * 100 // total_xinstr}% "
+                f"- {(total_xinstr - len(xinstrs))}"
+                f"/{total_xinstr}"
+            )
         bundle = xinstrs[:NUM_BUNDLE_INSTRUCTIONS]
         xinstrs = xinstrs[NUM_BUNDLE_INSTRUCTIONS:]
         assert bundle[0].bundle == bundle_id and bundle[-1].bundle == bundle_id
@@ -87,6 +98,7 @@ def computeXBundleLatencies(xinstrs: list) -> list:
     print("100% - {0}/{0}".format(total_xinstr))
 
     return retval
+
 
 def computeCBundleLatencies(cinstr_lines) -> list:
     """
@@ -98,7 +110,7 @@ def computeCBundleLatencies(cinstr_lines) -> list:
     Returns:
         list: A list of latencies for each bundle.
     """
-    print('Computing c bundle latencies')
+    print("Computing c bundle latencies")
     retval = []
     bundle_id = 0
     bundle_latency = 0
@@ -108,40 +120,43 @@ def computeCBundleLatencies(cinstr_lines) -> list:
 
         if c_line.strip():
             # remove comment and tokenize
-            s_split = [s.strip() for s in c_line.split("#")[0].split(',')]
-            if bundle_id < 0 and ('cnop' not in s_split[1]):
-                raise RuntimeError('Invalid CInstruction detected after end of CInstQ')
-            if 'ifetch' == s_split[1]:
+            s_split = [s.strip() for s in c_line.split("#")[0].split(",")]
+            if bundle_id < 0 and ("cnop" not in s_split[1]):
+                raise RuntimeError("Invalid CInstruction detected after end of CInstQ")
+            if "ifetch" == s_split[1]:
                 # New bundle
-                assert int(s_split[2]) == bundle_id, f'ifetch, {s_split[2]} | expected {bundle_id}'
+                assert (
+                    int(s_split[2]) == bundle_id
+                ), f"ifetch, {s_split[2]} | expected {bundle_id}"
                 retval.append(bundle_latency)
                 bundle_id += 1
                 bundle_latency = 0
-            elif 'exit' in s_split[1]:
+            elif "exit" in s_split[1]:
                 # CInstQ terminate
                 retval.append(bundle_latency)
                 bundle_id = -1  # Will assert if more instructions after exit
-            elif 'cstore' == s_split[1]:
+            elif "cstore" == s_split[1]:
                 # Reset latency
                 bundle_latency = 0
             else:
                 instruction_throughput = 1
-                if 'nop' in s_split[1]:
+                if "nop" in s_split[1]:
                     instruction_throughput = int(s_split[2])
-                elif 'cload' in s_split[1]:
+                elif "cload" in s_split[1]:
                     instruction_throughput = 4
-                elif 'nload' in s_split[1]:
+                elif "nload" in s_split[1]:
                     instruction_throughput = 4
                 bundle_latency += instruction_throughput
     return retval[1:]
 
-def main(input_dir: str, input_prefix: str = None):
+
+def main(input_dir: str, input_prefix: Optional[str] = None):
     """
     Main function to check timing for register access and synchronization.
 
     Parameters:
         input_dir (str): Directory containing input files.
-        input_prefix (str): Prefix for input files.
+        input_prefix (Optional[str]): Prefix for input files.
     """
     print("Starting")
 
@@ -149,20 +164,20 @@ def main(input_dir: str, input_prefix: str = None):
     if not input_prefix:
         input_prefix = os.path.basename(input_dir)
 
-    print('Input dir:', input_dir)
-    print('Input prefix:', input_prefix)
+    print("Input dir:", input_dir)
+    print("Input prefix:", input_prefix)
 
     xinst_file = os.path.join(input_dir, input_prefix + ".xinst")
     cinst_file = os.path.join(input_dir, input_prefix + ".cinst")
 
-    xinstrs = []
-    with open(xinst_file, 'r') as f_in:
+    xinstrs: List[xinst.XInstruction] = []
+    with open(xinst_file, "r") as f_in:
         for idx, line in enumerate(f_in):
             if idx % 50000 == 0:
                 print(idx)
             if line.strip():
                 # Remove comment
-                s_split = line.split("#")[0].split(',')
+                s_split = line.split("#")[0].split(",")
                 # Parse the line into an instruction
                 instr_name = s_split[2].strip()
                 b_parsed = False
@@ -173,68 +188,77 @@ def main(input_dir: str, input_prefix: str = None):
                         b_parsed = True
                         break
                 if not b_parsed:
-                    raise ValueError(f'Could not parse line f{idx + 1}: {line}')
+                    raise ValueError(f"Could not parse line f{idx + 1}: {line}")
 
     # Check synchronization between C and X queues
     print("--------------")
     print("Checking synchronization between C and X queues...")
     xbundle_cycles = computeXBundleLatencies(xinstrs)
-    with open(cinst_file, 'r') as f_in:
+    with open(cinst_file, "r") as f_in:
         cbundle_cycles = computeCBundleLatencies(f_in)
 
     if len(xbundle_cycles) != len(cbundle_cycles):
-        raise RuntimeError('Mismatched bundles: {} xbundles vs. {} cbundles'.format(len(xbundle_cycles),
-                                                                                    len(cbundle_cycles)))
+        raise RuntimeError(
+            "Mismatched bundles: {} xbundles vs. {} cbundles".format(
+                len(xbundle_cycles), len(cbundle_cycles)
+            )
+        )
     print("Comparing latencies...")
     bundle_cycles_violation_list = []
     for idx in range(len(xbundle_cycles)):
         if xbundle_cycles[idx] > cbundle_cycles[idx]:
-            bundle_cycles_violation_list.append('Bundle {} | X {} cycles; C {} cycles'.format(idx,
-                                                                                              xbundle_cycles[idx],
-                                                                                              cbundle_cycles[idx]))
+            bundle_cycles_violation_list.append(
+                "Bundle {} | X {} cycles; C {} cycles".format(
+                    idx, xbundle_cycles[idx], cbundle_cycles[idx]
+                )
+            )
 
     # Check timings for register access
     print("--------------")
     print("Checking timings for register access...")
-    violation_lst = []  # list(tuple(xinstr_idx, violating_idx, register: str, cycle_counter))
+    violation_lst: List[Tuple[int, int, str, int]] = (
+        []
+    )  # list(tuple(xinstr_idx, violating_idx, register: str, cycle_counter))
     for idx, xinstr in enumerate(xinstrs):
         if idx % 50000 == 0:
             print("{}% - {}/{}".format(idx * 100 // len(xinstrs), idx, len(xinstrs)))
 
         # Check bank conflict
-
         banks = set()
         for r, b in xinstr.srcs:
             if b in banks:
-                violation_lst.append((idx + 1, f"Bank conflict source {b}", xinstr.name))
+                violation_lst.append((idx + 1, idx + 1, f"Bank conflict source {b}", 0))
                 break
             banks.add(b)
 
         banks = set()
         for r, b in xinstr.dsts:
             if b in banks:
-                violation_lst.append((idx + 1, f"Bank conflict dests {b}", xinstr.name))
+                violation_lst.append((idx + 1, idx + 1, f"Bank conflict dests {b}", 0))
                 break
             banks.add(b)
 
-        if xinstr.name == 'move':
+        if xinstr.name == "move":
             # Make sure move is only moving from bank zero
             src_bank = xinstr.srcs[0][1]
             dst_bank = xinstr.dsts[0][1]
             if src_bank != 0:
-                violation_lst.append((idx + 1, f"Move bank error sources {src_bank}", xinstr.name))
+                violation_lst.append(
+                    (idx + 1, idx + 1, f"Move bank error sources {src_bank}", 0)
+                )
             if dst_bank == src_bank:
-                violation_lst.append((idx + 1, f"Move bank error dests {dst_bank}", xinstr.name))
+                violation_lst.append(
+                    (idx + 1, idx + 1, f"Move bank error dests {dst_bank}", 0)
+                )
 
         # Check timing
-
         cycle_counter = xinstr.throughput
         for jdx in range(idx + 1, len(xinstrs)):
             if cycle_counter >= xinstr.latency:
                 break  # Instruction outputs are ready
             next_xinstr = xinstrs[jdx]
             if next_xinstr.bundle != xinstr.bundle:
-                assert(next_xinstr.bundle == xinstr.bundle + 1)
+                assert next_xinstr.bundle == xinstr.bundle + 1
                 break  # Different bundle
 
             # Check
@@ -242,7 +266,9 @@ def main(input_dir: str, input_prefix: str = None):
             for reg in xinstr.dsts:
                 if reg in all_next_regs:
                     # Register is not ready and still used by an instruction
-                    violation_lst.append((idx + 1, jdx + 1, f"r{reg[0]}b{reg[1]}", cycle_counter))
+                    violation_lst.append(
+                        (idx + 1, jdx + 1, f"r{reg[0]}b{reg[1]}", cycle_counter)
+                    )
 
             cycle_counter += next_xinstr.throughput
 
@@ -251,7 +277,9 @@ def main(input_dir: str, input_prefix: str = None):
     # Check rshuffle separation
     print("--------------")
     print("Checking rshuffle separation...")
-    rshuffle_violation_lst = []  # list(tuple(xinstr_idx, violating_idx, data_types: str, cycle_counter))
+    rshuffle_violation_lst: List[Tuple[int, int, str, int]] = (
+        []
+    )  # list(tuple(xinstr_idx, violating_idx, data_types: str, cycle_counter))
     print("WARNING: No distinction between `rshuffle` and `irshuffle`.")
     for idx, xinstr in enumerate(xinstrs):
         if idx % 50000 == 0:
@@ -264,18 +292,34 @@ def main(input_dir: str, input_prefix: str = None):
                     break  # Instruction outputs are ready
                 next_xinstr = xinstrs[jdx]
                 if next_xinstr.bundle != xinstr.bundle:
-                    assert(next_xinstr.bundle == xinstr.bundle + 1)
+                    assert next_xinstr.bundle == xinstr.bundle + 1
                     break  # Different bundle
 
                 # Check
                 if isinstance(next_xinstr, xinst.rShuffle):
                     if next_xinstr.data_type != xinstr.data_type:
                         # Mixing ntt and intt rshuffle inside the latency of first rshuffle
-                        rshuffle_violation_lst.append((idx + 1, jdx + 1, f"{xinstr.data_type} != {next_xinstr.data_type}", cycle_counter))
-                    elif cycle_counter < xinstr.special_latency_max \
-                         and cycle_counter % xinstr.special_latency_increment != 0:
+                        rshuffle_violation_lst.append(
+                            (
+                                idx + 1,
+                                jdx + 1,
+                                f"{xinstr.data_type} != {next_xinstr.data_type}",
+                                cycle_counter,
+                            )
+                        )
+                    elif (
+                        cycle_counter < xinstr.special_latency_max
+                        and cycle_counter % xinstr.special_latency_increment != 0
+                    ):
                         # Same data type
-                        rshuffle_violation_lst.append((idx + 1, jdx + 1, f"{xinstr.data_type} == {next_xinstr.data_type}", cycle_counter))
+                        rshuffle_violation_lst.append(
+                            (
+                                idx + 1,
+                                jdx + 1,
+                                f"{xinstr.data_type} == {next_xinstr.data_type}",
+                                cycle_counter,
+                            )
+                        )
 
                 cycle_counter += next_xinstr.throughput
 
@@ -284,7 +328,9 @@ def main(input_dir: str, input_prefix: str = None):
     # Check bank conflicts with rshuffle
     print("--------------")
     print("Checking bank conflicts with rshuffle...")
-    rshuffle_bank_violation_lst = []  # list(tuple(xinstr_idx, violating_idx, banks: str, cycle_counter))
+    rshuffle_bank_violation_lst: List[Tuple[int, int, str, int]] = (
+        []
+    )  # list(tuple(xinstr_idx, violating_idx, banks: str, cycle_counter))
     for idx, xinstr in enumerate(xinstrs):
         if idx % 50000 == 0:
             print("{}% - {}/{}".format(idx * 100 // len(xinstrs), idx, len(xinstrs)))
@@ -299,7 +345,7 @@ def main(input_dir: str, input_prefix: str = None):
                     break  # Instruction outputs are ready
                 next_xinstr = xinstrs[jdx]
                 if next_xinstr.bundle != xinstr.bundle:
-                    assert(next_xinstr.bundle == xinstr.bundle + 1)
+                    assert next_xinstr.bundle == xinstr.bundle + 1
                     break  # Different bundle
                 # Check
                 if cycle_counter + next_xinstr.latency - 1 == rshuffle_write_cycle:
@@ -307,7 +353,16 @@ def main(input_dir: str, input_prefix: str = None):
                     # Check for bank conflicts
                     next_xinstr_banks = set(bank for _, bank in next_xinstr.dsts)
                     if rshuffle_banks & next_xinstr_banks:
-                        rshuffle_bank_violation_lst.append((idx + 1, jdx + 1, "{} | banks: {}".format(next_xinstr.name, rshuffle_banks & next_xinstr_banks), cycle_counter))
+                        rshuffle_bank_violation_lst.append(
+                            (
+                                idx + 1,
+                                jdx + 1,
+                                "{} | banks: {}".format(
+                                    next_xinstr.name, rshuffle_banks & next_xinstr_banks
+                                ),
+                                cycle_counter,
+                            )
+                        )
 
                 cycle_counter += next_xinstr.throughput
 
@@ -318,36 +373,37 @@ def main(input_dir: str, input_prefix: str = None):
     if bundle_cycles_violation_list:
         # Log violation list
         print()
-        for x in bundle_cycles_violation_list:
-            print(x)
-        s_error_msgs.append('Bundle cycle violations detected.')
+        for violation in bundle_cycles_violation_list:
+            print(violation)
+        s_error_msgs.append("Bundle cycle violations detected.")
 
     if violation_lst:
         # Log violation list
         print()
-        for x in violation_lst:
-            print(x)
-        s_error_msgs.append('Register access violations detected.')
+        for violation in violation_lst:
+            print(violation)
+        s_error_msgs.append("Register access violations detected.")
 
     if rshuffle_violation_lst:
         # Log violation list
         print()
-        for x in rshuffle_violation_lst:
-            print(x)
-        s_error_msgs.append('rShuffle special latency violations detected.')
+        for violation in rshuffle_violation_lst:
+            print(violation)
+        s_error_msgs.append("rShuffle special latency violations detected.")
 
     if rshuffle_bank_violation_lst:
         # Log violation list
         print()
-        for x in rshuffle_bank_violation_lst:
-            print(x)
-        s_error_msgs.append('rShuffle bank access violations detected.')
+        for violation in rshuffle_bank_violation_lst:
+            print(violation)
+        s_error_msgs.append("rShuffle bank access violations detected.")
 
     if s_error_msgs:
-        raise RuntimeError('\n'.join(s_error_msgs))
+        raise RuntimeError("\n".join(s_error_msgs))
 
     print()
-    print('No timing errors found.')
+    print("No timing errors found.")
+
 
 if __name__ == "__main__":
     module_dir = os.path.dirname(__file__)
@@ -357,11 +413,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("input_dir")
     parser.add_argument("input_prefix", nargs="?")
-    parser.add_argument("--isa_spec", default="", dest="isa_spec_file",
-                        help=("Input ISA specification (.json) file."))
+    parser.add_argument(
+        "--isa_spec",
+        default="",
+        dest="isa_spec_file",
+        help=("Input ISA specification (.json) file."),
+    )
     args = parser.parse_args()
 
-    args.isa_spec_file = XTC_SpecConfig.initialize_isa_spec(module_dir, args.isa_spec_file)
+    args.isa_spec_file = XTCSpecConfig.initialize_isa_spec(
+        module_dir, args.isa_spec_file
+    )
     print(f"ISA Spec: {args.isa_spec_file}")
 
     print()

@@ -1,9 +1,13 @@
-﻿import warnings
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+import warnings
 
 from argparse import Namespace
 
 from .xinstruction import XInstruction
 from assembler.memory_model.variable import Variable
+
 
 class Instruction(XInstruction):
     """
@@ -35,10 +39,10 @@ class Instruction(XInstruction):
         Returns:
             str: PISA operation name.
         """
-        return cls.OP_NAME_PISA
+        return cls.op_name_pisa
 
     @classmethod
-    def _get_OP_NAME_PISA(cls) -> str:
+    def _get_op_name_pisa(cls) -> str:
         """
         Returns the operation name in PISA format.
 
@@ -48,7 +52,7 @@ class Instruction(XInstruction):
         return "copy"
 
     @classmethod
-    def _get_OP_NAME_ASM(cls) -> str:
+    def _get_op_name_asm(cls) -> str:
         """
         Returns the operation name in ASM format.
 
@@ -82,44 +86,51 @@ class Instruction(XInstruction):
                 comment (str): String with the comment attached to the line (empty string if no comment).
         """
         retval = None
-        tokens = XInstruction.tokenizeFromPISALine(cls.OP_NAME_PISA, line)
+        tokens = XInstruction.tokenizeFromPISALine(cls.op_name_pisa, line)
         if tokens:
-            retval = { "comment": tokens[1] }
+            retval = {"comment": tokens[1]}
             instr_tokens = tokens[0]
             if len(instr_tokens) > cls._OP_NUM_TOKENS:
-                warnings.warn(f'Extra tokens detected for instruction "{cls.OP_NAME_PISA}"', SyntaxWarning)
+                warnings.warn(
+                    f'Extra tokens detected for instruction "{cls.op_name_pisa}"',
+                    SyntaxWarning,
+                )
 
             retval["N"] = int(instr_tokens[0])
             retval["op_name"] = instr_tokens[1]
             params_start = 2
             params_end = params_start + cls._OP_NUM_DESTS + cls._OP_NUM_SOURCES
-            dst_src = cls.parsePISASourceDestsFromTokens(instr_tokens,
-                                                         cls._OP_NUM_DESTS,
-                                                         cls._OP_NUM_SOURCES,
-                                                         params_start)
+            dst_src = cls.parsePISASourceDestsFromTokens(
+                instr_tokens, cls._OP_NUM_DESTS, cls._OP_NUM_SOURCES, params_start
+            )
             retval.update(dst_src)
             if len(instr_tokens) < cls._OP_NUM_TOKENS:
                 # temporary warning to avoid syntax error during testing
                 # REMOVE WARNING AND TURN IT TO ERROR DURING PRODUCTION
-                #---------------------------
-                warnings.warn(f'Not enough tokens detected for instruction "{cls.OP_NAME_PISA}"', SyntaxWarning)
+                # ---------------------------
+                warnings.warn(
+                    f'Not enough tokens detected for instruction "{cls.op_name_pisa}"',
+                    SyntaxWarning,
+                )
                 pass
             else:
                 # ignore "res", but make sure it exists (syntax)
-                assert(instr_tokens[params_end] is not None)
+                assert instr_tokens[params_end] is not None
 
             retval = Namespace(**retval)
-            assert(retval.op_name == cls.OP_NAME_PISA)
+            assert retval.op_name == cls.op_name_pisa
         return retval
 
-    def __init__(self,
-                 id: int,
-                 N: int,
-                 dst: list,
-                 src: list,
-                 throughput : int = None,
-                 latency : int = None,
-                 comment: str = ""):
+    def __init__(
+        self,
+        id: int,
+        N: int,
+        dst: list,
+        src: list,
+        throughput: int = None,
+        latency: int = None,
+        comment: str = "",
+    ):
         """
         Initializes an Instruction object with the given parameters.
 
@@ -139,10 +150,12 @@ class Instruction(XInstruction):
             throughput = Instruction._OP_DEFAULT_THROUGHPUT
         if not latency:
             latency = Instruction._OP_DEFAULT_LATENCY
-        N = 0 # does not require ring-size
+        N = 0  # does not require ring-size
         super().__init__(id, N, throughput, latency, comment=comment)
         if dst[0].name == src[0].name:
-            raise ValueError(f'`dst`: Source and destination cannot be the same for instruction "{self.name}".')
+            raise ValueError(
+                f'`dst`: Source and destination cannot be the same for instruction "{self.name}".'
+            )
         self._set_dests(dst)
         self._set_sources(src)
 
@@ -153,16 +166,20 @@ class Instruction(XInstruction):
         Returns:
             str: A string representation of object.
         """
-        retval=('<{}({}) object at {}>(id={}[0], '
-                  'dst={}, src={}, '
-                  'throughput={}, latency={})').format(type(self).__name__,
-                                                           self.name,
-                                                           hex(id(self)),
-                                                           self.id,
-                                                           self.dests,
-                                                           self.sources,
-                                                           self.throughput,
-                                                           self.latency)
+        retval = (
+            "<{}({}) object at {}>(id={}[0], "
+            "dst={}, src={}, "
+            "throughput={}, latency={})"
+        ).format(
+            type(self).__name__,
+            self.name,
+            hex(id(self)),
+            self.id,
+            self.dests,
+            self.sources,
+            self.throughput,
+            self.latency,
+        )
         return retval
 
     def _set_dests(self, value):
@@ -176,9 +193,14 @@ class Instruction(XInstruction):
             ValueError: If the list does not contain the expected number of `Variable` objects.
         """
         if len(value) != Instruction._OP_NUM_DESTS:
-            raise ValueError(("`value`: Expected list of {} `Variable` objects, "
-                              "but list with {} elements received.".format(Instruction._OP_NUM_SOURCES,
-                                                                           len(value))))
+            raise ValueError(
+                (
+                    "`value`: Expected list of {} `Variable` objects, "
+                    "but list with {} elements received.".format(
+                        Instruction._OP_NUM_SOURCES, len(value)
+                    )
+                )
+            )
         if not all(isinstance(x, Variable) for x in value):
             raise ValueError("`value`: Expected list of `Variable` objects.")
         super()._set_dests(value)
@@ -194,14 +216,19 @@ class Instruction(XInstruction):
             ValueError: If the list does not contain the expected number of `Variable` objects.
         """
         if len(value) != Instruction._OP_NUM_SOURCES:
-            raise ValueError(("`value`: Expected list of {} `Variable` objects, "
-                              "but list with {} elements received.".format(Instruction._OP_NUM_SOURCES,
-                                                                           len(value))))
+            raise ValueError(
+                (
+                    "`value`: Expected list of {} `Variable` objects, "
+                    "but list with {} elements received.".format(
+                        Instruction._OP_NUM_SOURCES, len(value)
+                    )
+                )
+            )
         if not all(isinstance(x, Variable) for x in value):
             raise ValueError("`value`: Expected list of `Variable` objects.")
         super()._set_sources(value)
 
-    def _toPISAFormat(self, *extra_args) -> str:
+    def _to_pisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to P-ISA kernel format.
 
@@ -214,15 +241,15 @@ class Instruction(XInstruction):
         Returns:
             str: P-ISA kernel format instruction.
         """
-        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
+        assert len(self.dests) == Instruction._OP_NUM_DESTS
+        assert len(self.sources) == Instruction._OP_NUM_SOURCES
 
         if extra_args:
-            raise ValueError('`extra_args` not supported.')
+            raise ValueError("`extra_args` not supported.")
 
-        return super()._toPISAFormat()
+        return super()._to_pisa_format()
 
-    def _toXASMISAFormat(self, *extra_args) -> str:
+    def _to_xasmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to ASM format.
 
@@ -235,10 +262,10 @@ class Instruction(XInstruction):
         Returns:
             str: ASM format instruction.
         """
-        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
+        assert len(self.dests) == Instruction._OP_NUM_DESTS
+        assert len(self.sources) == Instruction._OP_NUM_SOURCES
 
         if extra_args:
-            raise ValueError('`extra_args` not supported.')
+            raise ValueError("`extra_args` not supported.")
 
-        return super()._toXASMISAFormat()
+        return super()._to_xasmisa_format()

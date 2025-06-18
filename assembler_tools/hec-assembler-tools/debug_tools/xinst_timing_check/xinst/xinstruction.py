@@ -1,33 +1,37 @@
-﻿import re
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+import re
 from assembler.common.decorators import *
-from assembler.instructions import tokenizeFromLine
+from assembler.instructions import tokenize_from_line
+
 
 class XInstruction:
 
     # To be initialized from ASM ISA spec
-    _OP_NUM_DESTS          : int
-    _OP_NUM_SOURCES        : int
-    _OP_DEFAULT_THROUGHPUT : int
-    _OP_DEFAULT_LATENCY    : int
+    _OP_NUM_DESTS: int
+    _OP_NUM_SOURCES: int
+    _OP_DEFAULT_THROUGHPUT: int
+    _OP_DEFAULT_LATENCY: int
 
     @classmethod
     def SetNumTokens(cls, val):
         pass
 
     @classmethod
-    def SetNumDests(cls, val):
+    def set_num_dests(cls, val):
         cls._OP_NUM_DESTS = val
 
     @classmethod
-    def SetNumSources(cls, val):
+    def set_num_sources(cls, val):
         cls._OP_NUM_SOURCES = val
 
     @classmethod
-    def SetDefaultThroughput(cls, val):
+    def set_default_throughput(cls, val):
         cls._OP_DEFAULT_THROUGHPUT = val
 
     @classmethod
-    def SetDefaultLatency(cls, val):
+    def set_default_latency(cls, val):
         cls._OP_DEFAULT_LATENCY = val
 
     # Static methods
@@ -47,13 +51,15 @@ class XInstruction:
                    None if instruction cannot be parsed from the line.
         """
         retval = None
-        tokens, comment = tokenizeFromLine(line)
+        tokens, comment = tokenize_from_line(line)
         if len(tokens) > 2 and tokens[2] == op_name:
             retval = (tokens, comment)
         return retval
 
     @staticmethod
-    def parseASMISASourceDestsFromTokens(tokens: list, num_dests: int, num_sources: int, offset: int = 0) -> dict:
+    def parseASMISASourceDestsFromTokens(
+        tokens: list, num_dests: int, num_sources: int, offset: int = 0
+    ) -> dict:
         """
         Parses the sources and destinations for an instruction, given sources and
         destinations in tokens in P-ISA format.
@@ -79,20 +85,20 @@ class XInstruction:
         dst = []
         for dst_tokens in tokens[dst_start:dst_end]:
             if not re.search("r[0-9]+b[0-3]", dst_tokens):
-                raise ValueError(f'Invalid register name: `{dst_tokens}`.')
+                raise ValueError(f"Invalid register name: `{dst_tokens}`.")
             # Parse rXXbXX into a tuple of the form (reg, bank)
             tmp = dst_tokens[1:]
-            reg = tuple(map(int, tmp.split('b')))
+            reg = tuple(map(int, tmp.split("b")))
             dst.append(reg)
         src_start = dst_end
         src_end = src_start + num_sources
         src = []
         for src_tokens in tokens[src_start:src_end]:
             if not re.search("r[0-9]+b[0-3]", src_tokens):
-                raise ValueError(f'Invalid register name: `{src_tokens}`.')
+                raise ValueError(f"Invalid register name: `{src_tokens}`.")
             # Parse rXXbXX into a tuple of the form (reg, bank)
             tmp = src_tokens[1:]
-            reg = tuple(map(int, tmp.split('b')))
+            reg = tuple(map(int, tmp.split("b")))
             src.append(reg)
         if dst:
             retval["dst"] = dst
@@ -118,20 +124,22 @@ class XInstruction:
         Raises:
             NotImplementedError: If the method is not implemented in a derived class.
         """
-        raise NotImplementedError('Abstract base')
+        raise NotImplementedError("Abstract base")
 
     # Constructor
     # -----------
 
-    def __init__(self,
-                 bundle: int,
-                 pisa_instr: int,
-                 dsts: list,
-                 srcs: list,
-                 throughput: int,
-                 latency: int,
-                 other: list = [],
-                 comment: str = ""):
+    def __init__(
+        self,
+        bundle: int,
+        pisa_instr: int,
+        dsts: list,
+        srcs: list,
+        throughput: int,
+        latency: int,
+        other: list = [],
+        comment: str = "",
+    ):
         """
         Initializes an XInstruction object.
 
@@ -161,18 +169,16 @@ class XInstruction:
         Returns:
             str: The string representation of the instruction.
         """
-        retval = "f{}, {}, {}".format(self.bundle,
-                                      self.pisa_instr,
-                                      self.name)
+        retval = "f{}, {}, {}".format(self.bundle, self.pisa_instr, self.name)
         if self.dsts:
-            dsts = ['r{}b{}'.format(r, b) for r, b in self.dsts]
-            retval += ', {}'.format(', '.join(dsts))
+            dsts = ["r{}b{}".format(r, b) for r, b in self.dsts]
+            retval += ", {}".format(", ".join(dsts))
         if self.srcs:
-            srcs = ['r{}b{}'.format(r, b) for r, b in self.srcs]
-            retval += ', {}'.format(', '.join(srcs))
+            srcs = ["r{}b{}".format(r, b) for r, b in self.srcs]
+            retval += ", {}".format(", ".join(srcs))
         if self.other:
-            retval += ', {}'.format(', '.join(self.other))
+            retval += ", {}".format(", ".join(self.other))
         if self.comment:
-            retval += f' # {self.comment}'
+            retval += f" # {self.comment}"
 
         return retval

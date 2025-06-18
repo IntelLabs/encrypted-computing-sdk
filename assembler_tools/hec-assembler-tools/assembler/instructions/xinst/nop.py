@@ -1,4 +1,8 @@
-﻿from .xinstruction import XInstruction
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+from .xinstruction import XInstruction
+
 
 class Instruction(XInstruction):
     """
@@ -12,7 +16,7 @@ class Instruction(XInstruction):
     """
 
     @classmethod
-    def _get_OP_NAME_ASM(cls) -> str:
+    def _get_op_name_asm(cls) -> str:
         """
         Returns the operation name in ASM format.
 
@@ -21,10 +25,7 @@ class Instruction(XInstruction):
         """
         return "nop"
 
-    def __init__(self,
-                 id: int,
-                 idle_cycles: int,
-                 comment: str = ""):
+    def __init__(self, id: int, idle_cycles: int, comment: str = ""):
         """
         Initializes an Instruction object for a 'nop' operation.
 
@@ -44,12 +45,9 @@ class Instruction(XInstruction):
         Returns:
             str: A string representation of the object.
         """
-        retval = ('<{}({}) object at {}>(id={}[0], '
-                  'idle_cycles={})').format(type(self).__name__,
-                                            self.name,
-                                            hex(id(self)),
-                                            self.id,
-                                            self.throughput)
+        retval = ("<{}({}) object at {}>(id={}[0], " "idle_cycles={})").format(
+            type(self).__name__, self.name, hex(id(self)), self.id, self.throughput
+        )
         return retval
 
     def _set_dests(self, value):
@@ -76,7 +74,7 @@ class Instruction(XInstruction):
         """
         raise RuntimeError(f"Instruction `{self.name}` does not have parameters.")
 
-    def _toPISAFormat(self, *extra_args) -> str:
+    def _to_pisa_format(self, *extra_args) -> str:
         """
         Indicates that this instruction has no PISA equivalent.
 
@@ -88,7 +86,7 @@ class Instruction(XInstruction):
         """
         return None
 
-    def _toXASMISAFormat(self, *extra_args) -> str:
+    def _to_xasmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to ASM format.
 
@@ -101,12 +99,12 @@ class Instruction(XInstruction):
         Returns:
             str: The instruction in ASM format as a string.
         """
-        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
+        assert len(self.dests) == Instruction._OP_NUM_DESTS
+        assert len(self.sources) == Instruction._OP_NUM_SOURCES
 
         if extra_args:
-            raise ValueError('`extra_args` not supported.')
+            raise ValueError("`extra_args` not supported.")
 
         # The idle cycles in the ASM ISA for `nop` must be one less because decoding/scheduling
         # the instruction counts as a cycle.
-        return super()._toXASMISAFormat(self.throughput - 1)
+        return super()._to_xasmisa_format(self.throughput - 1)

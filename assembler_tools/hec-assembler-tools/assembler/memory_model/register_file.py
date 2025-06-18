@@ -1,8 +1,11 @@
-﻿
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 from assembler.common import constants
 from assembler.common.cycle_tracking import CycleTracker
 from .variable import Variable
 from . import mem_utilities as utilities
+
 
 class RegisterBank:
     """
@@ -28,6 +31,7 @@ class RegisterBank:
         """
         Allows iteration over the registers in a register bank.
         """
+
         def __init__(self, obj):
             assert obj is not None and obj.register_count > 0
             self.__obj = obj
@@ -43,9 +47,7 @@ class RegisterBank:
     # Constructor
     # -----------
 
-    def __init__(self,
-                 bank_index: int,
-                 register_range: range = None):
+    def __init__(self, bank_index: int, register_range: range = None):
         """
         Constructs a new RegisterBank object.
 
@@ -59,19 +61,31 @@ class RegisterBank:
             ValueError: If the bank index is negative or if the register range is invalid.
         """
         if bank_index < 0:
-            raise ValueError((f'`bank_index`: expected non-negative a index for bank, '
-                              f'but {bank_index} received.'))
+            raise ValueError(
+                (
+                    f"`bank_index`: expected non-negative a index for bank, "
+                    f"but {bank_index} received."
+                )
+            )
         if not register_range:
             register_range = range(constants.MemoryModel.NUM_REGISTER_PER_BANKS)
         elif len(register_range) < 1:
-            raise ValueError((f'`register_range`: expected a range within [0, {constants.MemoryModel.NUM_REGISTER_PER_BANKS}) with, '
-                              f'at least, 1 element, but {register_range} received.'))
+            raise ValueError(
+                (
+                    f"`register_range`: expected a range within [0, {constants.MemoryModel.NUM_REGISTER_PER_BANKS}) with, "
+                    f"at least, 1 element, but {register_range} received."
+                )
+            )
         elif abs(register_range.step) != 1:
-            raise ValueError((f'`register_range`: expected a range within step of 1 or -1, '
-                              f'but {register_range} received.'))
+            raise ValueError(
+                (
+                    f"`register_range`: expected a range within step of 1 or -1, "
+                    f"but {register_range} received."
+                )
+            )
         self.__bank_index = bank_index
         # list of registers in this bank
-        self.__registers = [ Register(self, register_i) for register_i in register_range ]
+        self.__registers = [Register(self, register_i) for register_i in register_range]
 
     # Special methods
     # ---------------
@@ -92,9 +106,9 @@ class RegisterBank:
         Returns:
             str: A string representation of the RegisterBank.
         """
-        return '<{}  object at {}>(bank_index = {})'.format(type(self).__name__,
-                                                            hex(id(self)),
-                                                            self.bank_index)
+        return "<{}  object at {}>(bank_index = {})".format(
+            type(self).__name__, hex(id(self)), self.bank_index
+        )
 
     # Methods and properties
     # ----------------------
@@ -133,18 +147,20 @@ class RegisterBank:
             ValueError: If the index is out of range.
         """
         if idx < -self.register_count or idx >= self.register_count:
-            raise ValueError((f'`idx`: expected an index for register in the range [-{self.register_count}, {self.register_count}), '
-                              f'but {idx} received.'))
+            raise ValueError(
+                (
+                    f"`idx`: expected an index for register in the range [-{self.register_count}, {self.register_count}), "
+                    f"but {idx} received."
+                )
+            )
         return self.__registers[idx]
 
-    def findAvailableRegister(self,
-                              live_var_names,
-                              replacement_policy: str = None):
+    def findAvailableRegister(self, live_var_names, replacement_policy: str = None):
         """
         Retrieve the next available register or propose a register to use if all are occupied.
 
         Args:
-            live_var_names (set or list): 
+            live_var_names (set or list):
                 A set of variable names containing the variables that are not available for replacement
                 i.e. live variables. This is used to avoid replacing variables that were just allocated
                 as dependencies for an upcoming instruction.
@@ -160,9 +176,11 @@ class RegisterBank:
         Returns:
             Register: The first empty register, or the register to replace if all are occupied. Returns None if no suitable register is found.
         """
-        retval_idx = utilities.findAvailableLocation((register.contained_variable for register in self.__registers),
-                                                     live_var_names,
-                                                     replacement_policy)
+        retval_idx = utilities.findAvailableLocation(
+            (register.contained_variable for register in self.__registers),
+            live_var_names,
+            replacement_policy,
+        )
         return self.getRegister(retval_idx) if retval_idx >= 0 else None
 
     def dump(self, ostream):
@@ -172,27 +190,26 @@ class RegisterBank:
         Args:
             ostream: The output stream to write the register bank state to.
         """
-        print(f'Register bank, {self.bank_index}', file = ostream)
-        print(f'Number of registers, {self.register_count}', file = ostream)
-        print("", file = ostream)
-        print("register, variable, variable register, dirty", file = ostream)
+        print(f"Register bank, {self.bank_index}", file=ostream)
+        print(f"Number of registers, {self.register_count}", file=ostream)
+        print("", file=ostream)
+        print("register, variable, variable register, dirty", file=ostream)
         for idx in range(self.register_count):
             register = self.getRegister(idx)
             if not register:
-                print('ERROR: None Register')
+                print("ERROR: None Register")
             else:
-                var_data = 'None'
+                var_data = "None"
                 variable = register.contained_variable
                 if variable is not None:
                     if variable.name:
-                        var_data = '{}, {}'.format(variable.name,
-                                                   variable.register,
-                                                   variable.register_dirty)
+                        var_data = "{}, {}".format(
+                            variable.name, variable.register, variable.register_dirty
+                        )
                     else:
-                        var_data = f'Dummy_{variable.tag}'
-                print('{}, {}'.format(register.name,
-                                      var_data),
-                      file = ostream)
+                        var_data = f"Dummy_{variable.tag}"
+                print("{}, {}".format(register.name, var_data), file=ostream)
+
 
 class Register(CycleTracker):
     """
@@ -218,9 +235,7 @@ class Register(CycleTracker):
     # Constructor
     # -----------
 
-    def __init__(self,
-                 bank: RegisterBank,
-                 register_index: int):
+    def __init__(self, bank: RegisterBank, register_index: int):
         """
         Initializes a new Register object.
 
@@ -231,9 +246,16 @@ class Register(CycleTracker):
         Raises:
             ValueError: If the register index is out of the valid range.
         """
-        if register_index < 0 or register_index >= constants.MemoryModel.NUM_REGISTERS_PER_BANK:
-            raise ValueError((f'`register_index`: expected an index for register in the range [0, {constants.MemoryModel.NUM_REGISTERS_PER_BANK}), '
-                              f'but {register_index} received.'))
+        if (
+            register_index < 0
+            or register_index >= constants.MemoryModel.NUM_REGISTERS_PER_BANK
+        ):
+            raise ValueError(
+                (
+                    f"`register_index`: expected an index for register in the range [0, {constants.MemoryModel.NUM_REGISTERS_PER_BANK}), "
+                    f"but {register_index} received."
+                )
+            )
         super().__init__((0, 0))
         self.register_dirty = False
         self.__bank = bank
@@ -253,8 +275,9 @@ class Register(CycleTracker):
         Returns:
             bool: True if the other Register is the same as this one, False otherwise.
         """
-        return other is self \
-            or (isinstance(other, Register) and other.name == self.name)
+        return other is self or (
+            isinstance(other, Register) and other.name == self.name
+        )
 
     def __hash__(self):
         """
@@ -284,10 +307,9 @@ class Register(CycleTracker):
         var_section = ""
         if self.contained_variable:
             var_section = "Variable='{}'".format(self.contained_variable.name)
-        return '<{}({}) object at {}>({})'.format(type(self).__name__,
-                                                  self.name,
-                                                  hex(id(self)),
-                                                  var_section)
+        return "<{}({}) object at {}>({})".format(
+            type(self).__name__, self.name, hex(id(self)), var_section
+        )
 
     # Methods and properties
     # ----------------------
@@ -344,7 +366,7 @@ class Register(CycleTracker):
         """
         if value:
             if not isinstance(value, Variable):
-                raise ValueError('`value`: expected a `Variable`.')
+                raise ValueError("`value`: expected a `Variable`.")
         self.__contained_var = value
         # register no longer dirty because we are overwriting it with new variable (or None to clear)
         self.register_dirty = False
@@ -362,7 +384,9 @@ class Register(CycleTracker):
         old_var: Variable = self.contained_variable
         if old_var:
             # make old variable aware that it is no longer in this register
-            assert(not old_var.register_dirty) # we should not be deallocating dirty variables
+            assert (
+                not old_var.register_dirty
+            )  # we should not be deallocating dirty variables
             old_var.register = None
         if variable:
             # make variable aware of new register
@@ -374,7 +398,7 @@ class Register(CycleTracker):
 
         self._set_contained_variable(variable)
 
-    def toCASMISAFormat(self) -> str:
+    def to_casmisa_format(self) -> str:
         """
         Converts the register to CInst ASM-ISA format.
 
@@ -383,7 +407,7 @@ class Register(CycleTracker):
         """
         return self.name
 
-    def toXASMISAFormat(self) -> str:
+    def to_xasmisa_format(self) -> str:
         """
         Converts the register to XInst ASM-ISA format.
 

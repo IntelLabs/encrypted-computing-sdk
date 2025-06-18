@@ -1,3 +1,5 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
 
 from assembler.common.config import GlobalConfig
 from assembler.common.cycle_tracking import CycleType
@@ -5,6 +7,7 @@ from .cinstruction import CInstruction
 from assembler.memory_model import MemoryModel
 from assembler.memory_model.variable import Variable, DummyVariable
 from assembler.memory_model.register_file import Register
+
 
 class Instruction(CInstruction):
     """
@@ -14,13 +17,13 @@ class Instruction(CInstruction):
     and stores it in SPAD. To accomplish this in scheduling, a `cstore` should
     be scheduled immediately after the `ifetch` for the bundle containing the matching
     `xstore`.
-    
+
     For more information, check the `cstore` Specification:
         https://github.com/IntelLabs/hec-assembler-tools/blob/master/docsrc/inst_spec/cinst/cinst_cstore.md
     """
 
     @classmethod
-    def _get_OP_NAME_ASM(cls) -> str:
+    def _get_op_name_asm(cls) -> str:
         """
         Returns the ASM name of the operation.
 
@@ -29,12 +32,14 @@ class Instruction(CInstruction):
         """
         return "cstore"
 
-    def __init__(self,
-                 id: int,
-                 mem_model: MemoryModel,
-                 throughput: int = None,
-                 latency: int = None,
-                 comment: str = ""):
+    def __init__(
+        self,
+        id: int,
+        mem_model: MemoryModel,
+        throughput: int = None,
+        latency: int = None,
+        comment: str = "",
+    ):
         """
         Constructs a new `cstore` CInstruction.
 
@@ -53,7 +58,7 @@ class Instruction(CInstruction):
             ValueError: If `mem_model` is not an instance of `MemoryModel`.
         """
         if not isinstance(mem_model, MemoryModel):
-            raise ValueError('`mem_model` must be an instance of `MemoryModel`.')
+            raise ValueError("`mem_model` must be an instance of `MemoryModel`.")
         if not throughput:
             throughput = Instruction._OP_DEFAULT_THROUGHPUT
         if not latency:
@@ -67,17 +72,21 @@ class Instruction(CInstruction):
         Returns a string representation of the Instruction object.
 
         Returns:
-            str: A string representation of the Instruction object, including 
+            str: A string representation of the Instruction object, including
                  its type, name, memory address, ID, throughput, and latency.
         """
-        retval=('<{}({}) object at {}>(id={}[0], '
-                  'mem_model, '
-                  'throughput={}, latency={})').format(type(self).__name__,
-                                                           self.name,
-                                                           hex(id(self)),
-                                                           self.id,
-                                                           self.throughput,
-                                                           self.latency)
+        retval = (
+            "<{}({}) object at {}>(id={}[0], "
+            "mem_model, "
+            "throughput={}, latency={})"
+        ).format(
+            type(self).__name__,
+            self.name,
+            hex(id(self)),
+            self.id,
+            self.throughput,
+            self.latency,
+        )
         return retval
 
     def _set_dests(self, value):
@@ -91,9 +100,14 @@ class Instruction(CInstruction):
             ValueError: If the number of destinations is incorrect or if the list does not contain `Variable` objects.
         """
         if len(value) != Instruction._OP_NUM_DESTS:
-            raise ValueError(("`value`: Expected list of {} `Variable` objects, "
-                              "but list with {} elements received.".format(Instruction._OP_NUM_SOURCES,
-                                                                           len(value))))
+            raise ValueError(
+                (
+                    "`value`: Expected list of {} `Variable` objects, "
+                    "but list with {} elements received.".format(
+                        Instruction._OP_NUM_SOURCES, len(value)
+                    )
+                )
+            )
         if not all(isinstance(x, Variable) for x in value):
             raise ValueError("`value`: Expected list of `Variable` objects.")
         super()._set_dests(value)
@@ -110,9 +124,14 @@ class Instruction(CInstruction):
             TypeError: If the list does not contain `Register` objects.
         """
         if len(value) != Instruction._OP_NUM_SOURCES:
-            raise ValueError(("`value`: Expected list of {} `Register` objects, "
-                              "but list with {} elements received.".format(Instruction._OP_NUM_DESTS,
-                                                                           len(value))))
+            raise ValueError(
+                (
+                    "`value`: Expected list of {} `Register` objects, "
+                    "but list with {} elements received.".format(
+                        Instruction._OP_NUM_DESTS, len(value)
+                    )
+                )
+            )
         if not all(isinstance(x, Register) for x in value):
             raise TypeError("`value`: Expected list of `Register` objects.")
         super()._set_sources(value)
@@ -142,36 +161,41 @@ class Instruction(CInstruction):
         """
         spad = self.__mem_model.spad
 
-        var_name, (variable, self.__spad_addr) = self.__mem_model.store_buffer.pop() # Will raise IndexError if popping from empty queue
-        assert(var_name == variable.name)
-        assert self.__spad_addr >= 0 and (variable.spad_address < 0 or variable.spad_address == self.__spad_addr), \
-               f'self.__spad_addr = {self.__spad_addr}; {variable.name}.spad_address = {variable.spad_address}'
+        var_name, (variable, self.__spad_addr) = (
+            self.__mem_model.store_buffer.pop()
+        )  # Will raise IndexError if popping from empty queue
+        assert var_name == variable.name
+        assert self.__spad_addr >= 0 and (
+            variable.spad_address < 0 or variable.spad_address == self.__spad_addr
+        ), f"self.__spad_addr = {self.__spad_addr}; {variable.name}.spad_address = {variable.spad_address}"
 
         retval = super()._schedule(cycle_count, schedule_id)
         # Perform the cstore
         if spad.buffer[self.__spad_addr] and spad.buffer[self.__spad_addr] != variable:
             if not isinstance(spad.buffer[self.__spad_addr], DummyVariable):
-                raise RuntimeError(f'SPAD location {self.__spad_addr} for instruction (`{self.name}`, id {self.id}) is occupied by variable {spad.buffer[self.__spad_addr]}.')
+                raise RuntimeError(
+                    f"SPAD location {self.__spad_addr} for instruction (`{self.name}`, id {self.id}) is occupied by variable {spad.buffer[self.__spad_addr]}."
+                )
             spad.deallocate(self.__spad_addr)
-        spad.allocateForce(self.__spad_addr, variable) # Allocate in SPAD
+        spad.allocateForce(self.__spad_addr, variable)  # Allocate in SPAD
         # Track last access to SPAD address
         spad_access_tracking = spad.getAccessTracking(self.__spad_addr)
         spad_access_tracking.last_cstore = self
-        spad_access_tracking.last_mload = None # Last mload is now obsolete
-        variable.spad_dirty = True # Variable has new value in SPAD
-        
+        spad_access_tracking.last_mload = None  # Last mload is now obsolete
+        variable.spad_dirty = True  # Variable has new value in SPAD
+
         if not GlobalConfig.hasHBM:
             # Used to track the variable name going into spad at the moment of cstore.
             # This is used to output var name instead of spad address when requested.
             # remove when we have spad and HBM back
-            self.__spad_addr = variable.toCASMISAFormat()
+            self.__spad_addr = variable.to_casmisa_format()
 
         if self.comment:
-            self.comment += ';'
-        self.comment += f' {variable.name}'
+            self.comment += ";"
+        self.comment += f" {variable.name}"
         return retval
 
-    def _toCASMISAFormat(self, *extra_args) -> str:
+    def _to_casmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to CInst ASM-ISA format.
 
@@ -186,10 +210,10 @@ class Instruction(CInstruction):
         Raises:
             ValueError: If extra arguments are provided.
         """
-        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
+        assert len(self.dests) == Instruction._OP_NUM_DESTS
+        assert len(self.sources) == Instruction._OP_NUM_SOURCES
 
         if extra_args:
-            raise ValueError('`extra_args` not supported.')
+            raise ValueError("`extra_args` not supported.")
 
-        return super()._toCASMISAFormat(self.__spad_addr)
+        return super()._to_casmisa_format(self.__spad_addr)

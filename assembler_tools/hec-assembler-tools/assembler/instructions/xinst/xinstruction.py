@@ -1,4 +1,7 @@
-﻿from argparse import Namespace
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+from argparse import Namespace
 
 from assembler.common import constants
 from assembler.common.cycle_tracking import CycleType
@@ -6,7 +9,8 @@ from assembler.common.decorators import *
 from assembler.memory_model.variable import Variable
 from assembler.memory_model.register_file import Register
 from ..instruction import BaseInstruction
-from .. import tokenizeFromLine
+from .. import tokenize_from_line
+
 
 class XInstruction(BaseInstruction):
     """
@@ -38,16 +42,15 @@ class XInstruction(BaseInstruction):
             tuple: A tuple containing tokens (tuple of str) and comment (str), or None if the instruction cannot be parsed from the line.
         """
         retval = None
-        tokens, comment = tokenizeFromLine(line)
+        tokens, comment = tokenize_from_line(line)
         if len(tokens) > 1 and tokens[1] == op_name:
             retval = (tokens, comment)
         return retval
 
     @staticmethod
-    def parsePISASourceDestsFromTokens(tokens: list,
-                                       num_dests: int,
-                                       num_sources: int,
-                                       offset: int = 0) -> dict:
+    def parsePISASourceDestsFromTokens(
+        tokens: list, num_dests: int, num_sources: int, offset: int = 0
+    ) -> dict:
         """
         Parses the sources and destinations for an instruction, given sources and
         destinations in tokens in P-ISA format.
@@ -95,13 +98,15 @@ class XInstruction(BaseInstruction):
         """
         pass
 
-    def __init__(self,
-                 id: int,
-                 N: int,
-                 throughput: int,
-                 latency: int,
-                 res: int = None,
-                 comment: str = ""):
+    def __init__(
+        self,
+        id: int,
+        N: int,
+        throughput: int,
+        latency: int,
+        res: int = None,
+        comment: str = "",
+    ):
         """
         Constructs a new XInstruction.
 
@@ -121,8 +126,8 @@ class XInstruction(BaseInstruction):
         if res is not None and res >= constants.MemoryModel.MAX_RESIDUALS:
             comment = f"res = {res}" + ("; " + comment if comment else "")
         super().__init__(id, throughput, latency, comment=comment)
-        self.__n = N # Read-only ring size for the operation
-        self.__res = res # Read-only residual
+        self.__n = N  # Read-only ring size for the operation
+        self.__res = res  # Read-only residual
 
     @property
     def N(self) -> int:
@@ -178,9 +183,11 @@ class XInstruction(BaseInstruction):
             # Check that variable is in register file
             if not v.register:
                 # All variables must be in register before scheduling instruction
-                raise RuntimeError('Instruction( {}, id={} ): Variable {} not in register file.'.format(self.name,
-                                                                                                        self.id,
-                                                                                                        v.name))
+                raise RuntimeError(
+                    "Instruction( {}, id={} ): Variable {} not in register file.".format(
+                        self.name, self.id, v.name
+                    )
+                )
             # Update accessed cycle
             v.last_x_access = cycle_count
             # Remove this instruction from access list
@@ -189,17 +196,22 @@ class XInstruction(BaseInstruction):
                 if access_element.instruction_id == self.id:
                     accessed_idx = idx
                     break
-            assert(accessed_idx >= 0)
-            v.accessed_by_xinsts = v.accessed_by_xinsts[:accessed_idx] + v.accessed_by_xinsts[accessed_idx + 1:]
+            assert accessed_idx >= 0
+            v.accessed_by_xinsts = (
+                v.accessed_by_xinsts[:accessed_idx]
+                + v.accessed_by_xinsts[accessed_idx + 1 :]
+            )
 
         # Update ready cycle and dirty state of dests
         for dst in self.dests:
-            dst.cycle_ready = CycleType(cycle_count.bundle, cycle_count.cycle + self.latency)
+            dst.cycle_ready = CycleType(
+                cycle_count.bundle, cycle_count.cycle + self.latency
+            )
             dst.register_dirty = True
 
         return retval
 
-    def _toPISAFormat(self, *extra_args) -> str:
+    def _to_pisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to P-ISA kernel format.
 
@@ -212,15 +224,13 @@ class XInstruction(BaseInstruction):
             str: The instruction in P-ISA kernel format.
         """
         preamble = (self.N,)
-        extra_args = tuple(src.toPISAFormat() for src in self.sources) + extra_args
-        extra_args = tuple(dst.toPISAFormat() for dst in self.dests) + extra_args
+        extra_args = tuple(src.to_pisa_format() for src in self.sources) + extra_args
+        extra_args = tuple(dst.to_pisa_format() for dst in self.dests) + extra_args
         if self.res is not None:
             extra_args += (self.res,)
-        return self.toStringFormat(preamble,
-                                   self.OP_NAME_PISA,
-                                   *extra_args)
+        return self.to_string_format(preamble, self.op_name_pisa, *extra_args)
 
-    def _toXASMISAFormat(self, *extra_args) -> str:
+    def _to_xasmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to ASM-ISA format.
 
@@ -235,17 +245,15 @@ class XInstruction(BaseInstruction):
         # preamble = (self.id[0], self.N)
         preamble = (self.id[0],)
         # Instruction sources
-        extra_args = tuple(src.toXASMISAFormat() for src in self.sources) + extra_args
+        extra_args = tuple(src.to_xasmisa_format() for src in self.sources) + extra_args
         # Instruction destinations
-        extra_args = tuple(dst.toXASMISAFormat() for dst in self.dests) + extra_args
+        extra_args = tuple(dst.to_xasmisa_format() for dst in self.dests) + extra_args
         if self.res is not None:
             extra_args += (self.res % constants.MemoryModel.MAX_RESIDUALS,)
-        return self.toStringFormat(preamble,
-                                   self.OP_NAME_ASM,
-                                   *extra_args)
-    
+        return self.to_string_format(preamble, self.op_name_asm, *extra_args)
+
     @classmethod
-    def _get_OP_NAME_ASM(cls) -> str:
+    def _get_op_name_asm(cls) -> str:
         """
         Returns the operation name in ASM format.
 

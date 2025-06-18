@@ -1,5 +1,9 @@
-﻿from assembler.instructions import tokenizeFromLine
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+from assembler.instructions import tokenize_from_line
 from linker.instructions.instruction import BaseInstruction
+
 
 def fromStrLine(line: str, factory) -> BaseInstruction:
     """
@@ -13,7 +17,7 @@ def fromStrLine(line: str, factory) -> BaseInstruction:
         parsed from the specified input line.
     """
     retval = None
-    tokens, comment = tokenizeFromLine(line)
+    tokens, comment = tokenize_from_line(line)
     for instr_type in factory:
         try:
             retval = instr_type(tokens, comment)

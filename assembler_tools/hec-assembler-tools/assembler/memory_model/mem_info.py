@@ -1,7 +1,11 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 from assembler.common import constants
-from assembler.instructions import tokenizeFromLine
+from assembler.instructions import tokenize_from_line
 from assembler.memory_model.variable import Variable
 from . import MemoryModel
+
 
 class MemInfoVariable:
     """
@@ -10,9 +14,8 @@ class MemInfoVariable:
     This class encapsulates the details of a variable, including its name and the
     address in high-bandwidth memory (HBM) where it is stored.
     """
-    def __init__(self,
-                 var_name: str,
-                 hbm_address: int):
+
+    def __init__(self, var_name: str, hbm_address: int):
         """
         Initializes a new MemInfoVariable object with a specified name and HBM address.
 
@@ -44,8 +47,8 @@ class MemInfoVariable:
         Returns:
             dict: A dictionary representation of the variable, including its name and HBM address.
         """
-        return { 'var_name': self.var_name,
-                 'hbm_address': self.hbm_address }
+        return {"var_name": self.var_name, "hbm_address": self.hbm_address}
+
 
 class MemInfoKeygenVariable(MemInfoVariable):
     """
@@ -54,10 +57,8 @@ class MemInfoKeygenVariable(MemInfoVariable):
     This class extends MemInfoVariable to include additional attributes for key generation,
     specifically the seed index and key index associated with the variable.
     """
-    def __init__(self,
-                 var_name: str,
-                 seed_index: int,
-                 key_index: int):
+
+    def __init__(self, var_name: str, seed_index: int, key_index: int):
         """
         Initializes a new MemInfoKeygenVariable object with a specified name, seed index, and key index.
 
@@ -71,11 +72,11 @@ class MemInfoKeygenVariable(MemInfoVariable):
         """
         super().__init__(var_name, -1)
         if seed_index < 0:
-            raise IndexError('seed_index: must be a zero-based index.')
+            raise IndexError("seed_index: must be a zero-based index.")
         if key_index < 0:
-            raise IndexError('key_index: must be a zero-based index.')
+            raise IndexError("key_index: must be a zero-based index.")
         self.seed_index = seed_index
-        self.key_index  = key_index
+        self.key_index = key_index
 
     def as_dict(self) -> dict:
         """
@@ -84,9 +85,12 @@ class MemInfoKeygenVariable(MemInfoVariable):
         Returns:
             dict: A dictionary representation of the variable, including its name, seed index, and key index.
         """
-        return { 'var_name': self.var_name,
-                 'seed_index': self.seed_index,
-                 'key_index': self.key_index }
+        return {
+            "var_name": self.var_name,
+            "seed_index": self.seed_index,
+            "key_index": self.key_index,
+        }
+
 
 class MemInfo:
     """
@@ -119,9 +123,11 @@ class MemInfo:
                 Returns:
                     MemInfoVariable: The parsed ones metadata variable.
                 """
-                return MemInfo.Metadata.parseMetaFieldFromMemLine(tokens,
-                                                                  MemInfo.Const.Keyword.LOAD_ONES,
-                                                                  var_prefix=MemInfo.Const.Keyword.LOAD_ONES)
+                return MemInfo.Metadata.parseMetaFieldFromMemLine(
+                    tokens,
+                    MemInfo.Const.Keyword.LOAD_ONES,
+                    var_prefix=MemInfo.Const.Keyword.LOAD_ONES,
+                )
 
         class NTTAuxTable:
             @classmethod
@@ -135,9 +141,11 @@ class MemInfo:
                 Returns:
                     MemInfoVariable: The parsed NTT auxiliary table metadata variable.
                 """
-                return MemInfo.Metadata.parseMetaFieldFromMemLine(tokens,
-                                                                  MemInfo.Const.Keyword.LOAD_NTT_AUX_TABLE,
-                                                                  var_prefix=MemInfo.Const.Keyword.LOAD_NTT_AUX_TABLE)
+                return MemInfo.Metadata.parseMetaFieldFromMemLine(
+                    tokens,
+                    MemInfo.Const.Keyword.LOAD_NTT_AUX_TABLE,
+                    var_prefix=MemInfo.Const.Keyword.LOAD_NTT_AUX_TABLE,
+                )
 
         class NTTRoutingTable:
             @classmethod
@@ -151,9 +159,11 @@ class MemInfo:
                 Returns:
                     MemInfoVariable: The parsed NTT routing table metadata variable.
                 """
-                return MemInfo.Metadata.parseMetaFieldFromMemLine(tokens,
-                                                                  MemInfo.Const.Keyword.LOAD_NTT_ROUTING_TABLE,
-                                                                  var_prefix=MemInfo.Const.Keyword.LOAD_NTT_ROUTING_TABLE)
+                return MemInfo.Metadata.parseMetaFieldFromMemLine(
+                    tokens,
+                    MemInfo.Const.Keyword.LOAD_NTT_ROUTING_TABLE,
+                    var_prefix=MemInfo.Const.Keyword.LOAD_NTT_ROUTING_TABLE,
+                )
 
         class iNTTAuxTable:
             @classmethod
@@ -167,9 +177,11 @@ class MemInfo:
                 Returns:
                     MemInfoVariable: The parsed iNTT auxiliary table metadata variable.
                 """
-                return MemInfo.Metadata.parseMetaFieldFromMemLine(tokens,
-                                                                  MemInfo.Const.Keyword.LOAD_iNTT_AUX_TABLE,
-                                                                  var_prefix=MemInfo.Const.Keyword.LOAD_iNTT_AUX_TABLE)
+                return MemInfo.Metadata.parseMetaFieldFromMemLine(
+                    tokens,
+                    MemInfo.Const.Keyword.LOAD_iNTT_AUX_TABLE,
+                    var_prefix=MemInfo.Const.Keyword.LOAD_iNTT_AUX_TABLE,
+                )
 
         class iNTTRoutingTable:
             @classmethod
@@ -183,9 +195,11 @@ class MemInfo:
                 Returns:
                     MemInfoVariable: The parsed iNTT routing table metadata variable.
                 """
-                return MemInfo.Metadata.parseMetaFieldFromMemLine(tokens,
-                                                                  MemInfo.Const.Keyword.LOAD_iNTT_ROUTING_TABLE,
-                                                                  var_prefix=MemInfo.Const.Keyword.LOAD_iNTT_ROUTING_TABLE)
+                return MemInfo.Metadata.parseMetaFieldFromMemLine(
+                    tokens,
+                    MemInfo.Const.Keyword.LOAD_iNTT_ROUTING_TABLE,
+                    var_prefix=MemInfo.Const.Keyword.LOAD_iNTT_ROUTING_TABLE,
+                )
 
         class Twiddle:
             @classmethod
@@ -199,9 +213,11 @@ class MemInfo:
                 Returns:
                     MemInfoVariable: The parsed twiddle metadata variable.
                 """
-                return MemInfo.Metadata.parseMetaFieldFromMemLine(tokens,
-                                                                  MemInfo.Const.Keyword.LOAD_TWIDDLE,
-                                                                  var_prefix=MemInfo.Const.Keyword.LOAD_TWIDDLE)
+                return MemInfo.Metadata.parseMetaFieldFromMemLine(
+                    tokens,
+                    MemInfo.Const.Keyword.LOAD_TWIDDLE,
+                    var_prefix=MemInfo.Const.Keyword.LOAD_TWIDDLE,
+                )
 
         class KeygenSeed:
             @classmethod
@@ -215,16 +231,20 @@ class MemInfo:
                 Returns:
                     MemInfoVariable: The parsed keygen seed metadata variable.
                 """
-                return MemInfo.Metadata.parseMetaFieldFromMemLine(tokens,
-                                                                  MemInfo.Const.Keyword.LOAD_KEYGEN_SEED,
-                                                                  var_prefix=MemInfo.Const.Keyword.LOAD_KEYGEN_SEED)
+                return MemInfo.Metadata.parseMetaFieldFromMemLine(
+                    tokens,
+                    MemInfo.Const.Keyword.LOAD_KEYGEN_SEED,
+                    var_prefix=MemInfo.Const.Keyword.LOAD_KEYGEN_SEED,
+                )
 
         @classmethod
-        def parseMetaFieldFromMemLine(cls,
-                                      tokens: list,
-                                      meta_field_name: str,
-                                      var_prefix: str = "meta",
-                                      var_extra: str = None) -> MemInfoVariable:
+        def parseMetaFieldFromMemLine(
+            cls,
+            tokens: list,
+            meta_field_name: str,
+            var_prefix: str = "meta",
+            var_extra: str = None,
+        ) -> MemInfoVariable:
             """
             Parses a metadata variable name from a tokenized line.
 
@@ -239,20 +259,21 @@ class MemInfo:
             """
             retval = None
             if len(tokens) >= 3:
-                if tokens[0] == MemInfo.Const.Keyword.LOAD \
-                    and tokens[1] == meta_field_name:
+                if (
+                    tokens[0] == MemInfo.Const.Keyword.LOAD
+                    and tokens[1] == meta_field_name
+                ):
                     hbm_addr = int(tokens[2])
                     if len(tokens) >= 4 and tokens[3]:
                         # name supplied in the tokenized line
                         var_name = tokens[3]
                     else:
                         if var_extra is None:
-                            var_extra = f'_{hbm_addr}'
+                            var_extra = f"_{hbm_addr}"
                         else:
                             var_extra = var_extra.strip()
-                        var_name = f'{var_prefix}{var_extra}'
-                    retval = MemInfoVariable(var_name = var_name,
-                                             hbm_address = hbm_addr)
+                        var_name = f"{var_prefix}{var_extra}"
+                    retval = MemInfoVariable(var_name=var_name, hbm_address=hbm_addr)
             return retval
 
         def __init__(self, **kwargs):
@@ -264,7 +285,9 @@ class MemInfo:
             """
             self.__meta_dict = {}
             for meta_field in MemInfo.Const.FIELD_METADATA_SUBFIELDS:
-                self.__meta_dict[meta_field] = [ MemInfoVariable(**d) for d in kwargs.get(meta_field, []) ]
+                self.__meta_dict[meta_field] = [
+                    MemInfoVariable(**d) for d in kwargs.get(meta_field, [])
+                ]
 
         def __getitem__(self, key):
             """
@@ -277,7 +300,6 @@ class MemInfo:
                 list: A list of MemInfoVariable objects.
             """
             return self.__meta_dict[key]
-
 
         @property
         def ones(self) -> list:
@@ -365,11 +387,11 @@ class MemInfo:
             if len(tokens) >= 4:
                 if tokens[0] == MemInfo.Const.Keyword.KEYGEN:
                     seed_idx = int(tokens[1])
-                    key_idx  = int(tokens[2])
+                    key_idx = int(tokens[2])
                     var_name = tokens[3]
-                    retval = MemInfoKeygenVariable(var_name = var_name,
-                                                   seed_index = seed_idx,
-                                                   key_index = key_idx)
+                    retval = MemInfoKeygenVariable(
+                        var_name=var_name, seed_index=seed_idx, key_index=key_idx
+                    )
             return retval
 
     class Input:
@@ -386,13 +408,16 @@ class MemInfo:
             """
             retval = None
             if len(tokens) >= 4:
-                if tokens[0] == MemInfo.Const.Keyword.LOAD \
-                    and tokens[1] == MemInfo.Const.Keyword.LOAD_INPUT:
+                if (
+                    tokens[0] == MemInfo.Const.Keyword.LOAD
+                    and tokens[1] == MemInfo.Const.Keyword.LOAD_INPUT
+                ):
                     hbm_addr = int(tokens[2])
                     var_name = tokens[3]
                     if Variable.validateName(var_name):
-                        retval = MemInfoVariable(var_name = var_name,
-                                                 hbm_address = hbm_addr)
+                        retval = MemInfoVariable(
+                            var_name=var_name, hbm_address=hbm_addr
+                        )
             return retval
 
     class Output:
@@ -413,8 +438,9 @@ class MemInfo:
                     hbm_addr = int(tokens[2])
                     var_name = tokens[1]
                     if Variable.validateName(var_name):
-                        retval = MemInfoVariable(var_name = var_name,
-                                                 hbm_address = hbm_addr)
+                        retval = MemInfoVariable(
+                            var_name=var_name, hbm_address=hbm_addr
+                        )
             return retval
 
     def __init__(self, **kwargs):
@@ -428,10 +454,18 @@ class MemInfo:
             kwargs (dict): A dictionary as generated by the method MemInfo.as_dict(). This is provided as
             a shortcut to creating a MemInfo object from structured data such as the contents of a YAML file.
         """
-        self.__keygens  = [ MemInfoVariable(**d) for d in kwargs.get(MemInfo.Const.FIELD_KEYGENS, []) ]
-        self.__inputs   = [ MemInfoVariable(**d) for d in kwargs.get(MemInfo.Const.FIELD_INPUTS, []) ]
-        self.__outputs  = [ MemInfoVariable(**d) for d in kwargs.get(MemInfo.Const.FIELD_OUTPUTS, []) ]
-        self.__metadata = MemInfo.Metadata(**kwargs.get(MemInfo.Const.FIELD_METADATA, {}))
+        self.__keygens = [
+            MemInfoVariable(**d) for d in kwargs.get(MemInfo.Const.FIELD_KEYGENS, [])
+        ]
+        self.__inputs = [
+            MemInfoVariable(**d) for d in kwargs.get(MemInfo.Const.FIELD_INPUTS, [])
+        ]
+        self.__outputs = [
+            MemInfoVariable(**d) for d in kwargs.get(MemInfo.Const.FIELD_OUTPUTS, [])
+        ]
+        self.__metadata = MemInfo.Metadata(
+            **kwargs.get(MemInfo.Const.FIELD_METADATA, {})
+        )
         self.validate()
 
     @classmethod
@@ -453,20 +487,22 @@ class MemInfo:
 
         retval = cls()
 
-        factory_dict = { MemInfo.Keygen: retval.keygens,
-                         MemInfo.Input: retval.inputs,
-                         MemInfo.Output: retval.outputs,
-                         MemInfo.Metadata.KeygenSeed: retval.metadata.keygen_seeds,
-                         MemInfo.Metadata.Ones: retval.metadata.ones,
-                         MemInfo.Metadata.NTTAuxTable: retval.metadata.ntt_auxiliary_table,
-                         MemInfo.Metadata.NTTRoutingTable: retval.metadata.ntt_routing_table,
-                         MemInfo.Metadata.iNTTAuxTable: retval.metadata.intt_auxiliary_table,
-                         MemInfo.Metadata.iNTTRoutingTable: retval.metadata.intt_routing_table,
-                         MemInfo.Metadata.Twiddle: retval.metadata.twiddle }
+        factory_dict = {
+            MemInfo.Keygen: retval.keygens,
+            MemInfo.Input: retval.inputs,
+            MemInfo.Output: retval.outputs,
+            MemInfo.Metadata.KeygenSeed: retval.metadata.keygen_seeds,
+            MemInfo.Metadata.Ones: retval.metadata.ones,
+            MemInfo.Metadata.NTTAuxTable: retval.metadata.ntt_auxiliary_table,
+            MemInfo.Metadata.NTTRoutingTable: retval.metadata.ntt_routing_table,
+            MemInfo.Metadata.iNTTAuxTable: retval.metadata.intt_auxiliary_table,
+            MemInfo.Metadata.iNTTRoutingTable: retval.metadata.intt_routing_table,
+            MemInfo.Metadata.Twiddle: retval.metadata.twiddle,
+        }
         for line_no, s_line in enumerate(line_iter, 1):
             s_line = s_line.strip()
-            if s_line: # skip empty lines
-                tokens, _ = tokenizeFromLine(s_line)
+            if s_line:  # skip empty lines
+                tokens, _ = tokenize_from_line(s_line)
                 if tokens and len(tokens) > 0:
                     b_parsed = False
                     for mem_info_type in factory_dict:
@@ -474,9 +510,11 @@ class MemInfo:
                         if miv is not None:
                             factory_dict[mem_info_type].append(miv)
                             b_parsed = True
-                            break # next line
+                            break  # next line
                     if not b_parsed:
-                        raise RuntimeError(f'Could not parse line {line_no}: "{s_line}"')
+                        raise RuntimeError(
+                            f'Could not parse line {line_no}: "{s_line}"'
+                        )
         retval.validate()
         return retval
 
@@ -527,11 +565,16 @@ class MemInfo:
         Returns:
             dict: A dictionary representation of the MemInfo object.
         """
-        return { MemInfo.Const.FIELD_KEYGENS: [ x.as_dict() for x in self.keygens ],
-                 MemInfo.Const.FIELD_INPUTS: [ x.as_dict() for x in self.inputs ],
-                 MemInfo.Const.FIELD_OUTPUTS: [ x.as_dict() for x in self.outputs ],
-                 MemInfo.Const.FIELD_METADATA: { meta_field: [ x.as_dict() for x in self.metadata[meta_field] ] \
-                                                for meta_field in MemInfo.Const.FIELD_METADATA_SUBFIELDS if self.metadata[meta_field] } }
+        return {
+            MemInfo.Const.FIELD_KEYGENS: [x.as_dict() for x in self.keygens],
+            MemInfo.Const.FIELD_INPUTS: [x.as_dict() for x in self.inputs],
+            MemInfo.Const.FIELD_OUTPUTS: [x.as_dict() for x in self.outputs],
+            MemInfo.Const.FIELD_METADATA: {
+                meta_field: [x.as_dict() for x in self.metadata[meta_field]]
+                for meta_field in MemInfo.Const.FIELD_METADATA_SUBFIELDS
+                if self.metadata[meta_field]
+            },
+        }
 
     def validate(self):
         """
@@ -540,28 +583,48 @@ class MemInfo:
         Raises:
             RuntimeError: If the validation fails due to inconsistent metadata or duplicate variable names.
         """
-        if len(self.metadata.ones) * MemoryModel.MAX_TWIDDLE_META_VARS_PER_SEGMENT != len(self.metadata.twiddle):
-            raise RuntimeError(('Expected {} times as many twiddles as ones metadata values, '
-                                'but received {} twiddles and {} ones.').format(MemoryModel.MAX_TWIDDLE_META_VARS_PER_SEGMENT,
-                                                                                len(self.metadata.twiddle),
-                                                                                len(self.metadata.ones)))
+        if len(
+            self.metadata.ones
+        ) * MemoryModel.MAX_TWIDDLE_META_VARS_PER_SEGMENT != len(self.metadata.twiddle):
+            raise RuntimeError(
+                (
+                    "Expected {} times as many twiddles as ones metadata values, "
+                    "but received {} twiddles and {} ones."
+                ).format(
+                    MemoryModel.MAX_TWIDDLE_META_VARS_PER_SEGMENT,
+                    len(self.metadata.twiddle),
+                    len(self.metadata.ones),
+                )
+            )
         # Avoid duplicate variable names with different HBM addresses.
         mem_info_vars = {}
-        all_var_info = self.inputs + self.outputs \
-                       + self.metadata.intt_auxiliary_table + self.metadata.intt_routing_table \
-                       + self.metadata.ntt_auxiliary_table + self.metadata.ntt_routing_table \
-                       + self.metadata.ones + self.metadata.twiddle
+        all_var_info = (
+            self.inputs
+            + self.outputs
+            + self.metadata.intt_auxiliary_table
+            + self.metadata.intt_routing_table
+            + self.metadata.ntt_auxiliary_table
+            + self.metadata.ntt_routing_table
+            + self.metadata.ones
+            + self.metadata.twiddle
+        )
         for var_info in all_var_info:
             if var_info.var_name not in mem_info_vars:
                 mem_info_vars[var_info.var_name] = var_info
             elif mem_info_vars[var_info.var_name].hbm_address != var_info.hbm_address:
-                raise RuntimeError(('Variable "{}" already allocated in HBM address {}, '
-                                    'but new allocation requested into address {}.').format(var_info.var_name,
-                                                                                            mem_info_vars[var_info.var_name].hbm_address,
-                                                                                            var_info.hbm_address))
+                raise RuntimeError(
+                    (
+                        'Variable "{}" already allocated in HBM address {}, '
+                        "but new allocation requested into address {}."
+                    ).format(
+                        var_info.var_name,
+                        mem_info_vars[var_info.var_name].hbm_address,
+                        var_info.hbm_address,
+                    )
+                )
 
-def __allocateMemInfoVariable(mem_model: MemoryModel,
-                              v_info: MemInfoVariable):
+
+def __allocateMemInfoVariable(mem_model: MemoryModel, v_info: MemInfoVariable):
     """
     Allocates a memory information variable in the memory model.
 
@@ -579,17 +642,27 @@ def __allocateMemInfoVariable(mem_model: MemoryModel,
     """
     assert v_info.hbm_address >= 0
     if v_info.var_name not in mem_model.variables:
-        raise RuntimeError(f'Variable {v_info.var_name} not in memory model. All variables used in mem info must be present in P-ISA kernel.')
+        raise RuntimeError(
+            f"Variable {v_info.var_name} not in memory model. All variables used in mem info must be present in P-ISA kernel."
+        )
     if mem_model.variables[v_info.var_name].hbm_address < 0:
-        mem_model.hbm.allocateForce(v_info.hbm_address, mem_model.variables[v_info.var_name])
+        mem_model.hbm.allocateForce(
+            v_info.hbm_address, mem_model.variables[v_info.var_name]
+        )
     elif v_info.hbm_address != mem_model.variables[v_info.var_name].hbm_address:
-        raise RuntimeError(('Variable {} already allocated in HBM address {}, '
-                            'but new allocation requested into address {}.').format(v_info.var_name,
-                                                                                    mem_model.variables[v_info.var_name].hbm_address,
-                                                                                    v_info.hbm_address))
+        raise RuntimeError(
+            (
+                "Variable {} already allocated in HBM address {}, "
+                "but new allocation requested into address {}."
+            ).format(
+                v_info.var_name,
+                mem_model.variables[v_info.var_name].hbm_address,
+                v_info.hbm_address,
+            )
+        )
 
-def updateMemoryModelWithMemInfo(mem_model: MemoryModel,
-                                 mem_info: MemInfo):
+
+def updateMemoryModelWithMemInfo(mem_model: MemoryModel, mem_info: MemInfo):
     """
     Updates the memory model with memory information.
 
@@ -624,28 +697,28 @@ def updateMemoryModelWithMemInfo(mem_model: MemoryModel,
 
     # Shuffle meta vars
     if mem_info.metadata.ntt_auxiliary_table:
-        assert(len(mem_info.metadata.ntt_auxiliary_table) == 1)
+        assert len(mem_info.metadata.ntt_auxiliary_table) == 1
         v_info = mem_info.metadata.ntt_auxiliary_table[0]
         mem_model.retrieveVarAdd(v_info.var_name)
         __allocateMemInfoVariable(mem_model, v_info)
         mem_model.meta_ntt_aux_table = v_info.var_name
 
     if mem_info.metadata.ntt_routing_table:
-        assert(len(mem_info.metadata.ntt_routing_table) == 1)
+        assert len(mem_info.metadata.ntt_routing_table) == 1
         v_info = mem_info.metadata.ntt_routing_table[0]
         mem_model.retrieveVarAdd(v_info.var_name)
         __allocateMemInfoVariable(mem_model, v_info)
         mem_model.meta_ntt_routing_table = v_info.var_name
 
     if mem_info.metadata.intt_auxiliary_table:
-        assert(len(mem_info.metadata.intt_auxiliary_table) == 1)
+        assert len(mem_info.metadata.intt_auxiliary_table) == 1
         v_info = mem_info.metadata.intt_auxiliary_table[0]
         mem_model.retrieveVarAdd(v_info.var_name)
         __allocateMemInfoVariable(mem_model, v_info)
         mem_model.meta_intt_aux_table = v_info.var_name
 
     if mem_info.metadata.intt_routing_table:
-        assert(len(mem_info.metadata.intt_routing_table) == 1)
+        assert len(mem_info.metadata.intt_routing_table) == 1
         v_info = mem_info.metadata.intt_routing_table[0]
         mem_model.retrieveVarAdd(v_info.var_name)
         __allocateMemInfoVariable(mem_model, v_info)
