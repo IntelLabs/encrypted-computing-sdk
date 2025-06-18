@@ -54,7 +54,7 @@ build type:
 - `-DCMAKE_BUILD_TYPE=RelWithDebInfo` : release mode with debug symbols.
 - `-DCMAKE_BUILD_TYPE=MinSizeRel` : release mode optimized for size.
 
-#### Third-Party Components <a name="third-party-components"></a>
+#### Third-Party Components
 This backend requires the following third party components:
 
 - [SNAP](https://github.com/snap-stanford/snap.git)
