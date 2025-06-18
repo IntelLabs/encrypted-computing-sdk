@@ -64,7 +64,7 @@ repos:
             *assembler_tools/hec-assembler-tools/linker/__init__\.py|
             *assembler_tools/hec-assembler-tools/linker/instructions/__init__\.py|
             *assembler_tools/hec-assembler-tools/assembler/spec_config/isa_spec.py)
-          args: ["--follow-imports=skip"]
+          args: ["--follow-imports=skip", "--install-types", "--non-interactive"]
     - repo: local
       hooks:
         - id: pylint
