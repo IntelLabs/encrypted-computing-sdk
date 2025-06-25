@@ -1,5 +1,9 @@
-﻿from assembler.common.cycle_tracking import CycleType
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+from assembler.common.cycle_tracking import CycleType
 from .minstruction import MInstruction
+
 
 class Instruction(MInstruction):
     """
@@ -13,9 +17,9 @@ class Instruction(MInstruction):
     Attributes:
         cinstr: The instruction from the CINST queue for which to wait.
     """
-    
+
     @classmethod
-    def _get_OP_NAME_ASM(cls) -> str:
+    def _get_op_name_asm(cls) -> str:
         """
         Returns the ASM name of the operation.
 
@@ -24,12 +28,14 @@ class Instruction(MInstruction):
         """
         return "msyncc"
 
-    def __init__(self,
-                 id: int,
-                 cinstr,
-                 throughput: int = None,
-                 latency: int = None,
-                 comment: str = ""):
+    def __init__(
+        self,
+        id: int,
+        cinstr,
+        throughput: int = None,
+        latency: int = None,
+        comment: str = "",
+    ):
         """
         Constructs a new `msyncc` CInstruction.
 
@@ -50,26 +56,32 @@ class Instruction(MInstruction):
         if not latency:
             latency = Instruction._OP_DEFAULT_LATENCY
         super().__init__(id, throughput, latency, comment=comment)
-        self.cinstr = cinstr # Instruction number from the MINST queue for which to wait
+        self.cinstr = (
+            cinstr  # Instruction number from the MINST queue for which to wait
+        )
 
     def __repr__(self):
         """
         Returns a string representation of the Instruction object.
 
         Returns:
-            str: A string representation of the Instruction object, including 
+            str: A string representation of the Instruction object, including
                  its type, name, memory address, ID, cinstr, throughput, and latency.
         """
-        assert(len(self.dests) > 0)
-        retval=('<{}({}) object at {}>(id={}[0], '
-                  'cinstr={}, '
-                  'throughput={}, latency={})').format(type(self).__name__,
-                                                           self.OP_NAME_PISA,
-                                                           hex(id(self)),
-                                                           self.id,
-                                                           repr(self.cinstr),
-                                                           self.throughput,
-                                                           self.latency)
+        assert len(self.dests) > 0
+        retval = (
+            "<{}({}) object at {}>(id={}[0], "
+            "cinstr={}, "
+            "throughput={}, latency={})"
+        ).format(
+            type(self).__name__,
+            self.op_name_pisa,
+            hex(id(self)),
+            self.id,
+            repr(self.cinstr),
+            self.throughput,
+            self.latency,
+        )
         return retval
 
     def _set_dests(self, value):
@@ -121,7 +133,7 @@ class Instruction(MInstruction):
         retval = super()._schedule(cycle_count, schedule_id)
         return retval
 
-    def _toMASMISAFormat(self, *extra_args) -> str:
+    def _to_masmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to ASM format.
 
@@ -134,12 +146,12 @@ class Instruction(MInstruction):
         Raises:
             ValueError: If extra arguments are provided.
         """
-        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
-        assert(self.cinstr.is_scheduled)
+        assert len(self.dests) == Instruction._OP_NUM_DESTS
+        assert len(self.sources) == Instruction._OP_NUM_SOURCES
+        assert self.cinstr.is_scheduled
 
         if extra_args:
-            raise ValueError('`extra_args` not supported.')
+            raise ValueError("`extra_args` not supported.")
 
         # warnings.warn("`msyncc` instruction requires second pass to set correct instruction number.")
-        return super()._toMASMISAFormat(self.cinstr.schedule_timing.index)
+        return super()._to_masmisa_format(self.cinstr.schedule_timing.index)
