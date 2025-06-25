@@ -26,15 +26,17 @@ def test_main_assigns_and_saves(monkeypatch, tmp_path):
     output_file = tmp_path / "output.csv"
 
     dummy_model = object()
-    dummy_insts = [mock.Mock(toPISAFormat=mock.Mock(return_value="inst1"))]
+    dummy_insts = [mock.Mock(to_pisa_format=mock.Mock(return_value="inst1"))]
 
     monkeypatch.setattr(he_prep, "MemoryModel", mock.Mock(return_value=dummy_model))
     monkeypatch.setattr(
         he_prep.preprocessor,
-        "preprocessPISAKernelListing",
+        "preprocess_pisa_kernel_listing",
         mock.Mock(return_value=dummy_insts),
     )
-    monkeypatch.setattr(he_prep.preprocessor, "assignRegisterBanksToVars", mock.Mock())
+    monkeypatch.setattr(
+        he_prep.preprocessor, "assign_register_banks_to_vars", mock.Mock()
+    )
 
     he_prep.main(str(output_file), str(input_file), b_verbose=False)
     # Output file should contain the instruction
@@ -76,9 +78,13 @@ def test_main_no_instructions(monkeypatch):
     dummy_model = object()
     monkeypatch.setattr(he_prep, "MemoryModel", mock.Mock(return_value=dummy_model))
     monkeypatch.setattr(
-        he_prep.preprocessor, "preprocessPISAKernelListing", mock.Mock(return_value=[])
+        he_prep.preprocessor,
+        "preprocess_pisa_kernel_listing",
+        mock.Mock(return_value=[]),
     )
-    monkeypatch.setattr(he_prep.preprocessor, "assignRegisterBanksToVars", mock.Mock())
+    monkeypatch.setattr(
+        he_prep.preprocessor, "assign_register_banks_to_vars", mock.Mock()
+    )
 
     he_prep.main(output_file, input_file, b_verbose=False)
 

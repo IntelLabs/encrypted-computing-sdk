@@ -1,12 +1,16 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import argparse
 import os
 
 from xinst import xinstruction
-from spec_config import XTC_SpecConfig
+from spec_config import XTCSpecConfig
 
 # Injects dummy bundles after bundle 1
 
 NUM_BUNDLE_INSTRUCTIONS = 64
+
 
 def makeUniquePath(path: str):
     """
@@ -19,6 +23,7 @@ def makeUniquePath(path: str):
         str: The normalized and expanded file path.
     """
     return os.path.normcase(os.path.realpath(os.path.expanduser(path)))
+
 
 def transferNextBundle(xinst_in_stream, xinst_out_stream, bundle_number):
     """
@@ -35,22 +40,25 @@ def transferNextBundle(xinst_in_stream, xinst_out_stream, bundle_number):
         assert s_line
 
         # Split line into tokens
-        tokens, comment = xinstruction.tokenizeFromLine(s_line)
+        tokens, comment = xinstruction.tokenize_from_line(s_line)
         tokens = list(tokens)
         tokens[0] = f"F{bundle_number}"
 
-        s_line = ', '.join(tokens)
+        s_line = ", ".join(tokens)
         if comment:
             s_line += f" # {comment}"
 
         print(s_line, file=xinst_out_stream)
 
-def main(nbundles: int,
-         input_dir: str,
-         output_dir: str,
-         input_prefix: str = None,
-         output_prefix: str = None,
-         b_use_exit: bool = True):
+
+def main(
+    nbundles: int,
+    input_dir: str,
+    output_dir: str,
+    input_prefix: str = None,
+    output_prefix: str = None,
+    b_use_exit: bool = True,
+):
     """
     Main function to inject dummy bundles into instruction files.
 
@@ -71,12 +79,12 @@ def main(nbundles: int,
     if not output_prefix:
         output_prefix = os.path.basename(output_dir)
 
-    print('Input dir:', input_dir)
-    print('Input prefix:', input_prefix)
-    print('Output dir:', output_dir)
-    print('Output prefix:', output_prefix)
-    print('Dummy bundles to insert:', nbundles)
-    print('Use bexit:', b_use_exit)
+    print("Input dir:", input_dir)
+    print("Input prefix:", input_prefix)
+    print("Output dir:", output_dir)
+    print("Output prefix:", output_prefix)
+    print("Dummy bundles to insert:", nbundles)
+    print("Use bexit:", b_use_exit)
 
     xinst_file_i = os.path.join(input_dir, input_prefix + ".xinst")
     cinst_file_i = os.path.join(input_dir, input_prefix + ".cinst")
@@ -86,12 +94,12 @@ def main(nbundles: int,
     cinst_file_o = os.path.join(output_dir, output_prefix + ".cinst")
     minst_file_o = os.path.join(output_dir, output_prefix + ".minst")
 
-    with open(xinst_file_i, 'r') as f_xinst_file_i, \
-         open(cinst_file_i, 'r') as f_cinst_file_i, \
-         open(minst_file_i, 'r') as f_minst_file_i:
-        with open(xinst_file_o, 'w') as f_xinst_file_o, \
-             open(cinst_file_o, 'w') as f_cinst_file_o, \
-             open(minst_file_o, 'w') as f_minst_file_o:
+    with open(xinst_file_i, "r") as f_xinst_file_i, open(
+        cinst_file_i, "r"
+    ) as f_cinst_file_i, open(minst_file_i, "r") as f_minst_file_i:
+        with open(xinst_file_o, "w") as f_xinst_file_o, open(
+            cinst_file_o, "w"
+        ) as f_cinst_file_o, open(minst_file_o, "w") as f_minst_file_o:
 
             current_bundle = 0
 
@@ -105,18 +113,22 @@ def main(nbundles: int,
                 print(line, file=f_xinst_file_o)
 
                 # Split line into tokens
-                tokens, _ = xinstruction.tokenizeFromLine(line)
+                tokens, _ = xinstruction.tokenize_from_line(line)
 
                 # Must be bundle 0
                 assert int(tokens[0][1:]) == current_bundle
 
-                if tokens[2] == 'xstore':
+                if tokens[2] == "xstore":
                     # Encountered xstore
                     num_xstores += 1
 
             cinst_line_no = 0
-            cinst_insertion_line_start = 0  # Track which line we started inserting dummy bundles into CInstQ
-            cinst_insertion_line_count = 0  # Track how many lines of dummy bundles were inserted into CInstQ
+            cinst_insertion_line_start = (
+                0  # Track which line we started inserting dummy bundles into CInstQ
+            )
+            cinst_insertion_line_count = (
+                0  # Track how many lines of dummy bundles were inserted into CInstQ
+            )
 
             # Read cinst until first bundle is over
             while True:  # do-while
@@ -128,11 +140,11 @@ def main(nbundles: int,
                 print(line, file=f_cinst_file_o)
 
                 # Split line into tokens
-                tokens, _ = xinstruction.tokenizeFromLine(line)
+                tokens, _ = xinstruction.tokenize_from_line(line)
 
                 cinst_line_no += 1
 
-                if tokens[1] == 'ifetch':
+                if tokens[1] == "ifetch":
                     # Encountered first ifetch
                     assert int(tokens[2]) == current_bundle
                     break
@@ -147,9 +159,9 @@ def main(nbundles: int,
                 print(line, file=f_cinst_file_o)
 
                 # Split line into tokens
-                tokens, _ = xinstruction.tokenizeFromLine(line)
+                tokens, _ = xinstruction.tokenize_from_line(line)
                 # Must be a matching cstore
-                assert tokens[1] == 'cstore'
+                assert tokens[1] == "cstore"
 
                 cinst_line_no += 1
 
@@ -166,13 +178,19 @@ def main(nbundles: int,
                 if idx % 5000 == 0:
                     print("{}% - {}/{}".format(idx * 100 // nbundles, idx, nbundles))
                 # Cinst
-                print(f"{cinst_line_no}, ifetch, {current_bundle} # dummy bundle {idx + 1}", file=f_cinst_file_o)
+                print(
+                    f"{cinst_line_no}, ifetch, {current_bundle} # dummy bundle {idx + 1}",
+                    file=f_cinst_file_o,
+                )
                 print(f"{cinst_line_no + 1}, cnop, 70", file=f_cinst_file_o)
                 cinst_line_no += 2
 
                 # Xinst
                 if b_use_exit:
-                    print(f"F{current_bundle}, 0, bexit # dummy bundle", file=f_xinst_file_o)
+                    print(
+                        f"F{current_bundle}, 0, bexit # dummy bundle",
+                        file=f_xinst_file_o,
+                    )
                 else:
                     print(f"F{current_bundle}, 0, nop, 0", file=f_xinst_file_o)
                 for _ in range(NUM_BUNDLE_INSTRUCTIONS - 1):
@@ -187,7 +205,7 @@ def main(nbundles: int,
 
             # Complete CInstQ and XInstQ
             print()
-            print('Transferring remaining CInstQ and XInstQ...')
+            print("Transferring remaining CInstQ and XInstQ...")
             print(cinst_line_no)
             while True:  # do-while
                 if cinst_line_no % 50000 == 0:
@@ -198,12 +216,12 @@ def main(nbundles: int,
                     break
 
                 # Split line into tokens
-                tokens, comment = xinstruction.tokenizeFromLine(line)
+                tokens, comment = xinstruction.tokenize_from_line(line)
                 tokens = list(tokens)
 
                 tokens[0] = str(cinst_line_no)
                 # Output line with correct line and bundle number
-                if tokens[1] == 'ifetch':
+                if tokens[1] == "ifetch":
                     # Ensure fetching correct bundle
                     tokens[2] = str(current_bundle)
 
@@ -211,7 +229,7 @@ def main(nbundles: int,
                     transferNextBundle(f_xinst_file_i, f_xinst_file_o, current_bundle)
                     current_bundle += 1
 
-                line = ', '.join(tokens)
+                line = ", ".join(tokens)
                 if comment:
                     line += f" # {comment}"
 
@@ -222,30 +240,33 @@ def main(nbundles: int,
 
             # Fix sync points in MInstQ
             print()
-            print('Fixing MInstQ sync points...')
+            print("Fixing MInstQ sync points...")
             for idx, line in enumerate(f_minst_file_i):
                 if idx % 5000 == 0:
                     print(idx)
 
-                tokens, comment = xinstruction.tokenizeFromLine(line)
-                assert int(tokens[0]) == idx, 'Unexpected line number mismatch in MInstQ.'
+                tokens, comment = xinstruction.tokenize_from_line(line)
+                assert (
+                    int(tokens[0]) == idx
+                ), "Unexpected line number mismatch in MInstQ."
 
                 tokens = list(tokens)
                 # Process sync instruction
-                if tokens[1] == 'msyncc':
+                if tokens[1] == "msyncc":
                     ctarget_line_no = int(tokens[2])
                     if ctarget_line_no >= cinst_insertion_line_start:
                         ctarget_line_no += cinst_insertion_line_count
                     tokens[2] = str(ctarget_line_no)
 
                 # Transfer minst line to output file
-                line = ', '.join(tokens)
+                line = ", ".join(tokens)
                 if comment:
                     line += f" # {comment}"
 
                 print(line, file=f_minst_file_o)
 
             print(idx)
+
 
 if __name__ == "__main__":
     module_dir = os.path.dirname(__file__)
@@ -257,18 +278,30 @@ if __name__ == "__main__":
     parser.add_argument("output_dir")
     parser.add_argument("input_prefix", nargs="?")
     parser.add_argument("output_prefix", nargs="?")
-    parser.add_argument("--isa_spec", default="", dest="isa_spec_file",
-                        help=("Input ISA specification (.json) file."))
-    parser.add_argument("-b", "--dummy_bundles", dest='nbundles', type=int, default=0)
-    parser.add_argument("-ne", "--skip_exit", dest='b_use_exit', action='store_false')
+    parser.add_argument(
+        "--isa_spec",
+        default="",
+        dest="isa_spec_file",
+        help=("Input ISA specification (.json) file."),
+    )
+    parser.add_argument("-b", "--dummy_bundles", dest="nbundles", type=int, default=0)
+    parser.add_argument("-ne", "--skip_exit", dest="b_use_exit", action="store_false")
     args = parser.parse_args()
-    args.isa_spec_file = XTC_SpecConfig.initialize_isa_spec(module_dir, args.isa_spec_file)
+    args.isa_spec_file = XTCSpecConfig.initialize_isa_spec(
+        module_dir, args.isa_spec_file
+    )
 
     print(f"ISA Spec: {args.isa_spec_file}")
     print()
 
-    main(args.nbundles, args.input_dir, args.output_dir,
-         args.input_prefix, args.output_prefix, args.b_use_exit)
+    main(
+        args.nbundles,
+        args.input_dir,
+        args.output_dir,
+        args.input_prefix,
+        args.output_prefix,
+        args.b_use_exit,
+    )
 
     print()
     print(module_name, "- Complete")

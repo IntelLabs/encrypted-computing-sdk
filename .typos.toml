@@ -7,3 +7,4 @@
 [default.extend-words]
 # variation of params
 parms = "parms"
+bload = "bload"

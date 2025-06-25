@@ -1,7 +1,11 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 from assembler.common.cycle_tracking import CycleType
 from .minstruction import MInstruction
 from assembler.memory_model import MemoryModel
 from assembler.memory_model.variable import Variable
+
 
 class Instruction(MInstruction):
     """
@@ -21,7 +25,7 @@ class Instruction(MInstruction):
     """
 
     @classmethod
-    def _get_OP_NAME_ASM(cls) -> str:
+    def _get_op_name_asm(cls) -> str:
         """
         Returns the ASM name of the operation.
 
@@ -30,14 +34,16 @@ class Instruction(MInstruction):
         """
         return "mstore"
 
-    def __init__(self,
-                 id: int,
-                 src: list,
-                 mem_model: MemoryModel,
-                 dst_hbm_addr: int,
-                 throughput: int = None,
-                 latency: int = None,
-                 comment: str = ""):
+    def __init__(
+        self,
+        id: int,
+        src: list,
+        mem_model: MemoryModel,
+        dst_hbm_addr: int,
+        throughput: int = None,
+        latency: int = None,
+        comment: str = "",
+    ):
         """
         Constructs a new `mstore` MInstruction.
 
@@ -63,7 +69,7 @@ class Instruction(MInstruction):
             ValueError: If `dst_hbm_addr` is negative.
         """
         if dst_hbm_addr < 0:
-            raise ValueError('`dst_hbm_addr`: cannot be null address (negative).')
+            raise ValueError("`dst_hbm_addr`: cannot be null address (negative).")
         if not throughput:
             throughput = Instruction._OP_DEFAULT_THROUGHPUT
         if not latency:
@@ -81,21 +87,25 @@ class Instruction(MInstruction):
         Returns a string representation of the Instruction object.
 
         Returns:
-            str: A string representation of the Instruction object, including 
+            str: A string representation of the Instruction object, including
                  its type, name, memory address, ID, source, destination HBM address, throughput, and latency.
         """
-        assert(len(self.dests) > 0)
-        retval=('<{}({}) object at {}>(id={}[0], '
-                  'src={}, dst_hbm_addr={}, mem_model, '
-                  'throughput={}, latency={})').format(type(self).__name__,
-                                                           self.name,
-                                                           hex(id(self)),
-                                                           self.id,
-                                                           self.sources,
-                                                           self.dst_hbm_addr,
-                                                           # repr(self.__mem_model),
-                                                           self.throughput,
-                                                           self.latency)
+        assert len(self.dests) > 0
+        retval = (
+            "<{}({}) object at {}>(id={}[0], "
+            "src={}, dst_hbm_addr={}, mem_model, "
+            "throughput={}, latency={})"
+        ).format(
+            type(self).__name__,
+            self.name,
+            hex(id(self)),
+            self.id,
+            self.sources,
+            self.dst_hbm_addr,
+            # repr(self.__mem_model),
+            self.throughput,
+            self.latency,
+        )
         return retval
 
     def _set_dests(self, value):
@@ -122,9 +132,14 @@ class Instruction(MInstruction):
             TypeError: If the list does not contain `Variable` objects.
         """
         if len(value) != Instruction._OP_NUM_DESTS:
-            raise ValueError(("`value`: Expected list of {} `Variable` objects, "
-                              "but list with {} elements received.".format(Instruction._OP_NUM_SOURCES,
-                                                                           len(value))))
+            raise ValueError(
+                (
+                    "`value`: Expected list of {} `Variable` objects, "
+                    "but list with {} elements received.".format(
+                        Instruction._OP_NUM_SOURCES, len(value)
+                    )
+                )
+            )
         if not all(isinstance(x, Variable) for x in value):
             raise ValueError("`value`: Expected list of `Variable` objects.")
         super()._set_dests(value)
@@ -141,9 +156,14 @@ class Instruction(MInstruction):
             TypeError: If the list does not contain `Variable` objects.
         """
         if len(value) != Instruction._OP_NUM_SOURCES:
-            raise ValueError(("`value`: Expected list of {} `Variable` objects, "
-                              "but list with {} elements received.".format(Instruction._OP_NUM_SOURCES,
-                                                                           len(value))))
+            raise ValueError(
+                (
+                    "`value`: Expected list of {} `Variable` objects, "
+                    "but list with {} elements received.".format(
+                        Instruction._OP_NUM_SOURCES, len(value)
+                    )
+                )
+            )
         if not all(isinstance(x, Variable) for x in value):
             raise ValueError("`value`: Expected list of `Variable` objects.")
         super()._set_sources(value)
@@ -169,9 +189,15 @@ class Instruction(MInstruction):
             int: The throughput for this instruction. i.e. the number of cycles by which to advance
                  the current cycle counter.
         """
-        assert(Instruction._OP_NUM_SOURCES > 0 and len(self.sources) == Instruction._OP_NUM_SOURCES)
-        assert(Instruction._OP_NUM_DESTS > 0 and len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(all(src == dst for src, dst in zip(self.sources, self.dests)))
+        assert (
+            Instruction._OP_NUM_SOURCES > 0
+            and len(self.sources) == Instruction._OP_NUM_SOURCES
+        )
+        assert (
+            Instruction._OP_NUM_DESTS > 0
+            and len(self.dests) == Instruction._OP_NUM_DESTS
+        )
+        assert all(src == dst for src, dst in zip(self.sources, self.dests))
 
         hbm = self.__mem_model.hbm
         spad = self.__mem_model.spad
@@ -182,24 +208,29 @@ class Instruction(MInstruction):
 
         if variable.hbm_address >= 0:
             if self.dst_hbm_addr != variable.hbm_address:
-                raise RuntimeError("Source variable is already in different HBM location. Cannot store a variable into HBM more than once.")
-            assert(hbm.buffer[variable.hbm_address] == variable)
+                raise RuntimeError(
+                    "Source variable is already in different HBM location. Cannot store a variable into HBM more than once."
+                )
+            assert hbm.buffer[variable.hbm_address] == variable
         if self.__source_spad_address < 0:
-            raise RuntimeError("Null reference exception: source variable is not in SPAD.")
+            raise RuntimeError(
+                "Null reference exception: source variable is not in SPAD."
+            )
 
         if self.comment:
-            self.comment += ';'
+            self.comment += ";"
         # self.comment += ' variable "{}": HBM({}) <- SPAD({})'.format(variable.name,
         #                                                              self.dst_hbm_addr,
         #                                                              variable.spad_address)
-        self.comment += ' variable "{}" <- SPAD({})'.format(variable.name,
-                                                            variable.spad_address)
+        self.comment += ' variable "{}" <- SPAD({})'.format(
+            variable.name, variable.spad_address
+        )
 
         retval = super()._schedule(cycle_count, schedule_id)
         # Perform the store
-        if variable.hbm_address < 0: # Variable new to HBM
+        if variable.hbm_address < 0:  # Variable new to HBM
             hbm.allocateForce(self.dst_hbm_addr, variable)
-        spad.deallocate(self.__source_spad_address) # Deallocate variable from SPAD
+        spad.deallocate(self.__source_spad_address)  # Deallocate variable from SPAD
         # Track SPAD access
         spad_access_tracking = spad.getAccessTracking(self.__source_spad_address)
         spad_access_tracking.last_mstore = self
@@ -209,7 +240,7 @@ class Instruction(MInstruction):
 
         return retval
 
-    def _toMASMISAFormat(self, *extra_args) -> str:
+    def _to_masmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to MInst ASM-ISA format.
 
@@ -222,9 +253,7 @@ class Instruction(MInstruction):
             str: The instruction in MInst ASM-ISA format.
         """
         # Instruction sources
-        extra_args = (self.__source_spad_address, ) + extra_args
+        extra_args = (self.__source_spad_address,) + extra_args
         # Instruction destinations
-        extra_args = tuple(dst.toMASMISAFormat() for dst in self.dests) + extra_args
-        return self.toStringFormat(None,
-                                   self.OP_NAME_ASM,
-                                   *extra_args)
+        extra_args = tuple(dst.to_masmisa_format() for dst in self.dests) + extra_args
+        return self.to_string_format(None, self.op_name_asm, *extra_args)

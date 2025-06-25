@@ -1,6 +1,25 @@
-﻿from assembler.memory_model import MemoryModel
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+from assembler.memory_model import MemoryModel
 from .xinstruction import XInstruction
-from . import add, sub, mul, muli, mac, maci, ntt, intt, twntt, twintt, rshuffle, irshuffle, move, xstore, nop
+from . import (
+    add,
+    sub,
+    mul,
+    muli,
+    mac,
+    maci,
+    ntt,
+    intt,
+    twntt,
+    twintt,
+    rshuffle,
+    irshuffle,
+    move,
+    xstore,
+    nop,
+)
 from . import exit as exit_mod
 from . import copy as copy_mod
 
@@ -27,15 +46,29 @@ Exit = exit_mod.Instruction
 Nop = nop.Instruction
 
 # Collection of XInstructions with P-ISA or intermediate P-ISA equivalents
-__PISA_INSTRUCTIONS = ( Add, Sub, Mul, Muli, Mac, Maci, NTT, iNTT, twNTT, twiNTT, rShuffle, irShuffle, Copy )
+__PISA_INSTRUCTIONS = (
+    Add,
+    Sub,
+    Mul,
+    Muli,
+    Mac,
+    Maci,
+    NTT,
+    iNTT,
+    twNTT,
+    twiNTT,
+    rShuffle,
+    irShuffle,
+    Copy,
+)
 
 # Collection of XInstructions with global cycle tracking
-GLOBAL_CYCLE_TRACKING_INSTRUCTIONS = ( rShuffle, irShuffle, XStore )
+GLOBAL_CYCLE_TRACKING_INSTRUCTIONS = (rShuffle, irShuffle, XStore)
 
-def createFromParsedObj(mem_model: MemoryModel,
-                        inst_type,
-                        parsed_op,
-                        new_id: int = 0) -> XInstruction:
+
+def createFromParsedObj(
+    mem_model: MemoryModel, inst_type, parsed_op, new_id: int = 0
+) -> XInstruction:
     """
     Creates an XInstruction object XInst from the specified namespace data.
 
@@ -63,7 +96,7 @@ def createFromParsedObj(mem_model: MemoryModel,
     """
 
     if not issubclass(inst_type, XInstruction):
-        raise ValueError('`inst_type`: expected a class derived from `XInstruction`.')
+        raise ValueError("`inst_type`: expected a class derived from `XInstruction`.")
 
     # Convert variable names into actual variable objects.
 
@@ -84,14 +117,15 @@ def createFromParsedObj(mem_model: MemoryModel,
     # Prepare parsed object to add as arguments to instruction constructor.
     parsed_op.dst = dsts
     parsed_op.src = srcs
-    assert(parsed_op.op_name == inst_type.OP_NAME_PISA)
+    assert parsed_op.op_name == inst_type.op_name_pisa
     parsed_op = vars(parsed_op)
-    parsed_op.pop("op_name") # op name not needed: inst_type knows its name already
+    parsed_op.pop("op_name")  # op name not needed: inst_type knows its name already
     return inst_type(new_id, **parsed_op)
 
-def createFromPISALine(mem_model: MemoryModel,
-                       line: str,
-                       line_no: int = 0) -> XInstruction:
+
+def createFromPISALine(
+    mem_model: MemoryModel, line: str, line_no: int = 0
+) -> XInstruction:
     """
     Parses an XInst from the specified string (in P-ISA kernel input format) and returns a
     XInstruction object encapsulating the resulting instruction.
@@ -126,7 +160,7 @@ def createFromPISALine(mem_model: MemoryModel,
         for inst_type in __PISA_INSTRUCTIONS:
             parsed_op = inst_type.parseFromPISALine(line)
             if parsed_op:
-                assert(inst_type.OP_NAME_PISA == parsed_op.op_name)
+                assert inst_type.op_name_pisa == parsed_op.op_name
 
                 # Convert parsed instruction into an actual instruction object.
                 retval = createFromParsedObj(mem_model, inst_type, parsed_op, line_no)
@@ -135,6 +169,6 @@ def createFromPISALine(mem_model: MemoryModel,
                 break
 
     except Exception as ex:
-        raise Exception(f'line {line_no}: {line}.') from ex
+        raise Exception(f"line {line_no}: {line}.") from ex
 
     return retval
