@@ -67,12 +67,14 @@ cmake --build build -j
 Build type can also be changed to `Debug` depending on current needs (Debug
 should be used if the tool is being used to actively debug failing kernels).
 
+**NOTE:** Once the build completes, you will find the ***program_mapper*** and
+the ***functional_modeler*** executables in `build/bin` directory.
+
 ## Running the Program Mapper
 
-Located in `build/bin` is an executable called **program_mapper**. This program
-can be used to generate a graph of combined p-isa instructions with a
-supplementary memory file, and a combined p-isa kernel from a program trace.
-The program accepts a number of commandline options to control its usage.
+The ***program_mapper*** is used to generate a graph of combined p-isa instructions
+with a supplementary memory file, and a combined p-isa kernel from a program
+trace. The program accepts a number of commandline options to control its usage.
 
 A typical run is of the form
 ```bash
@@ -129,24 +131,20 @@ OPTIONS:
 
 ## Running the Functional Modeler
 
-Once `make` completes the you will find an executable in `build/bin` called
-**functional_modeler**.  This program can be used to functionally test p-isa
-kernels against a seal trace, render p-isa kernels into a visible graph, and
-debug kernel execution.
+The ***functional_modeler*** is used to functionally test p-isa kernels
+against a data trace (currently only obtained by tracing the excution of
+the MS-SEAL library) and debug kernel execution. In addition, the 
+***functional_modeler*** can also generate a graph of the p-isa kernels,
+render such graphs into a visible graph, and estimates the perfomance of
+such kernels based con configurable HW models.
+
+
 The program accepts a number of commandline options to control its usage.
 
-A standard test is of the form
+A typical run is of the form
 ```bash
 ./functional_modeler <he_op.csv> --strace <he_op_trace_v0.json>
 ```
-For example
-
-```bash
-functional_modeler p_isa_ops/t.2.add.14.csv --strace traces/add_16384_l2_m3_v0.json
-```
-
-performs a functional check for a 16k poly mod add operation checked against a
-seal trace containing inputs and outputs.
 
 The full list of currently supported options are listed below.
 ```bash
