@@ -1,0 +1,4 @@
+<map id="memory_model.spad.SPAD" name="memory_model.spad.SPAD">
+<area shape="rect" id="node1" title="Encapsulates the SRAM cache, also known as SPAD, within the memory model." alt="" coords="5,95,204,121"/>
+<area shape="rect" id="node2" href="$classmemory__model_1_1memory__bank_1_1MemoryBank.html" title="Base class for memory banks." alt="" coords="13,5,197,47"/>
+</map>

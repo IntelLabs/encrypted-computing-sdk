@@ -1,0 +1,6 @@
+<map id="instructions.xinst.exit.Instruction" name="instructions.xinst.exit.Instruction">
+<area shape="rect" id="node1" title="Represents a bexit instruction in the assembler with specific properties and methods for scheduling a..." alt="" coords="31,259,198,300"/>
+<area shape="rect" id="node2" href="$classinstructions_1_1xinst_1_1xinstruction_1_1XInstruction.html" title="This class is used to encapsulate the properties and behaviors of an xinstruction,..." alt="" coords="5,169,224,211"/>
+<area shape="rect" id="node3" href="$classinstructions_1_1instruction_1_1BaseInstruction.html" title="The base class for all instructions." alt="" coords="27,80,202,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="63,5,167,32"/>
+</map>

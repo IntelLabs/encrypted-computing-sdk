@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['uint32_1958',['UINT32',['../namespacepisa_1_1poly.html#adcaff90e7fcf0ff651babe1b2bf43a7faf3d93588f86040785f3022c6097582fb',1,'pisa::poly']]],
+  ['uint64_1959',['UINT64',['../namespacepisa_1_1poly.html#adcaff90e7fcf0ff651babe1b2bf43a7fadb24e9015317199ae2b8d1c266cce685',1,'pisa::poly']]],
+  ['unaryop_1960',['UnaryOp',['../classkerngen_1_1high__parser_1_1pisa__operations_1_1UnaryOp.html',1,'kerngen::high_parser::pisa_operations']]],
+  ['unique_5fcounter_1961',['unique_counter',['../classPISAGraphOptimizer.html#a16de06d7ff28d37ed8d7441b7028a08c',1,'PISAGraphOptimizer']]],
+  ['unit_1962',['UNIT',['../classoptions_1_1LoopKey.html#a9dbb8749aecc007a7184768d4ad9fd64',1,'options::LoopKey']]],
+  ['units_1963',['units',['../classkerngen_1_1high__parser_1_1types_1_1Context.html#a99346498069ed2ac9f35b0d5215e4e6d',1,'kerngen.high_parser.types.Context.units()'],['../classkerngen_1_1high__parser_1_1types_1_1Context.html#a645218249aecb7f15004e1956934db83',1,'kerngen.high_parser.types.Context.units(self)']]],
+  ['updateinput_1964',['updateInput',['../classpisa_1_1kernel_1_1PISAKernel.html#a38188cfb64ee831802d50d17b12b13d8',1,'pisa::kernel::PISAKernel']]],
+  ['updateinstructionstouniqueintermediateregisters_1965',['updateInstructionsToUniqueIntermediateRegisters',['../classpisa_1_1performance_1_1PISAPerformanceModeler.html#a460f6c28c72691ea5d96e8f829e358ac',1,'pisa::performance::PISAPerformanceModeler']]],
+  ['updateinstructionstouniqueintermediateregistersnew_1966',['updateInstructionsToUniqueIntermediateRegistersNew',['../classpisa_1_1performance_1_1PISAPerformanceModeler.html#aa955e61e6cb53601e439f13b7b230941',1,'pisa::performance::PISAPerformanceModeler']]],
+  ['updatememorymodelwithmeminfo_1967',['updateMemoryModelWithMemInfo',['../namespacememory__model_1_1mem__info.html#a016384a0ccbb12f31805720dfe887e81',1,'memory_model::mem_info']]],
+  ['updateoutput_1968',['updateOutput',['../classpisa_1_1kernel_1_1PISAKernel.html#a5e380ab37e245ef919e2accb11d2ccf4',1,'pisa::kernel::PISAKernel']]],
+  ['updatequeuessyncspass2_1969',['updateQueuesSyncsPass2',['../classstages_1_1asm__scheduler_1_1Simulation.html#a55c641d26ceef25524725944fd219eec',1,'stages::asm_scheduler::Simulation']]],
+  ['updateschedule_1970',['updateSchedule',['../classstages_1_1asm__scheduler_1_1Simulation.html#aa97f45105da39d65e4173f1f533dac51',1,'stages::asm_scheduler::Simulation']]],
+  ['updatesymbols_1971',['updateSymbols',['../classpisa_1_1kernel_1_1PISAKernel.html#a54c16a417e3ef19380a1860969683988',1,'pisa::kernel::PISAKernel']]],
+  ['use_5fcache_1972',['use_cache',['../classpisa_1_1kernel_1_1Cache.html#a01905ba23c30320a150141ad69d2bf15',1,'pisa::kernel::Cache']]],
+  ['use_5fkernel_5fcache_1973',['use_kernel_cache',['../structpisa_1_1ProgramMapperArguments.html#a718434d129d35505ae13af31719b1248',1,'pisa::ProgramMapperArguments']]],
+  ['usehbmplaceholders_1974',['useHBMPlaceHolders',['../classcommon_1_1config_1_1GlobalConfig.html#afe2837608f8f62706628df0cbbb1907a',1,'common::config::GlobalConfig']]],
+  ['uses_1975',['uses',['../classlinker_1_1VariableInfo.html#afdefbb71ae74a1b150f13c1007f61dcc',1,'linker::VariableInfo']]],
+  ['usevariable_1976',['useVariable',['../classlinker_1_1MemoryModel.html#a5d44a9284275ef847f7735d59a89dd4e',1,'linker::MemoryModel']]],
+  ['usexinstfetch_1977',['useXInstFetch',['../classcommon_1_1config_1_1GlobalConfig.html#acf99d10e83cf3cd4527434dc29ad8a3f',1,'common::config::GlobalConfig']]],
+  ['utilities_2epy_1978',['utilities.py',['../utilities_8py.html',1,'']]],
+  ['utility_5ffunctions_2eh_1979',['utility_functions.h',['../program__mapper_2utility__functions_8h.html',1,'(Global Namespace)'],['../functional__modeler_2functional__models_2utility__functions_8h.html',1,'(Global Namespace)']]]
+];

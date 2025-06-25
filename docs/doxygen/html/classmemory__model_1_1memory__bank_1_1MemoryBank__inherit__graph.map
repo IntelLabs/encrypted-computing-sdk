@@ -1,0 +1,5 @@
+<map id="memory_model.memory_bank.MemoryBank" name="memory_model.memory_bank.MemoryBank">
+<area shape="rect" id="node1" title="Base class for memory banks." alt="" coords="119,5,303,47"/>
+<area shape="rect" id="node2" href="$classmemory__model_1_1hbm_1_1HBM.html" title="Encapsulates the high&#45;bandwidth DRAM memory model, also known as HBM." alt="" coords="5,95,199,121"/>
+<area shape="rect" id="node3" href="$classmemory__model_1_1spad_1_1SPAD.html" title="Encapsulates the SRAM cache, also known as SPAD, within the memory model." alt="" coords="223,95,421,121"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="instructions.cinst.bload.Instruction" name="instructions.cinst.bload.Instruction">
+<area shape="rect" id="node1" title="Encapsulates the bload CInstruction." alt="" coords="25,259,203,300"/>
+<area shape="rect" id="node2" href="$classinstructions_1_1cinst_1_1cinstruction_1_1CInstruction.html" title="Represents a CInstruction, which is a type of BaseInstruction." alt="" coords="5,169,223,211"/>
+<area shape="rect" id="node3" href="$classinstructions_1_1instruction_1_1BaseInstruction.html" title="The base class for all instructions." alt="" coords="27,80,201,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="62,5,166,32"/>
+</map>

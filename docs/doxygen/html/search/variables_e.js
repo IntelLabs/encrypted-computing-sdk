@@ -1,0 +1,21 @@
+var searchData=
+[
+  ['name_3964',['name',['../classpisa_1_1kernel_1_1PISAKernel.html#a922e0fe70ed24ae8fe75d324156f995f',1,'pisa::kernel::PISAKernel::name()'],['../structpisa_1_1poly_1_1PolyOperationDesc.html#ab90221bec399d156a290a1979a2c29ee',1,'pisa::poly::PolyOperationDesc::name()'],['../classgraph_1_1Edge.html#aa3eb9a64f6ec53177ef5747b1dba73a6',1,'graph::Edge::name()'],['../namespaceisolation__test.html#a0d25589e327ba9092aae146d125a38fb',1,'isolation_test.name()']]],
+  ['naming_5fmap_3965',['naming_map',['../classpisa_1_1kernel_1_1PISAKernel.html#aa37af593b34367ff9ae9cc4d9aa6c264',1,'pisa::kernel::PISAKernel']]],
+  ['nargs_3966',['nargs',['../namespacedeadlock__test.html#a6c9bdde0c70362b97cb497b6289616f0',1,'deadlock_test.nargs()'],['../namespacextiming__check.html#a1eed340d695e9e8762217a254e78dff5',1,'xtiming_check.nargs()'],['../namespaceinject__bundles.html#ad44bc6e5a1ff7cd6db75b736402d215e',1,'inject_bundles.nargs()']]],
+  ['native_5fpoly_5fsize_3967',['NATIVE_POLY_SIZE',['../namespacekerngen_1_1high__parser_1_1types.html#ab34e7894f5fda25fe4e6721b9639e3a3',1,'kerngen::high_parser::types']]],
+  ['network_3968',['network',['../classgraph_1_1Graph.html#a3a227d3e1d038fc0e25681733ceaab6c',1,'graph::Graph']]],
+  ['new_5fkerngen_3969',['new_kerngen',['../structpisa_1_1ProgramMapperArguments.html#ab897a9a23ada90f055c9b62ee171adcd',1,'pisa::ProgramMapperArguments']]],
+  ['new_5fvars_3970',['new_vars',['../namespaceisolation__test.html#a7f9457df2d307c9e939df26015efc755',1,'isolation_test']]],
+  ['nload_3971',['NLoad',['../namespaceinstructions_1_1cinst.html#a273b232909e947abd028ae95cab3b5a6',1,'instructions.cinst.NLoad()'],['../namespacelinker_1_1instructions_1_1cinst.html#a087328c0c12b4a151f67f72f8b9f4aca',1,'linker.instructions.cinst.NLoad()']]],
+  ['node_5fid_5fmap_3972',['node_ID_Map',['../classgraph_1_1Graph.html#a6fe9e9991fbda71b9a5ace757d2e097e',1,'graph::Graph']]],
+  ['none_3973',['None',['../classkerngen_1_1high__parser_1_1types_1_1Immediate.html#af790cb12c3cc96ab02d6d63404e85015',1,'kerngen::high_parser::types::Immediate']]],
+  ['nop_3974',['Nop',['../namespacelinker_1_1instructions_1_1xinst.html#a3824626e54992c8112305a3c2c0343e3',1,'linker.instructions.xinst.Nop()'],['../namespaceinstructions_1_1xinst.html#a3eb991824b62454cc0fe18638b4c4bb0',1,'instructions.xinst.Nop()'],['../namespacexinst.html#a4fef1070c702c83d50cc57673a71c162',1,'xinst.Nop()']]],
+  ['ntt_3975',['NTT',['../namespacelinker_1_1instructions_1_1xinst.html#a257b391927bf87db0e6cc253e664bf69',1,'linker.instructions.xinst.NTT()'],['../namespacexinst.html#acf11b0b1af76cb53fe17f6a12894d2dc',1,'xinst.NTT()'],['../namespaceinstructions_1_1xinst.html#af27ff7c1e384d2ff96f0ea90a796d12a',1,'instructions.xinst.NTT()']]],
+  ['num_5fbundle_5finstructions_3976',['NUM_BUNDLE_INSTRUCTIONS',['../namespacextiming__check.html#a15aec7fe82550e861fbf6421c4a148a8',1,'xtiming_check.NUM_BUNDLE_INSTRUCTIONS()'],['../namespaceinject__bundles.html#a4c1db20ec59da3ef6becc3561b618745',1,'inject_bundles.NUM_BUNDLE_INSTRUCTIONS()']]],
+  ['num_5fof_5fcoefficients_3977',['num_of_coefficients',['../classpisa_1_1poly_1_1Polynomial.html#a061925e7ecfd321623036055c0a74fa0',1,'pisa::poly::Polynomial']]],
+  ['num_5fof_5fpolynomials_3978',['num_of_polynomials',['../classpisa_1_1poly_1_1Polynomial.html#a761c6086cc113b2b5629557d7bcc5e92',1,'pisa::poly::Polynomial']]],
+  ['num_5fof_5frns_5fterms_3979',['num_of_rns_terms',['../classpisa_1_1poly_1_1Polynomial.html#a46ae8d4ed3e9fa23799f12becefa39ba',1,'pisa::poly::Polynomial']]],
+  ['num_5fshort_5fbundles_3980',['num_short_bundles',['../classstages_1_1asm__scheduler_1_1Simulation.html#aebafbf9293651ab44694ade2cbe35456',1,'stages::asm_scheduler::Simulation']]],
+  ['number_5fof_5fadds_3981',['number_of_adds',['../classWideAdd.html#a27bf314b2fbe664e49e5b08c841d6d99',1,'WideAdd::number_of_adds()'],['../classChainedAdds.html#a340c08fbeaa5233e2663bf57dabd9e81',1,'ChainedAdds::number_of_adds()']]]
+];

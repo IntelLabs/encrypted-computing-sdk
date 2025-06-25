@@ -1,0 +1,6 @@
+<map id="instructions.xinst.sub.Instruction" name="instructions.xinst.sub.Instruction">
+<area shape="rect" id="node1" title="Encapsulates a sub XInstruction." alt="" coords="5,259,240,285"/>
+<area shape="rect" id="node2" href="$classinstructions_1_1xinst_1_1xinstruction_1_1XInstruction.html" title="This class is used to encapsulate the properties and behaviors of an xinstruction,..." alt="" coords="13,169,232,211"/>
+<area shape="rect" id="node3" href="$classinstructions_1_1instruction_1_1BaseInstruction.html" title="The base class for all instructions." alt="" coords="35,80,210,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="71,5,175,32"/>
+</map>

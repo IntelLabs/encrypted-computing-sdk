@@ -1,0 +1,9 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" title=" " alt="" coords="5,137,100,163"/>
+<area shape="rect" id="node2" href="$classkerngen_1_1high__parser_1_1types_1_1Comment.html" title="Holder of a comment line." alt="" coords="163,5,361,47"/>
+<area shape="rect" id="node3" href="$classkerngen_1_1high__parser_1_1types_1_1Context.html" title="Class representing a given context of the scheme." alt="" coords="163,71,361,112"/>
+<area shape="rect" id="node5" href="$classkerngen_1_1high__parser_1_1types_1_1Data.html" title="Class representing a data type with related attributes." alt="" coords="148,137,376,163"/>
+<area shape="rect" id="node6" href="$classkerngen_1_1high__parser_1_1types_1_1EmptyLine.html" title="Holder of an empty line." alt="" coords="163,188,361,229"/>
+<area shape="rect" id="node7" href="$classkerngen_1_1high__parser_1_1types_1_1Immediate.html" title="Class representing a Immediate type with related attributes." alt="" coords="163,253,361,295"/>
+<area shape="rect" id="node4" href="$classkerngen_1_1high__parser_1_1types_1_1KernelContext.html" title="Class representing a kernel context." alt="" coords="424,71,621,112"/>
+</map>

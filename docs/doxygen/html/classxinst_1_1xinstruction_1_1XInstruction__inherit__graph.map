@@ -1,0 +1,18 @@
+<map id="xinst.xinstruction.XInstruction" name="xinst.xinstruction.XInstruction">
+<area shape="rect" id="node1" title=" " alt="" coords="5,360,223,387"/>
+<area shape="rect" id="node2" href="$classxinst_1_1add_1_1Instruction.html" title="Represents an add instruction, inheriting from XInstruction." alt="" coords="283,5,438,32"/>
+<area shape="rect" id="node3" href="$classxinst_1_1exit_1_1Instruction.html" title="Represents an bexit instruction, inheriting from XInstruction." alt="" coords="283,56,439,83"/>
+<area shape="rect" id="node4" href="$classxinst_1_1intt_1_1Instruction.html" title="Represents an intt instruction, inheriting from XInstruction." alt="" coords="284,107,437,133"/>
+<area shape="rect" id="node5" href="$classxinst_1_1mac_1_1Instruction.html" title="Represents a mac Instruction for element&#45;wise polynomial multiplication and accumulation." alt="" coords="281,157,440,184"/>
+<area shape="rect" id="node6" href="$classxinst_1_1maci_1_1Instruction.html" title="Represents a maci Instruction." alt="" coords="279,208,442,235"/>
+<area shape="rect" id="node7" href="$classxinst_1_1move_1_1Instruction.html" title="Represents a move Instruction." alt="" coords="277,259,445,285"/>
+<area shape="rect" id="node8" href="$classxinst_1_1mul_1_1Instruction.html" title="Represents a mul Instruction." alt="" coords="283,309,439,336"/>
+<area shape="rect" id="node9" href="$classxinst_1_1muli_1_1Instruction.html" title="Represents a muli Instruction." alt="" coords="281,360,441,387"/>
+<area shape="rect" id="node10" href="$classxinst_1_1nop_1_1Instruction.html" title="Represents a nop Instruction." alt="" coords="283,411,438,437"/>
+<area shape="rect" id="node11" href="$classxinst_1_1ntt_1_1Instruction.html" title="Represents an ntt instruction (Number Theoretic Transform)." alt="" coords="286,461,435,488"/>
+<area shape="rect" id="node12" href="$classxinst_1_1rshuffle_1_1Instruction.html" title="Represents an Instruction with specific operational parameters and special latency properties." alt="" coords="271,512,451,539"/>
+<area shape="rect" id="node13" href="$classxinst_1_1sub_1_1Instruction.html" title="Represents a sub Instruction." alt="" coords="283,563,438,589"/>
+<area shape="rect" id="node14" href="$classxinst_1_1twintt_1_1Instruction.html" title="Represents a twintt Instruction." alt="" coords="276,613,445,640"/>
+<area shape="rect" id="node15" href="$classxinst_1_1twntt_1_1Instruction.html" title="Represents a twntt Instruction." alt="" coords="278,664,443,691"/>
+<area shape="rect" id="node16" href="$classxinst_1_1xstore_1_1Instruction.html" title="Represents a xstore Instruction." alt="" coords="275,715,447,741"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="xinst.exit.Instruction" name="xinst.exit.Instruction">
+<area shape="rect" id="node1" title="Represents an bexit instruction, inheriting from XInstruction." alt="" coords="36,80,192,107"/>
+<area shape="rect" id="node2" href="$classxinst_1_1xinstruction_1_1XInstruction.html" title=" " alt="" coords="5,5,223,32"/>
+</map>

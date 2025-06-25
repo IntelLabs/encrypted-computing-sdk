@@ -1,0 +1,5 @@
+<map id="linker.instructions.xinst.rshuffle.Instruction" name="linker.instructions.xinst.rshuffle.Instruction">
+<area shape="rect" id="node1" title="Encapsulates an rshuffle XInstruction." alt="" coords="19,184,250,225"/>
+<area shape="rect" id="node2" href="$classlinker_1_1instructions_1_1xinst_1_1xinstruction_1_1XInstruction.html" title="Represents an XInstruction, inheriting from BaseInstruction." alt="" coords="5,95,264,136"/>
+<area shape="rect" id="node3" href="$classlinker_1_1instructions_1_1instruction_1_1BaseInstruction.html" title="Base class for all instructions." alt="" coords="27,5,242,47"/>
+</map>
