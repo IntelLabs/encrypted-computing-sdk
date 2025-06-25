@@ -17,7 +17,7 @@ Currently, our build system uses `CMake`.
 ### Currently tested configuration(s)
 - Ubuntu 22.04 (also tested on WSL2)
 - C++17
-- GCC == 11.3.x (This is the only compiler supported at the moment)
+- GCC == 11.3.x &emsp; ***This version is a hard requirement at the moment***
 - CMake >= 3.22.1
 - SNAP (used to support graph features)
 - JSON for Modern CPP >= 3.11
