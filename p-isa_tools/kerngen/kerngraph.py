@@ -48,7 +48,14 @@ def parse_args():
         nargs="*",
         default=[],
         # Composition high ops such are ntt, mod, and relin are not currently supported
-        choices=["add", "sub", "mul", "muli", "copy"],  # currently supports single ops
+        choices=[
+            "add",
+            "sub",
+            "mul",
+            "muli",
+            "copy",
+            "ntt",
+        ],  # currently supports single ops
         help="List of high_op names",
     )
     parser.add_argument(
@@ -97,7 +104,7 @@ def main(args):
             )
         for kernel in valid_kernels:
             if args.target and any(
-                target.capitalize() in str(kernel) for target in args.target
+                target.lower() in str(kernel).lower() for target in args.target
             ):
                 kernel = loop_interchange(
                     kernel.to_pisa(),
