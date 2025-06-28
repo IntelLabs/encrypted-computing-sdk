@@ -1,0 +1,49 @@
+from . import dload, dstore, dkeygen
+from . import dinstruction
+from assembler.instructions import tokenizeFromLine
+from assembler.memory_model.mem_info import MemInfo, MemInfoVariable
+
+DLoad = dload.Instruction
+DStore = dstore.Instruction
+DKeyGen = dkeygen.Instruction
+
+def factory() -> set:
+    """
+    Creates a set of all DInstruction classes.
+
+    Returns:
+        set: A set containing all DInstruction classes.
+    """
+    return { DLoad, DStore, DKeyGen }
+
+def create_from_mem_line(line: str) -> dinstruction.DInstruction:
+    """
+    Parses an data instruction from a line of the memory map.
+
+    Parameters:
+        line (str): Line of text from which to parse an instruction.
+
+    Returns:
+        DInstruction or None: The parsed DInstruction object, or None if no object could be
+        parsed from the specified input line.
+    """
+    retval = None
+    tokens, comment = tokenizeFromLine(line)
+    for instr_type in factory():
+        try:
+            retval = instr_type(tokens, comment)
+        except ValueError:
+            retval = None
+        if retval:
+            break
+
+    try:
+        miv, _ = MemInfo.get_meminfo_var_from_tokens(tokens)
+    except RuntimeError as e:
+        raise RuntimeError(f'Error parsing memory map line "{line}"') from e
+
+    miv_dict = miv.as_dict()
+    retval.var = miv_dict["var_name"]
+    retval.address = miv_dict["hbm_address"]
+
+    return retval
