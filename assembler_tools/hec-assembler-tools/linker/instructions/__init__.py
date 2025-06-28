@@ -4,8 +4,7 @@
 from assembler.instructions import tokenize_from_line
 from linker.instructions.instruction import BaseInstruction
 
-
-def fromStrLine(line: str, factory) -> BaseInstruction:
+def create_from_str_line(line: str, factory) -> BaseInstruction:
     """
     Parses an instruction from a line of text.
 

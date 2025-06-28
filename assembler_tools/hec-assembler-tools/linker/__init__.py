@@ -202,13 +202,17 @@ class MemoryModel:
         """
         var_info: VariableInfo
         if var_name in self.variables:
+            print(f' ROCHA Variable {var_name} already exists in memory model.')
             var_info = self.variables[var_name]
         else:
+            print(f'ROCHA Adding variable {var_name} to memory model.')
             var_info = VariableInfo(var_name)
             if var_name in self.__mem_info_vars:
+                print(f'\tROCHA Variable {var_name} is in MemInfo, allocating HBM address. HBM address {self.__mem_info_vars[var_name].hbm_address}.')
                 # Variables explicitly marked in mem file must persist throughout the program
                 # with predefined HBM address
                 if var_name in self.__mem_info_fixed_addr_vars:
+                    print(f'\tROCHA Variable {var_name} has fixed HBM address {self.__mem_info_vars[var_name].hbm_address}.')
                     var_info.uses = float('inf')
                 self.hbm.forceAllocate(var_info,
                                        self.__mem_info_vars[var_name].hbm_address)

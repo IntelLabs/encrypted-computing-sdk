@@ -1,8 +1,10 @@
 
 from linker import MemoryModel
-from linker.instructions import minst, cinst, xinst
+from linker.instructions import minst, cinst, dinst
+from linker.instructions.dinst.dinstruction import DInstruction
 from assembler.common.config import GlobalConfig
 from assembler.instructions import cinst as ISACInst
+from assembler.memory_model.mem_info import MemInfo
 
 class LinkedProgram:
     """
@@ -350,3 +352,60 @@ class LinkedProgram:
         self.__minst_line_offset += (len(kernel_minstrs) - 1)  # Subtract last line that is getting removed
         self.__cinst_line_offset += (len(kernel_cinstrs) - 1)  # Subtract last line that is getting removed
         self.__kernel_count += 1  # Count the appended kernel
+
+    @classmethod
+    def join_dinst_kernels(cls, kernels_instrs: list[list[DInstruction]]) -> list[DInstruction]:
+        """
+        Joins a list of dinst kernels, consolidating variables that are outputs in one kernel
+        and inputs in the next. This ensures that variables carried across kernels are not duplicated,
+        and their Mem addresses are consistent.
+
+        Args:
+            kernels_instrs (list): List of Kernels' DInstructions lists.
+
+        Returns:
+            list[DInstructions]: A new instruction list representing the concatenated memory info.
+        """
+        
+        if not kernels_instrs:
+            raise ValueError("No DInstructions lists provided for concatenation.")
+        
+        # Use dictionaries to track unique variables by name
+        inputs: dict[str: DInstruction] = {}
+        carry_over_vars: dict[str: DInstruction] = {}
+
+        mem_address: int = 0
+        new_kernels_instrs: list[DInstruction] = []
+        for k_idx, kernel_instrs in enumerate(kernels_instrs):
+
+            for idx, cur_dinst in enumerate(kernel_instrs):
+
+                # Save the current output instruction to add at the end
+                if isinstance(cur_dinst, dinst.DStore):
+                    key = cur_dinst.var
+                    carry_over_vars[key] = cur_dinst
+                    continue
+
+                if isinstance(cur_dinst, (dinst.DLoad, dinst.DKeyGen)):
+                    key = cur_dinst.var
+                    # Skip if the input is already in carry-over from previous outputs
+                    if key in carry_over_vars:
+                        carry_over_vars.pop(key)  # Remove from (output) carry-overs since it's now an input
+                        continue
+
+                    # If the input is not (a previous output) in carry-over, add if it's not already (loaded) in inputs 
+                    if key not in inputs:
+                        inputs[key] = cur_dinst
+                        cur_dinst.address = mem_address
+                        mem_address = mem_address + 1
+
+                        new_kernels_instrs.append(cur_dinst)
+                        continue
+
+        # Add remaining carry-over variables to the new instructions
+        for var in carry_over_vars:
+            carry_over_vars[var].address = mem_address
+            new_kernels_instrs.append(carry_over_vars[var])
+            mem_address = mem_address + 1
+
+        return new_kernels_instrs
