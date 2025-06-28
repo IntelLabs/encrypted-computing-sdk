@@ -52,7 +52,7 @@ def main_readmem(args):
 
     mem_meta_info = None
     with open(mem_filename, 'r') as mem_ifnum:
-        mem_meta_info = mem_info.MemInfo.from_iter(mem_ifnum)
+        mem_meta_info = mem_info.MemInfo.from_file_iter(mem_ifnum)
 
     if mem_meta_info:
         with io.StringIO() as retval_f:
@@ -172,7 +172,7 @@ def asmisa_assembly(output_xinst_filename: str,
     if b_verbose:
         print("Interpreting variable meta information...")
     with open(mem_filename, 'r') as mem_ifnum:
-        mem_meta_info = mem_info.MemInfo.from_iter(mem_ifnum)
+        mem_meta_info = mem_info.MemInfo.from_file_iter(mem_ifnum)
     mem_info.updateMemoryModelWithMemInfo(hec_mem_model, mem_meta_info)
 
     if b_verbose:

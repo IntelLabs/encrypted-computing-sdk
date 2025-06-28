@@ -1,5 +1,6 @@
 ﻿from assembler.common.decorators import *
 from assembler.common.counter import Counter
+from assembler.common.config import GlobalConfig
 
 class BaseInstruction:
     """
@@ -49,7 +50,7 @@ class BaseInstruction:
         raise NotImplementedError()
 
     @classproperty
-    def NAME_TOKEN_INDEX(cls) -> int:
+    def name_token_index(cls) -> int:
         """
         Index for the token containing the name of the instruction
         in the list of tokens.
@@ -72,7 +73,7 @@ class BaseInstruction:
         raise NotImplementedError()
 
     @classproperty
-    def NUM_TOKENS(cls) -> int:
+    def num_tokens(cls) -> int:
         """
         Number of tokens required for this instruction.
 
@@ -92,6 +93,21 @@ class BaseInstruction:
         """
         raise NotImplementedError()
 
+    @classmethod
+    def dump_instructions_to_file(cls, instructions: list, filename: str):
+        """
+        Writes a list of instruction objects to a file, one per line.
+
+        Each instruction is converted to its string representation using the `to_line()` method.
+
+        Args:
+            instructions (list): List of instruction objects (must have a to_line() method).
+            filename (str): Path to the output file.
+        """
+        with open(filename, 'w') as f:
+            for instr in instructions:
+                f.write(instr.to_line() + '\n')
+
     # Constructor
     # -----------
 
@@ -106,28 +122,22 @@ class BaseInstruction:
         Raises:
             ValueError: If the number of tokens is invalid or the instruction name is incorrect.
         """
-        assert self.NAME_TOKEN_INDEX < self.NUM_TOKENS
+        assert self.name_token_index < self.num_tokens
 
-        if len(tokens) != self.NUM_TOKENS:
-            raise ValueError(('`tokens`: invalid amount of tokens. '
-                              'Instruction {} requires {}, but {} received').format(self.name,
-                                                                                    self.NUM_TOKENS,
-                                                                                    len(tokens)))
-        if tokens[self.NAME_TOKEN_INDEX] != self.name:
-            raise ValueError('`tokens`: invalid name. Expected {}, but {} received'.format(self.name,
-                                                                                           tokens[self.NAME_TOKEN_INDEX]))
+        if len(tokens) != self.num_tokens:
+            raise ValueError((f"`tokens`: invalid amount of tokens. "
+                              f"Instruction {self.name} requires less "
+                              f"than {self.num_tokens}, but {len(tokens)} received"))
+        if tokens[self.name_token_index] != self.name:
+            raise ValueError(f"`tokens`: invalid name. Expected {self.name}, but {tokens[self.name_token_index]} received")
 
-        self.__id = next(BaseInstruction.__id_count)
+        self._id = next(BaseInstruction.__id_count)
 
-        self.__tokens = list(tokens)
+        self._tokens = list(tokens)
         self.comment = comment
 
     def __repr__(self):
-        retval = ('<{}({}, id={}) object at {}>(tokens={})').format(type(self).__name__,
-                                                                    self.name,
-                                                                    self.id,
-                                                                    hex(id(self)),
-                                                                    self.token)
+        retval = (f"<{type(self).__name__}({self.name}, id={self.id}) object at {hex(id(self))}>(tokens={self.tokens})")
         return retval
 
     def __eq__(self, other):
@@ -153,7 +163,7 @@ class BaseInstruction:
         Returns:
             tuple: (client_id: int, nonce: int) where client_id is the id specified at construction.
         """
-        return self.__id
+        return self._id
 
     @property
     def tokens(self) -> list:
@@ -163,7 +173,7 @@ class BaseInstruction:
         Returns:
             list: The list of tokens.
         """
-        return self.__tokens
+        return self._tokens
 
     def to_line(self) -> str:
         """
@@ -172,4 +182,8 @@ class BaseInstruction:
         Returns:
             str: The string representation of the instruction.
         """
-        return ", ".join(self.tokens)
+        if not GlobalConfig.suppressComments:
+            comment_str = f" # {self.comment}" if self.comment else ""
+
+        tokens_str = ", ".join(self._tokens)
+        return f"{tokens_str}{comment_str}"

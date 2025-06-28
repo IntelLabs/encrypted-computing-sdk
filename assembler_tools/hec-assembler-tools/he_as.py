@@ -95,7 +95,6 @@ class AssemblerRunConfig(RunConfig):
 
         super().__init__(**kwargs)
 
-
         # class members based on configuration
         for config_name, default_value in self.__default_config.items():
             assert(not hasattr(self, config_name))
@@ -217,7 +216,7 @@ def asmisaAssemble(run_config,
     if b_verbose:
         print("Interpreting variable meta information...")
     with open(mem_filename, 'r') as mem_ifnum:
-        mem_meta_info = mem_info.MemInfo.from_iter(mem_ifnum)
+        mem_meta_info = mem_info.MemInfo.from_file_iter(mem_ifnum)
     mem_info.updateMemoryModelWithMemInfo(hec_mem_model, mem_meta_info)
 
     if b_verbose:
@@ -316,7 +315,7 @@ def main(config: AssemblerRunConfig, verbose: bool = False):
 
     GlobalConfig.useHBMPlaceHolders = True #config.use_hbm_placeholders
     GlobalConfig.useXInstFetch = config.use_xinstfetch
-    GlobalConfig.supressComments = config.suppress_comments
+    GlobalConfig.suppressComments = config.suppress_comments
     GlobalConfig.hasHBM = config.has_hbm
     GlobalConfig.debugVerbose = config.debug_verbose
 
