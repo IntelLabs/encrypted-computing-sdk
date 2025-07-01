@@ -1,6 +1,14 @@
-﻿from assembler.common.decorators import *
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""
+Base class for all instructions in the linker.
+"""
+
+from assembler.common.decorators import classproperty
 from assembler.common.counter import Counter
 from assembler.common.config import GlobalConfig
+
 
 class BaseInstruction:
     """
@@ -23,20 +31,22 @@ class BaseInstruction:
             Retrieves the string form of the instruction to write to the instruction file.
     """
 
-    __id_count = Counter.count(0)  # Internal unique sequence counter to generate unique IDs
+    __id_count = Counter.count(
+        0
+    )  # Internal unique sequence counter to generate unique IDs
 
     # Class methods and properties
     # ----------------------------
 
     @classproperty
-    def name(cls) -> str:
+    def name(self) -> str:
         """
         Name for the instruction.
 
         Returns:
             str: The name of the instruction.
         """
-        return cls._get_name()
+        return self._get_name()
 
     @classmethod
     def _get_name(cls) -> str:
@@ -50,7 +60,7 @@ class BaseInstruction:
         raise NotImplementedError()
 
     @classproperty
-    def name_token_index(cls) -> int:
+    def name_token_index(self) -> int:
         """
         Index for the token containing the name of the instruction
         in the list of tokens.
@@ -58,7 +68,7 @@ class BaseInstruction:
         Returns:
             int: The index of the name token.
         """
-        return cls._get_name_token_index()
+        return self._get_name_token_index()
 
     @classmethod
     def _get_name_token_index(cls) -> int:
@@ -73,14 +83,14 @@ class BaseInstruction:
         raise NotImplementedError()
 
     @classproperty
-    def num_tokens(cls) -> int:
+    def num_tokens(self) -> int:
         """
         Number of tokens required for this instruction.
 
         Returns:
             int: The number of tokens required.
         """
-        return cls._get_num_tokens()
+        return self._get_num_tokens()
 
     @classmethod
     def _get_num_tokens(cls) -> int:
@@ -104,9 +114,9 @@ class BaseInstruction:
             instructions (list): List of instruction objects (must have a to_line() method).
             filename (str): Path to the output file.
         """
-        with open(filename, 'w') as f:
+        with open(filename, "w", encoding="utf-8") as f:
             for instr in instructions:
-                f.write(instr.to_line() + '\n')
+                f.write(instr.to_line() + "\n")
 
     # Constructor
     # -----------
@@ -124,12 +134,18 @@ class BaseInstruction:
         """
         assert self.name_token_index < self.num_tokens
 
-        if len(tokens) != self.num_tokens:
-            raise ValueError((f"`tokens`: invalid amount of tokens. "
-                              f"Instruction {self.name} requires less "
-                              f"than {self.num_tokens}, but {len(tokens)} received"))
-        if tokens[self.name_token_index] != self.name:
-            raise ValueError(f"`tokens`: invalid name. Expected {self.name}, but {tokens[self.name_token_index]} received")
+        if len(tokens) != self.num_tokens:  # pylint: disable=W0143
+            raise ValueError(
+                (
+                    f"`tokens`: invalid amount of tokens. "
+                    f"Instruction {self.name} requires less "
+                    f"than {self.num_tokens}, but {len(tokens)} received"
+                )
+            )
+        if tokens[self.name_token_index] != self.name:  # pylint: disable=W0143
+            raise ValueError(
+                f"`tokens`: invalid name. Expected {self.name}, but {tokens[self.name_token_index]} received"
+            )
 
         self._id = next(BaseInstruction.__id_count)
 
@@ -137,7 +153,7 @@ class BaseInstruction:
         self.comment = comment
 
     def __repr__(self):
-        retval = (f"<{type(self).__name__}({self.name}, id={self.id}) object at {hex(id(self))}>(tokens={self.tokens})")
+        retval = f"<{type(self).__name__}({self.name}, id={self.id}) object at {hex(id(self))}>(tokens={self.tokens})"
         return retval
 
     def __eq__(self, other):
@@ -148,7 +164,7 @@ class BaseInstruction:
         return hash(self.id)
 
     def __str__(self):
-        return f'{self.name}({self.id})'
+        return f"{self.name}({self.id})"
 
     # Methods and properties
     # ----------------------------
@@ -182,7 +198,8 @@ class BaseInstruction:
         Returns:
             str: The string representation of the instruction.
         """
-        if not GlobalConfig.suppressComments:
+        comment_str = ""
+        if not GlobalConfig.suppress_comments:
             comment_str = f" # {self.comment}" if self.comment else ""
 
         tokens_str = ", ".join(self._tokens)

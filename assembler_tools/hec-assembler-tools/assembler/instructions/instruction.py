@@ -552,7 +552,7 @@ class BaseInstruction(CycleTracker):
             retval = f'{", ".join(str(x) for x in preamble)}, {retval}'
         if extra_args:
             retval += f', {", ".join([str(extra) for extra in extra_args])}'
-        if not GlobalConfig.suppressComments:
+        if not GlobalConfig.suppress_comments:
             if self.comment:
                 retval += f" #{self.comment}"
         return retval
