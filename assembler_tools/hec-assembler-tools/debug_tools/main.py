@@ -82,7 +82,7 @@ def main_readmem(args):
         )
 
     mem_meta_info = None
-    with open(mem_filename, 'r') as mem_ifnum:
+    with open(mem_filename, "r") as mem_ifnum:
         mem_meta_info = mem_info.MemInfo.from_file_iter(mem_ifnum)
 
     if mem_meta_info:
@@ -216,7 +216,7 @@ def asmisa_assembly(
 
     if b_verbose:
         print("Interpreting variable meta information...")
-    with open(mem_filename, 'r') as mem_ifnum:
+    with open(mem_filename, "r") as mem_ifnum:
         mem_meta_info = mem_info.MemInfo.from_file_iter(mem_ifnum)
     mem_info.updateMemoryModelWithMemInfo(hec_mem_model, mem_meta_info)
 
@@ -289,7 +289,7 @@ def main_asmisa(args):
     b_use_old_mem_file = False
     b_verbose = True if args.verbose > 0 else False
     GlobalConfig.debugVerbose = 0
-    GlobalConfig.suppressComments = False
+    GlobalConfig.suppress_comments = False
     GlobalConfig.useHBMPlaceHolders = True
     GlobalConfig.useXInstFetch = False
 

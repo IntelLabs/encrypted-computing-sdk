@@ -1,11 +1,17 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""This module provides functionality to create and manage data instructions"""
+
+from assembler.instructions import tokenize_from_line
+from assembler.memory_model.mem_info import MemInfo
 from . import dload, dstore, dkeygen
 from . import dinstruction
-from assembler.instructions import tokenizeFromLine
-from assembler.memory_model.mem_info import MemInfo, MemInfoVariable
 
 DLoad = dload.Instruction
 DStore = dstore.Instruction
 DKeyGen = dkeygen.Instruction
+
 
 def factory() -> set:
     """
@@ -14,7 +20,8 @@ def factory() -> set:
     Returns:
         set: A set containing all DInstruction classes.
     """
-    return { DLoad, DStore, DKeyGen }
+    return {DLoad, DStore, DKeyGen}
+
 
 def create_from_mem_line(line: str) -> dinstruction.DInstruction:
     """
@@ -27,8 +34,8 @@ def create_from_mem_line(line: str) -> dinstruction.DInstruction:
         DInstruction or None: The parsed DInstruction object, or None if no object could be
         parsed from the specified input line.
     """
-    retval = None
-    tokens, comment = tokenizeFromLine(line)
+    retval: dinstruction.DInstruction = None
+    tokens, comment = tokenize_from_line(line)
     for instr_type in factory():
         try:
             retval = instr_type(tokens, comment)

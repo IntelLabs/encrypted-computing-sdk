@@ -146,7 +146,7 @@ class AssemblerRunConfig(RunConfig):
             cls.__default_config["spad_size"] = cls.DEFAULT_SPAD_SIZE_KB
             cls.__default_config["repl_policy"] = cls.DEFAULT_REPL_POLICY
             cls.__default_config["use_xinstfetch"] = GlobalConfig.useXInstFetch
-            cls.__default_config["suppress_comments"] = GlobalConfig.suppressComments
+            cls.__default_config["suppress_comments"] = GlobalConfig.suppress_comments
             cls.__default_config["debug_verbose"] = GlobalConfig.debugVerbose
             cls.__initialized = True
 
@@ -250,7 +250,7 @@ def asmisaAssemble(
 
     if b_verbose:
         print("Interpreting variable meta information...")
-    with open(mem_filename, 'r') as mem_ifnum:
+    with open(mem_filename, "r") as mem_ifnum:
         mem_meta_info = mem_info.MemInfo.from_file_iter(mem_ifnum)
     mem_info.updateMemoryModelWithMemInfo(hec_mem_model, mem_meta_info)
 
@@ -358,7 +358,7 @@ def main(config: AssemblerRunConfig, verbose: bool = False):
 
     GlobalConfig.useHBMPlaceHolders = True  # config.use_hbm_placeholders
     GlobalConfig.useXInstFetch = config.use_xinstfetch
-    GlobalConfig.suppressComments = config.suppress_comments
+    GlobalConfig.suppress_comments = config.suppress_comments
     GlobalConfig.hasHBM = config.has_hbm
     GlobalConfig.debugVerbose = config.debug_verbose
 
