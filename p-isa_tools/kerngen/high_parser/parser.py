@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Intel Corporation
+# Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
 """Module for parsing isa commands"""
@@ -68,7 +68,7 @@ class ParseResults:
         if Config.legacy_mode is True:
             for command in commands:
                 if isinstance(command, HighOp) and hasattr(command, "context"):
-                    command.context.label = self.context.ntt_stages
+                    command.context.label = str(self.context.ntt_stages)
 
         return (
             command.to_pisa() if isinstance(command, HighOp) else None
