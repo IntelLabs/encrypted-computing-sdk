@@ -16,6 +16,15 @@ class RunConfig:
     policies, and other options that affect the behavior of the assembler.
     """
 
+    # Type annotations for class attributes
+    has_hbm: bool
+    hbm_size: int
+    spad_size: int
+    repl_policy: str
+    suppress_comments: bool
+    use_xinstfetch: bool
+    debug_verbose: int
+
     __initialized = False  # Specifies whether static members have been initialized
     __default_config = (
         {}
@@ -110,6 +119,12 @@ class RunConfig:
             cls.__default_config["debug_verbose"] = GlobalConfig.debugVerbose
 
             cls.__initialized = True
+
+    # For testing only
+    @classmethod
+    def reset_class_state(cls):
+        cls.__initialized = False
+        cls.__default_config = {}
 
     def __str__(self):
         """
