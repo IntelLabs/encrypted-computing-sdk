@@ -54,7 +54,7 @@ class KernelParser:
                 current_rns=int(context_match.group("current_rns")),
                 max_rns=int(context_match.group("key_rns")) - 1,
             ),
-            label=context_match.group("label"),
+            label=str(context_match.group("label")),
         )
 
     @staticmethod
