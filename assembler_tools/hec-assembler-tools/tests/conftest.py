@@ -2,13 +2,33 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Pytest configuration and fixtures for assembler_tools tests.
+@file conftest.py
+@brief Configuration and fixtures for pytest
 """
 
 import os
+import sys
+from unittest.mock import patch
+
 import pytest
+
 from assembler.spec_config.isa_spec import ISASpecConfig
 from assembler.spec_config.mem_spec import MemSpecConfig
+
+# Add the parent directory to sys.path to make imports work
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+
+@pytest.fixture(autouse=True)
+def mock_env_variables():
+    """
+    @brief Fixture to mock environment variables and provide common mocks
+    """
+    with patch.dict(
+        "os.environ",
+        {"PYTHONPATH": "/home/jmrojasc/test/linker_sdk/encrypted-computing-sdk"},
+    ):
+        yield
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -2,8 +2,8 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-# These contents may have been developed with support from one or more Intel-operated
-# generative artificial intelligence solutions
+# These contents may have been developed with support from one
+# or more Intel-operated generative artificial intelligence solutions
 
 """
 @file he_link.py
@@ -55,6 +55,13 @@ class LinkerRunConfig(RunConfig):
     @return dict The configuration as a dictionary.
     """
 
+    # Type annotations for class attributes
+    input_prefixes: list[str]
+    input_mem_file: str
+    find_mem_files: bool
+    output_dir: str
+    output_prefix: str
+
     __initialized = False  # specifies whether static members have been initialized
     # contains the dictionary of all configuration items supported and their
     # default value (or None if no default)
@@ -89,15 +96,12 @@ class LinkerRunConfig(RunConfig):
 
         # class members based on configuration
         for config_name, default_value in self.__default_config.items():
-            print(f"ROCHA DEBUG: {config_name} = {default_value}")
             value = kwargs.get(config_name, default_value)
             if value is not None:
                 setattr(self, config_name, value)
-                print(f"ROCHA ADDED: {config_name} = {value}")
             else:
                 if not hasattr(self, config_name):
                     setattr(self, config_name, default_value)
-                    print(f"ROCHA ADDED: {config_name} = {default_value}")
                     if getattr(self, config_name) is None:
                         raise TypeError(
                             f"Expected value for configuration `{config_name}`, but `None` received."
@@ -393,7 +397,6 @@ def main(run_config: LinkerRunConfig, verbose_stream=None):
 
     # Write the memory model to the output file
     if run_config.find_mem_files:
-
         BaseInstruction.dump_instructions_to_file(kernel_dinstrs, output_files.mem)
 
     if verbose_stream:
