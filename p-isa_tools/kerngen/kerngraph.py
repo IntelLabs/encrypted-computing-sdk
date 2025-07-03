@@ -36,12 +36,16 @@ from kernel_parser.parser import KernelParser
 from kernel_optimization.loops import loop_interchange
 from const.options import LoopKey
 from pisa_generators.basic import mixed_to_pisa_ops
+from high_parser.config import Config
 
 
 def parse_args():
     """Parse arguments from the commandline"""
     parser = argparse.ArgumentParser(description="Kernel Graph Parser")
     parser.add_argument("-d", "--debug", action="store_true", help="Enable Debug Print")
+    parser.add_argument(
+        "-l", "--legacy", action="store_true", help="Enable Legacy Mode"
+    )
     parser.add_argument(
         "-t",
         "--target",
@@ -85,6 +89,7 @@ def main(args):
     """Main function to read input and parse each line with KernelParser."""
     input_lines = sys.stdin.read().strip().splitlines()
     valid_kernels = []
+    Config.legacy_mode = args.legacy
 
     for line in input_lines:
         try:
