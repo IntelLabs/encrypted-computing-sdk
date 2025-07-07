@@ -1,6 +1,17 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""
+This module defines the base DInstruction class for data handling instructions.
+
+DInstruction is the parent class for all data instructions used in the
+assembly process, providing common functionality and interfaces.
+"""
+
 from linker.instructions.instruction import BaseInstruction
 from assembler.common.counter import Counter
-from assembler.common.decorators import *
+from assembler.common.decorators import classproperty
+
 
 class DInstruction(BaseInstruction):
     """
@@ -12,6 +23,17 @@ class DInstruction(BaseInstruction):
     _address: int = 0
 
     @classmethod
+    def _get_name(cls) -> str:
+        """
+        Derived classes should implement this method and return correct
+        name for the instruction.
+
+        Raises:
+            NotImplementedError: Abstract method. This base method should not be called.
+        """
+        raise NotImplementedError()
+
+    @classmethod
     def _get_name_token_index(cls) -> int:
         """
         Gets the index of the token containing the name of the instruction.
@@ -21,16 +43,50 @@ class DInstruction(BaseInstruction):
         """
         return 0
 
+    @classmethod
+    def _get_num_tokens(cls) -> int:
+        """
+        Derived classes should implement this method and return correct
+        required number of tokens for the instruction.
+
+        Raises:
+            NotImplementedError: Abstract method. This base method should not be called.
+        """
+        raise NotImplementedError()
+
     @classproperty
-    def num_tokens(cls) -> int:
+    def num_tokens(self) -> int:
         """
         Valid number of tokens for this instruction.
 
         Returns:
-            tupple: Valid number of tokens.
+            tuple: Valid number of tokens.
         """
-        return cls._get_num_tokens()
-    
+        return self._get_num_tokens()
+
+    def _validate_tokens(self, tokens: list) -> None:
+        """
+        Validates the tokens for this instruction.
+
+        DInstruction allows at least the required number of tokens.
+
+        Parameters:
+            tokens (list): List of tokens to validate.
+
+        Raises:
+            ValueError: If tokens are invalid.
+        """
+        assert self.name_token_index < self.num_tokens
+        if len(tokens) < self.num_tokens:
+            raise ValueError(
+                f"`tokens`: invalid amount of tokens. "
+                f"Instruction {self.name} requires at least {self.num_tokens}, but {len(tokens)} received"
+            )
+        if tokens[self.name_token_index] != self.name:
+            raise ValueError(
+                f"`tokens`: invalid name. Expected {self.name}, but {tokens[self.name_token_index]} received"
+            )
+
     def __init__(self, tokens: list, comment: str = ""):
         """
         Constructs a new DInstruction.
@@ -40,13 +96,8 @@ class DInstruction(BaseInstruction):
             comment (str): Optional comment for the instruction.
         """
         # Do not increment the global instruction count; skip BaseInstruction's __init__ logic for __id
-        assert self.name_token_index < self.num_tokens
-
-        if len(tokens) > self.num_tokens:
-            raise ValueError((f"`tokens`: invalid amount of tokens. "
-                              f"Instruction {self.name} requires at least {self.num_tokens}, but {len(tokens)} received"))
-        if tokens[self.name_token_index] != self.name:
-            raise ValueError(f"`tokens`: invalid name. Expected {self.name}, but {tokens[self.name_token_index]} received")
+        # Call BaseInstruction constructor but perform our own initialization
+        super().__init__(tokens, comment=comment)
 
         self.comment = comment
         self._tokens = list(tokens)
@@ -76,7 +127,7 @@ class DInstruction(BaseInstruction):
         self._var = value
 
     @property
-    def address(self) -> str:
+    def address(self) -> int:
         """
         Should be set to source/dest Mem address.
         """
@@ -84,7 +135,7 @@ class DInstruction(BaseInstruction):
 
     @address.setter
     def address(self, value: str):
-        self._address = value
+        self._address = int(value) if isinstance(value, str) else value
 
     def to_line(self) -> str:
         """

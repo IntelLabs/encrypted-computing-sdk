@@ -15,8 +15,22 @@ import pytest
 from assembler.spec_config.isa_spec import ISASpecConfig
 from assembler.spec_config.mem_spec import MemSpecConfig
 
-# Add the parent directory to sys.path to make imports work
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# Remove any existing paths that might conflict
+for path in list(sys.path):
+    if "hec-assembler-tools" in path:
+        sys.path.remove(path)
+
+# Get the absolute path to the repository root directory
+# Structure: /path/to/repo/encrypted-computing-sdk/assembler_tools/linker_sdk/tests/conftest.py
+current_dir = os.path.dirname(os.path.abspath(__file__))
+linker_sdk_dir = os.path.dirname(current_dir)  # linker_sdk directory
+assembler_tools_dir = os.path.dirname(linker_sdk_dir)  # assembler_tools directory
+repo_root = os.path.dirname(assembler_tools_dir)  # encrypted-computing-sdk directory
+
+# Add the paths to sys.path
+sys.path.insert(0, linker_sdk_dir)
+sys.path.insert(0, assembler_tools_dir)
+sys.path.insert(0, repo_root)
 
 
 @pytest.fixture(autouse=True)
@@ -24,10 +38,8 @@ def mock_env_variables():
     """
     @brief Fixture to mock environment variables and provide common mocks
     """
-    with patch.dict(
-        "os.environ",
-        {"PYTHONPATH": "/home/jmrojasc/test/linker_sdk/encrypted-computing-sdk"},
-    ):
+    # Use the repository root in PYTHONPATH instead of an absolute path
+    with patch.dict("os.environ", {"PYTHONPATH": repo_root}):
         yield
 
 
@@ -42,7 +54,7 @@ def initialize_specs():
     initialization methods for both ISASpecConfig and MemSpecConfig.
 
     Note:
-            This fixture is intended to be run from the assembler root directory.
+            This fixture is intended to be run from any location.
 
     Yields:
             None
@@ -51,6 +63,6 @@ def initialize_specs():
             Any exceptions raised by ISASpecConfig.initialize_isa_spec or
             MemSpecConfig.initialize_mem_spec will propagate.
     """
-    module_dir = os.path.dirname(os.path.dirname(__file__))
+    module_dir = linker_sdk_dir
     ISASpecConfig.initialize_isa_spec(module_dir, "")
     MemSpecConfig.initialize_mem_spec(module_dir, "")

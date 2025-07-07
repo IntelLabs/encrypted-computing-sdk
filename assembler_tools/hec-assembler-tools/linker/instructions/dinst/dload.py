@@ -1,5 +1,16 @@
-from .dinstruction import DInstruction
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""
+This module implements the DLoad instruction for loading data from memory.
+
+The DLoad instruction is used to load data from specified memory locations
+during the assembly process.
+"""
+
 from assembler.memory_model.mem_info import MemInfo
+from .dinstruction import DInstruction
+
 
 class Instruction(DInstruction):
     """
@@ -7,14 +18,14 @@ class Instruction(DInstruction):
     """
 
     @classmethod
-    def _get_num_tokens(cls) -> tuple:
+    def _get_num_tokens(cls) -> int:
         """
-        Gets the number of tokens allowed for the instruction.
+        Gets the number of tokens required for the instruction.
 
         Returns:
-            tupple: The number of tokens, which is 4.
+            int: The number of tokens, which is 3.
         """
-        return 4
+        return 3
 
     @classmethod
     def _get_name(cls) -> str:
@@ -25,7 +36,7 @@ class Instruction(DInstruction):
             str: The name of the instruction.
         """
         return MemInfo.Const.Keyword.LOAD
-    
+
     @property
     def tokens(self) -> list:
         """
@@ -35,4 +46,3 @@ class Instruction(DInstruction):
             list: The list of tokens.
         """
         return [self.name, self._tokens[1], str(self.address)] + self._tokens[3:]
-    

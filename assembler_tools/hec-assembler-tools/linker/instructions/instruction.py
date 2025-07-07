@@ -134,23 +134,36 @@ class BaseInstruction:
         """
         assert self.name_token_index < self.num_tokens
 
-        if len(tokens) != self.num_tokens:  # pylint: disable=W0143
-            raise ValueError(
-                (
-                    f"`tokens`: invalid amount of tokens. "
-                    f"Instruction {self.name} requires less "
-                    f"than {self.num_tokens}, but {len(tokens)} received"
-                )
-            )
-        if tokens[self.name_token_index] != self.name:  # pylint: disable=W0143
-            raise ValueError(
-                f"`tokens`: invalid name. Expected {self.name}, but {tokens[self.name_token_index]} received"
-            )
+        self._validate_tokens(tokens)
 
         self._id = next(BaseInstruction.__id_count)
 
         self._tokens = list(tokens)
         self.comment = comment
+
+    def _validate_tokens(self, tokens: list) -> None:
+        """
+        Validates the tokens for this instruction.
+
+        Default implementation checks for exact token count match.
+        Child classes can override this method to implement different validation logic.
+
+        Parameters:
+            tokens (list): List of tokens to validate.
+
+        Raises:
+            ValueError: If tokens are invalid.
+        """
+        if len(tokens) != self.num_tokens:  # pylint: disable=W0143
+            raise ValueError(
+                f"`tokens`: invalid amount of tokens. "
+                f"Instruction {self.name} requires exactly {self.num_tokens}, but {len(tokens)} received"
+            )
+
+        if tokens[self.name_token_index] != self.name:  # pylint: disable=W0143
+            raise ValueError(
+                f"`tokens`: invalid name. Expected {self.name}, but {tokens[self.name_token_index]} received"
+            )
 
     def __repr__(self):
         retval = f"<{type(self).__name__}({self.name}, id={self.id}) object at {hex(id(self))}>(tokens={self.tokens})"

@@ -1,9 +1,13 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import collections.abc as collections
 from assembler.common.config import GlobalConfig
 from assembler.memory_model import mem_info
 
 # linker/__init__.py contains classes to encapsulate the memory model used
 # by the linker.
+
 
 class VariableInfo(mem_info.MemInfoVariable):
     """
@@ -22,6 +26,7 @@ class VariableInfo(mem_info.MemInfoVariable):
         self.uses = 0
         self.last_kernel_used = -1
 
+
 class HBM:
     """
     Represents the HBM model.
@@ -38,7 +43,7 @@ class HBM:
             ValueError: If hbm_size_words is less than 1.
         """
         if hbm_size_words < 1:
-            raise ValueError('`hbm_size_words` must be a positive integer.')
+            raise ValueError("`hbm_size_words` must be a positive integer.")
         # Represents the memory buffer where variables live
         self.__buffer = [None] * hbm_size_words
 
@@ -76,11 +81,16 @@ class HBM:
             RuntimeError: If the HBM address is already occupied by another variable.
         """
         if hbm_address < 0 or hbm_address >= len(self.buffer):
-            raise IndexError('`hbm_address` out of bounds. Expected a word address in range [0, {}), but {} received'.format(len(self.buffer),
-                                                                                                                             hbm_address))
+            raise IndexError(
+                "`hbm_address` out of bounds. Expected a word address in range [0, {}), but {} received".format(
+                    len(self.buffer), hbm_address
+                )
+            )
         if var_info.hbm_address != hbm_address:
             if var_info.hbm_address >= 0:
-                raise ValueError(f'`var_info`: variable {var_info.var_name} already allocated in address {var_info.hbm_address}.')
+                raise ValueError(
+                    f"`var_info`: variable {var_info.var_name} already allocated in address {var_info.hbm_address}."
+                )
 
             in_var_info = self.buffer[hbm_address]
             # Validate hbm address
@@ -88,17 +98,23 @@ class HBM:
                 # Attempt to recycle SPAD locations inside kernel when no HBM
                 # Note: there is no HBM, so, SPAD is used as the sole memory space
                 if in_var_info and in_var_info.uses > 0:
-                    raise RuntimeError(('HBM address {} already occupied by variable {} '
-                                        'when attempting to allocate variable {}').format(hbm_address,
-                                                                                          in_var_info.var_name,
-                                                                                          var_info.var_name))
+                    raise RuntimeError(
+                        (
+                            "HBM address {} already occupied by variable {} "
+                            "when attempting to allocate variable {}"
+                        ).format(hbm_address, in_var_info.var_name, var_info.var_name)
+                    )
             else:
-                if in_var_info \
-                and (in_var_info.uses > 0 or in_var_info.last_kernel_used >= var_info.last_kernel_used):
-                    raise RuntimeError(('HBM address {} already occupied by variable {} '
-                                        'when attempting to allocate variable {}').format(hbm_address,
-                                                                                        in_var_info.var_name,
-                                                                                        var_info.var_name))
+                if in_var_info and (
+                    in_var_info.uses > 0
+                    or in_var_info.last_kernel_used >= var_info.last_kernel_used
+                ):
+                    raise RuntimeError(
+                        (
+                            "HBM address {} already occupied by variable {} "
+                            "when attempting to allocate variable {}"
+                        ).format(hbm_address, in_var_info.var_name, var_info.var_name)
+                    )
             var_info.hbm_address = hbm_address
             self.buffer[hbm_address] = var_info
 
@@ -122,13 +138,16 @@ class HBM:
                     retval = idx
                     break
             else:
-                if not in_var_info \
-                or (in_var_info.uses <= 0 and in_var_info.last_kernel_used < var_info.last_kernel_used):
+                if not in_var_info or (
+                    in_var_info.uses <= 0
+                    and in_var_info.last_kernel_used < var_info.last_kernel_used
+                ):
                     retval = idx
                     break
         if retval < 0:
-            raise RuntimeError('Out of HBM memory.')
+            raise RuntimeError("Out of HBM memory.")
         self.forceAllocate(var_info, retval)
+
 
 class MemoryModel:
     """
@@ -146,20 +165,51 @@ class MemoryModel:
         self.hbm = HBM(hbm_size_words)
         self.__mem_info = mem_meta_info
         self.__variables = {}  # dict(var_name: str, VariableInfo)
-        self.__keygen_vars = {var_info.var_name: var_info for var_info in self.__mem_info.keygens}
-        self.__mem_info_inputs = {var_info.var_name: var_info for var_info in self.__mem_info.inputs}
-        self.__mem_info_outputs = {var_info.var_name: var_info for var_info in self.__mem_info.outputs}
-        self.__mem_info_meta = {var_info.var_name: var_info for var_info in self.__mem_info.metadata.intt_auxiliary_table} \
-                             | {var_info.var_name: var_info for var_info in self.__mem_info.metadata.intt_routing_table} \
-                             | {var_info.var_name: var_info for var_info in self.__mem_info.metadata.ntt_auxiliary_table} \
-                             | {var_info.var_name: var_info for var_info in self.__mem_info.metadata.ntt_routing_table} \
-                             | {var_info.var_name: var_info for var_info in self.__mem_info.metadata.ones} \
-                             | {var_info.var_name: var_info for var_info in self.__mem_info.metadata.twiddle} \
-                             | {var_info.var_name: var_info for var_info in self.__mem_info.metadata.keygen_seeds}
+        self.__keygen_vars = {
+            var_info.var_name: var_info for var_info in self.__mem_info.keygens
+        }
+        self.__mem_info_inputs = {
+            var_info.var_name: var_info for var_info in self.__mem_info.inputs
+        }
+        self.__mem_info_outputs = {
+            var_info.var_name: var_info for var_info in self.__mem_info.outputs
+        }
+        self.__mem_info_meta = (
+            {
+                var_info.var_name: var_info
+                for var_info in self.__mem_info.metadata.intt_auxiliary_table
+            }
+            | {
+                var_info.var_name: var_info
+                for var_info in self.__mem_info.metadata.intt_routing_table
+            }
+            | {
+                var_info.var_name: var_info
+                for var_info in self.__mem_info.metadata.ntt_auxiliary_table
+            }
+            | {
+                var_info.var_name: var_info
+                for var_info in self.__mem_info.metadata.ntt_routing_table
+            }
+            | {
+                var_info.var_name: var_info
+                for var_info in self.__mem_info.metadata.ones
+            }
+            | {
+                var_info.var_name: var_info
+                for var_info in self.__mem_info.metadata.twiddle
+            }
+            | {
+                var_info.var_name: var_info
+                for var_info in self.__mem_info.metadata.keygen_seeds
+            }
+        )
         self.__mem_info_fixed_addr_vars = self.__mem_info_outputs | self.__mem_info_meta
         # Keygen variables should not be part of mem_info_vars set since they
         # do not start in HBM
-        self.__mem_info_vars = self.__mem_info_inputs | self.__mem_info_outputs | self.__mem_info_meta
+        self.__mem_info_vars = (
+            self.__mem_info_inputs | self.__mem_info_outputs | self.__mem_info_meta
+        )
 
     @property
     def mem_info_meta(self) -> collections.Collection:
@@ -168,7 +218,7 @@ class MemoryModel:
         Clients must not modify this set.
         """
         return self.__mem_info_meta
-    
+
     @property
     def mem_info_vars(self) -> collections.Collection:
         """
@@ -202,20 +252,17 @@ class MemoryModel:
         """
         var_info: VariableInfo
         if var_name in self.variables:
-            print(f' ROCHA Variable {var_name} already exists in memory model.')
             var_info = self.variables[var_name]
         else:
-            print(f'ROCHA Adding variable {var_name} to memory model.')
             var_info = VariableInfo(var_name)
             if var_name in self.__mem_info_vars:
-                print(f'\tROCHA Variable {var_name} is in MemInfo, allocating HBM address. HBM address {self.__mem_info_vars[var_name].hbm_address}.')
                 # Variables explicitly marked in mem file must persist throughout the program
                 # with predefined HBM address
                 if var_name in self.__mem_info_fixed_addr_vars:
-                    print(f'\tROCHA Variable {var_name} has fixed HBM address {self.__mem_info_vars[var_name].hbm_address}.')
-                    var_info.uses = float('inf')
-                self.hbm.forceAllocate(var_info,
-                                       self.__mem_info_vars[var_name].hbm_address)
+                    var_info.uses = float("inf")
+                self.hbm.forceAllocate(
+                    var_info, self.__mem_info_vars[var_name].hbm_address
+                )
             self.variables[var_name] = var_info
         var_info.uses += 1
 
@@ -244,7 +291,8 @@ class MemoryModel:
             self.hbm.allocate(var_info)
 
         assert var_info.hbm_address >= 0
-        assert self.hbm.buffer[var_info.hbm_address].var_name == var_info.var_name, \
-            f'Expected variable {var_info.var_name} in HBM {var_info.hbm_address}, but variable {self.hbm[var_info.hbm_address].var_name} found instead.'
+        assert (
+            self.hbm.buffer[var_info.hbm_address].var_name == var_info.var_name
+        ), f"Expected variable {var_info.var_name} in HBM {var_info.hbm_address}, but variable {self.hbm[var_info.hbm_address].var_name} found instead."
 
         return var_info.hbm_address

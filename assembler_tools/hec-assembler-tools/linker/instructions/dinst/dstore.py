@@ -1,6 +1,16 @@
-from .dinstruction import DInstruction
-from assembler.common.config import GlobalConfig
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""
+This module implements the DStore instruction for storing data to memory.
+
+The DStore instruction is used to store data to specified memory locations
+during the assembly process.
+"""
+
 from assembler.memory_model.mem_info import MemInfo
+from .dinstruction import DInstruction
+
 
 class Instruction(DInstruction):
     """
@@ -10,7 +20,7 @@ class Instruction(DInstruction):
     @classmethod
     def _get_num_tokens(cls) -> int:
         """
-        Gets the number of tokens allowed for the instruction.
+        Gets the number of tokens required for the instruction.
 
         Returns:
             int: The number of tokens, which is 3.

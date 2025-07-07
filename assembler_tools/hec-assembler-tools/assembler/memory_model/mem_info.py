@@ -291,7 +291,7 @@ class MemInfo:
                     MemInfoVariable(**d) for d in kwargs.get(meta_field, [])
                 ]
 
-        def get_item(self, key):
+        def __getitem__(self, key):
             """
             Retrieves the list of MemInfoVariable objects for the specified metadata field.
 
@@ -457,7 +457,8 @@ class MemInfo:
             a shortcut to creating a MemInfo object from structured data such as the contents of a YAML file.
         """
         self._keygens = [
-            MemInfoVariable(**d) for d in kwargs.get(MemInfo.Const.FIELD_KEYGENS, [])
+            MemInfoKeygenVariable(**d)
+            for d in kwargs.get(MemInfo.Const.FIELD_KEYGENS, [])
         ]
         self._inputs = [
             MemInfoVariable(**d) for d in kwargs.get(MemInfo.Const.FIELD_INPUTS, [])
@@ -703,7 +704,7 @@ class MemInfo:
                 )
 
 
-def __allocateMemInfoVariable(mem_model: MemoryModel, v_info: MemInfoVariable):
+def _allocateMemInfoVariable(mem_model: MemoryModel, v_info: MemInfoVariable):
     """
     Allocates a memory information variable in the memory model.
 
@@ -759,11 +760,11 @@ def updateMemoryModelWithMemInfo(mem_model: MemoryModel, mem_info: MemInfo):
 
     # Inputs
     for v_info in mem_info.inputs:
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
 
     # Outputs
     for v_info in mem_info.outputs:
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.output_variables.push(v_info.var_name, None)
 
     # Metadata
@@ -771,7 +772,7 @@ def updateMemoryModelWithMemInfo(mem_model: MemoryModel, mem_info: MemInfo):
     # Ones
     for v_info in mem_info.metadata.ones:
         mem_model.retrieveVarAdd(v_info.var_name)
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.add_meta_ones_var(v_info.var_name)
 
     # Shuffle meta vars
@@ -779,40 +780,40 @@ def updateMemoryModelWithMemInfo(mem_model: MemoryModel, mem_info: MemInfo):
         assert len(mem_info.metadata.ntt_auxiliary_table) == 1
         v_info = mem_info.metadata.ntt_auxiliary_table[0]
         mem_model.retrieveVarAdd(v_info.var_name)
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.meta_ntt_aux_table = v_info.var_name
 
     if mem_info.metadata.ntt_routing_table:
         assert len(mem_info.metadata.ntt_routing_table) == 1
         v_info = mem_info.metadata.ntt_routing_table[0]
         mem_model.retrieveVarAdd(v_info.var_name)
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.meta_ntt_routing_table = v_info.var_name
 
     if mem_info.metadata.intt_auxiliary_table:
         assert len(mem_info.metadata.intt_auxiliary_table) == 1
         v_info = mem_info.metadata.intt_auxiliary_table[0]
         mem_model.retrieveVarAdd(v_info.var_name)
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.meta_intt_aux_table = v_info.var_name
 
     if mem_info.metadata.intt_routing_table:
         assert len(mem_info.metadata.intt_routing_table) == 1
         v_info = mem_info.metadata.intt_routing_table[0]
         mem_model.retrieveVarAdd(v_info.var_name)
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.meta_intt_routing_table = v_info.var_name
 
     # Twiddle
     for v_info in mem_info.metadata.twiddle:
         mem_model.retrieveVarAdd(v_info.var_name)
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.add_meta_twiddle_var(v_info.var_name)
 
     # Keygen seeds
     for v_info in mem_info.metadata.keygen_seeds:
         mem_model.retrieveVarAdd(v_info.var_name)
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.add_meta_keygen_seed_var(v_info.var_name)
 
     # End metadata

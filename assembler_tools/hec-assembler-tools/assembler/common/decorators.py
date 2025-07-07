@@ -1,28 +1,30 @@
-﻿
-class classproperty(object):
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""
+This module provides decorator utilities for the assembler.
+
+It contains decorators that enhance class and function behavior,
+including property-like decorators for class methods.
+"""
+
+
+# pylint: disable=invalid-name
+class classproperty(property):
     """
     A decorator that allows a method to be accessed as a class-level property
     rather than on instances of the class.
     """
 
-    def __init__(self, f):
-        """
-        Initializes the classproperty with the given function.
-
-        Args:
-            f (function): The function to be used as a class-level property.
-        """
-        self.f = f
-
-    def __get__(self, obj, owner):
+    def __get__(self, cls, owner):
         """
         Retrieves the value of the class-level property.
 
         Args:
-            obj: The instance of the class (ignored in this context).
-            owner: The class that owns the property.
+            cls: The class that owns the property.
+            owner: The owner of the class (ignored in this context).
 
         Returns:
             The result of calling the decorated function with the class as an argument.
         """
-        return self.f(owner)
+        return self.fget(owner)
