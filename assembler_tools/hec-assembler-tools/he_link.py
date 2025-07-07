@@ -44,6 +44,23 @@ from linker.steps import program_linker
 from linker.instructions import BaseInstruction
 
 
+class NullIO:
+    """
+    @class NullIO
+    @brief A class that provides a no-operation implementation of write and flush methods.
+    """
+
+    def write(self, *argts, **kwargs):
+        """
+        @brief A no-operation write method.
+        """
+
+    def flush(self):
+        """
+        @brief A no-operation flush method.
+        """
+
+
 class LinkerRunConfig(RunConfig):
     """
     @class LinkerRunConfig
@@ -58,7 +75,7 @@ class LinkerRunConfig(RunConfig):
     # Type annotations for class attributes
     input_prefixes: list[str]
     input_mem_file: str
-    find_mem_files: bool
+    multi_mem_files: bool
     output_dir: str
     output_prefix: str
 
@@ -122,7 +139,7 @@ class LinkerRunConfig(RunConfig):
         if not cls.__initialized:
             cls.__default_config["input_prefixes"] = None
             cls.__default_config["input_mem_file"] = ""
-            cls.__default_config["find_mem_files"] = False
+            cls.__default_config["multi_mem_files"] = False
             cls.__default_config["output_dir"] = os.getcwd()
             cls.__default_config["output_prefix"] = None
 
@@ -173,7 +190,7 @@ class KernelFiles(NamedTuple):
         Index = 3. Name for file containing XInstructions for represented kernel.
     @var mem
         Index = 4. Name for file containing memory information for represented kernel.
-        This is used only when find_mem_files is set.
+        This is used only when multi_mem_files is set.
     """
 
     prefix: str
@@ -231,7 +248,7 @@ def prepare_output_files(run_config) -> KernelFiles:
     output_dir = os.path.dirname(output_prefix)
     pathlib.Path(output_dir).mkdir(exist_ok=True, parents=True)
     out_mem_file = (
-        makeUniquePath(output_prefix + ".mem") if run_config.find_mem_files else None
+        makeUniquePath(output_prefix + ".mem") if run_config.multi_mem_files else None
     )
     return KernelFiles(
         prefix=makeUniquePath(output_prefix),
@@ -255,7 +272,7 @@ def prepare_input_files(run_config, output_files) -> list:
     input_files = []
     for file_prefix in run_config.input_prefixes:
         mem_file = (
-            makeUniquePath(file_prefix + ".mem") if run_config.find_mem_files else None
+            makeUniquePath(file_prefix + ".mem") if run_config.multi_mem_files else None
         )
         kernel_files = KernelFiles(
             prefix=makeUniquePath(file_prefix),
@@ -322,7 +339,7 @@ def check_unused_variables(mem_model):
                 )
 
 
-def main(run_config: LinkerRunConfig, verbose_stream=None):
+def main(run_config: LinkerRunConfig, verbose_stream=NullIO()):
     """
     @brief Executes the linking process using the provided configuration.
 
@@ -354,15 +371,15 @@ def main(run_config: LinkerRunConfig, verbose_stream=None):
     Counter.reset()
 
     # parse mem file
+    print("Linking...", file=verbose_stream)
+    print("", file=verbose_stream)
+    print("Interpreting variable meta information...", file=verbose_stream)
 
-    if verbose_stream:
-        print("Linking...", file=verbose_stream)
-        print("", file=verbose_stream)
-        print("Interpreting variable meta information...", file=verbose_stream)
-
-    if run_config.find_mem_files:
+    if run_config.multi_mem_files:
         kernels_dinstrs = []
         for kernel in input_files:
+            if kernel.mem is None:
+                raise RuntimeError(f"Memory file not found for kernel {kernel.prefix}")
             kernel_dinstrs = loader.load_dinst_kernel_from_file(kernel.mem)
             kernels_dinstrs.append(kernel_dinstrs)
 
@@ -376,36 +393,34 @@ def main(run_config: LinkerRunConfig, verbose_stream=None):
             mem_meta_info = mem_info.MemInfo.from_file_iter(mem_ifnum)
 
     # Initialize memory model
-    if verbose_stream:
-        print("Initializing linker memory model", file=verbose_stream)
+    print("Initializing linker memory model", file=verbose_stream)
 
     mem_model = linker.MemoryModel(hbm_capacity_words, mem_meta_info)
-    if verbose_stream:
-        print(f"  HBM capacity: {mem_model.hbm.capacity} words", file=verbose_stream)
+    print(f"  HBM capacity: {mem_model.hbm.capacity} words", file=verbose_stream)
 
-        print("  Finding all program variables...", file=verbose_stream)
-        print("  Scanning", file=verbose_stream)
+    print("  Finding all program variables...", file=verbose_stream)
+    print("  Scanning", file=verbose_stream)
 
     scan_variables(input_files, mem_model, verbose_stream)
     check_unused_variables(mem_model)
 
-    if verbose_stream:
-        print(f"    Variables found: {len(mem_model.variables)}", file=verbose_stream)
-        print("Linking started", file=verbose_stream)
+    print(f"    Variables found: {len(mem_model.variables)}", file=verbose_stream)
+    print("Linking started", file=verbose_stream)
 
     link_kernels(input_files, output_files, mem_model, verbose_stream)
 
     # Write the memory model to the output file
-    if run_config.find_mem_files:
+    if run_config.multi_mem_files:
+        if output_files.mem is None:
+            raise RuntimeError("Output memory file path is None")
         BaseInstruction.dump_instructions_to_file(kernel_dinstrs, output_files.mem)
 
-    if verbose_stream:
-        print("Output written to files:", file=verbose_stream)
-        print("  ", output_files.minst, file=verbose_stream)
-        print("  ", output_files.cinst, file=verbose_stream)
-        print("  ", output_files.xinst, file=verbose_stream)
-        if run_config.find_mem_files:
-            print("  ", output_files.mem, file=verbose_stream)
+    print("Output written to files:", file=verbose_stream)
+    print("  ", output_files.minst, file=verbose_stream)
+    print("  ", output_files.cinst, file=verbose_stream)
+    print("  ", output_files.xinst, file=verbose_stream)
+    if run_config.multi_mem_files:
+        print("  ", output_files.mem, file=verbose_stream)
 
 
 def parse_args():
@@ -451,9 +466,9 @@ def parse_args():
         help=("Input ISA specification (.json) file."),
     )
     parser.add_argument(
-        "--find_mem_files",
+        "--multi_mem_files",
         action="store_true",
-        dest="find_mem_files",
+        dest="multi_mem_files",
         help=(
             "Tells the linker to find a memory file (*.tw.mem) for each input prefix given."
             "This can be used to link multiple kernels together. "
@@ -523,10 +538,10 @@ def parse_args():
     )
     p_args = parser.parse_args()
 
-    # Enforce input_mem_file only if find_mem_files is not set
-    if not p_args.find_mem_files and p_args.input_mem_file == "":
+    # Enforce input_mem_file only if multi_mem_files is not set
+    if not p_args.multi_mem_files and p_args.input_mem_file == "":
         parser.error(
-            "the following arguments are required: -im/--input_mem_file (unless --find_mem_files is set)"
+            "the following arguments are required: -im/--input_mem_file (unless --multi_mem_files is set)"
         )
 
     return p_args
@@ -554,7 +569,7 @@ if __name__ == "__main__":
         print("=================")
         print()
 
-    main(config, sys.stdout if args.verbose > 1 else None)
+    main(config, sys.stdout if args.verbose > 1 else NullIO())
 
     if args.verbose > 0:
         print()

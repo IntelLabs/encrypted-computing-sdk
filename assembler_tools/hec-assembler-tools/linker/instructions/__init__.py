@@ -1,10 +1,17 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+# These contents may have been developed with support from one or more Intel-operated
+# generative artificial intelligence solutions
+
+"""This module provides functionality to create instruction objects from a line of text."""
+
+from typing import Optional
 from assembler.instructions import tokenize_from_line
 from linker.instructions.instruction import BaseInstruction
 
-def create_from_str_line(line: str, factory) -> BaseInstruction:
+
+def create_from_str_line(line: str, factory) -> Optional[BaseInstruction]:
     """
     Parses an instruction from a line of text.
 

@@ -1,6 +1,9 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+# These contents may have been developed with support from one or more Intel-operated
+# generative artificial intelligence solutions
+
 """This module provides functionality to create and manage data instructions"""
 
 from typing import Optional
@@ -36,13 +39,11 @@ def create_from_mem_line(line: str) -> dinstruction.DInstruction:
         DInstruction or None: The parsed DInstruction object, or None if no object could be
         parsed from the specified input line.
     """
-    print(f"ROCHA: create_from_mem_line {line}")
     retval: Optional[dinstruction.DInstruction] = None
     tokens, comment = tokenize_from_line(line)
     for instr_type in factory():
         try:
             retval = instr_type(tokens, comment)
-            print(f"ROCHA: {instr_type.__name__} {tokens} {retval}")
         except ValueError:
             retval = None
         if retval:

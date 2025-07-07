@@ -38,7 +38,7 @@ class TestLinkerRunConfig:
             "hbm_size": 1024,
             "suppress_comments": False,
             "use_xinstfetch": False,
-            "find_mem_files": False,
+            "multi_mem_files": False,
         }
 
         # Act
@@ -54,7 +54,7 @@ class TestLinkerRunConfig:
         assert config.hbm_size == 1024
         assert config.suppress_comments is False
         assert config.use_xinstfetch is False
-        assert config.find_mem_files is False
+        assert config.multi_mem_files is False
 
     def test_init_with_missing_required_param(self):
         """
@@ -166,7 +166,7 @@ class TestLinkerRunConfig:
         assert config.hbm_size == 1024
         assert config.suppress_comments is False
         assert config.use_xinstfetch is False
-        assert config.find_mem_files is False
+        assert config.multi_mem_files is False
 
 
 class TestKernelFiles:
@@ -229,7 +229,7 @@ class TestHelperFunctions:
         mock_config = MagicMock()
         mock_config.output_dir = "/tmp"
         mock_config.output_prefix = "output"
-        mock_config.find_mem_files = False
+        mock_config.multi_mem_files = False
 
         # Act
         with patch("os.path.dirname", return_value="/tmp"), patch(
@@ -246,13 +246,13 @@ class TestHelperFunctions:
 
     def test_prepare_output_files_with_mem(self):
         """
-        @brief Test prepare_output_files with find_mem_files=True
+        @brief Test prepare_output_files with multi_mem_files=True
         """
         # Arrange
         mock_config = MagicMock()
         mock_config.output_dir = "/tmp"
         mock_config.output_prefix = "output"
-        mock_config.find_mem_files = True
+        mock_config.multi_mem_files = True
 
         # Act
         with patch("os.path.dirname", return_value="/tmp"), patch(
@@ -274,7 +274,7 @@ class TestHelperFunctions:
         # Arrange
         mock_config = MagicMock()
         mock_config.input_prefixes = ["/tmp/input1", "/tmp/input2"]
-        mock_config.find_mem_files = False
+        mock_config.multi_mem_files = False
 
         mock_output_files = he_link.KernelFiles(
             prefix="/tmp/output",
@@ -305,7 +305,7 @@ class TestHelperFunctions:
         # Arrange
         mock_config = MagicMock()
         mock_config.input_prefixes = ["/tmp/input1"]
-        mock_config.find_mem_files = False
+        mock_config.multi_mem_files = False
 
         mock_output_files = he_link.KernelFiles(
             prefix="/tmp/output",
@@ -328,7 +328,7 @@ class TestHelperFunctions:
         # Arrange
         mock_config = MagicMock()
         mock_config.input_prefixes = ["/tmp/input1"]
-        mock_config.find_mem_files = False
+        mock_config.multi_mem_files = False
 
         # Output file matching an input file
         mock_output_files = he_link.KernelFiles(
@@ -447,14 +447,14 @@ class TestMainFunction:
     @brief Test cases for the main function
     """
 
-    @pytest.mark.parametrize("find_mem_files", [True, False])
-    def test_main(self, find_mem_files):
+    @pytest.mark.parametrize("multi_mem_files", [True, False])
+    def test_main(self, multi_mem_files):
         """
-        @brief Test main function with find_mem_files=True
+        @brief Test main function with multi_mem_files=True
         """
         # Arrange
         mock_config = MagicMock()
-        mock_config.find_mem_files = find_mem_files
+        mock_config.multi_mem_files = multi_mem_files
         mock_config.has_hbm = True
         mock_config.hbm_size = 1024
         mock_config.suppress_comments = False
@@ -517,7 +517,7 @@ class TestMainFunction:
         mock_check_unused_variables.assert_called_once()
         mock_link_kernels.assert_called_once()
 
-        if find_mem_files:
+        if multi_mem_files:
             # Should use from_dinstrs, not from_file_iter
             assert mock_from_dinstrs.called
             assert mock_load_dinst_kernel_from_file.called
@@ -536,7 +536,7 @@ class TestMainFunction:
         """
         # Arrange
         mock_config = MagicMock()
-        mock_config.find_mem_files = False
+        mock_config.multi_mem_files = False
         mock_config.has_hbm = True
         mock_config.hbm_size = 1024
         mock_config.suppress_comments = False
@@ -595,7 +595,7 @@ class TestParseArgs:
                 output_prefix="output_prefix",
                 input_mem_file="input.mem",
                 output_dir="",
-                find_mem_files=False,
+                multi_mem_files=False,
                 mem_spec_file="",
                 isa_spec_file="",
                 has_hbm=True,
@@ -610,11 +610,11 @@ class TestParseArgs:
         assert args.input_prefixes == ["input_prefix"]
         assert args.output_prefix == "output_prefix"
         assert args.input_mem_file == "input.mem"
-        assert args.find_mem_files is False
+        assert args.multi_mem_files is False
 
-    def test_parse_args_find_mem_files(self):
+    def test_parse_args_multi_mem_files(self):
         """
-        @brief Test parse_args with find_mem_files flag
+        @brief Test parse_args with multi_mem_files flag
         """
         # Arrange
         test_args = [
@@ -622,7 +622,7 @@ class TestParseArgs:
             "input_prefix",
             "-o",
             "output_prefix",
-            "--find_mem_files",
+            "--multi_mem_files",
         ]
 
         # Act
@@ -633,7 +633,7 @@ class TestParseArgs:
                 output_prefix="output_prefix",
                 input_mem_file="",
                 output_dir="",
-                find_mem_files=True,
+                multi_mem_files=True,
                 mem_spec_file="",
                 isa_spec_file="",
                 has_hbm=True,
@@ -648,11 +648,11 @@ class TestParseArgs:
         assert args.input_prefixes == ["input_prefix"]
         assert args.output_prefix == "output_prefix"
         assert args.input_mem_file == ""
-        assert args.find_mem_files is True
+        assert args.multi_mem_files is True
 
     def test_missing_input_mem_file(self):
         """
-        @brief Test parse_args with missing input_mem_file when find_mem_files is False
+        @brief Test parse_args with missing input_mem_file when multi_mem_files is False
         """
         # Arrange
         test_args = ["program", "input_prefix", "-o", "output_prefix"]
@@ -665,7 +665,7 @@ class TestParseArgs:
                 output_prefix="output_prefix",
                 input_mem_file="",
                 output_dir="",
-                find_mem_files=False,
+                multi_mem_files=False,
                 mem_spec_file="",
                 isa_spec_file="",
                 has_hbm=True,

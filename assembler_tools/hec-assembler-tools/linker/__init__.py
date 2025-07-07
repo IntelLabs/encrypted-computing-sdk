@@ -1,12 +1,15 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+# These contents may have been developed with support from one or more Intel-operated
+# generative artificial intelligence solutions
+
+"""linker/__init__.py contains classes to encapsulate the memory model used by the linker."""
+
 import collections.abc as collections
 from assembler.common.config import GlobalConfig
 from assembler.memory_model import mem_info
-
-# linker/__init__.py contains classes to encapsulate the memory model used
-# by the linker.
+from typing import Dict
 
 
 class VariableInfo(mem_info.MemInfoVariable):
@@ -164,7 +167,9 @@ class MemoryModel:
         """
         self.hbm = HBM(hbm_size_words)
         self.__mem_info = mem_meta_info
-        self.__variables = {}  # dict(var_name: str, VariableInfo)
+        self.__variables: Dict[str, VariableInfo] = (
+            {}
+        )  # dict(var_name: str, VariableInfo)
         self.__keygen_vars = {
             var_info.var_name: var_info for var_info in self.__mem_info.keygens
         }
@@ -293,6 +298,6 @@ class MemoryModel:
         assert var_info.hbm_address >= 0
         assert (
             self.hbm.buffer[var_info.hbm_address].var_name == var_info.var_name
-        ), f"Expected variable {var_info.var_name} in HBM {var_info.hbm_address}, but variable {self.hbm[var_info.hbm_address].var_name} found instead."
+        ), f"Expected variable {var_info.var_name} in HBM {var_info.hbm_address}, but variable {self.hbm.buffer[var_info.hbm_address].var_name} found instead."
 
         return var_info.hbm_address

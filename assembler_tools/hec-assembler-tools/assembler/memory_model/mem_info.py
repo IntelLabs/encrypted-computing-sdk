@@ -1,6 +1,9 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+# These contents may have been developed with support from one
+# or more Intel-operated generative artificial intelligence solutions
+
 from assembler.common import constants
 from assembler.instructions import tokenize_from_line
 from typing import Optional
@@ -591,7 +594,6 @@ class MemInfo:
             if tokens and len(tokens) > 0:
                 try:
                     retval.add_meminfo_var_from_tokens(tokens)
-                    print(f"Added {tokens} to MemInfo")
                 except RuntimeError as e:
                     raise RuntimeError(f"{e} {ints_no}: {tokens}") from e
 

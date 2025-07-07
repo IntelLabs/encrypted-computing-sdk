@@ -1,9 +1,19 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# These contents may have been developed with support from one
+# or more Intel-operated generative artificial intelligence solutions
+
+"""
+This module provides functionality to load different types of instruction kernels
+"""
+
 from linker.instructions import minst
 from linker.instructions import cinst
 from linker.instructions import xinst
 from linker.instructions import dinst
 from linker import instructions
-from assembler.memory_model.mem_info import MemInfo
+
 
 def load_minst_kernel(line_iter) -> list:
     """
@@ -22,9 +32,10 @@ def load_minst_kernel(line_iter) -> list:
     for idx, s_line in enumerate(line_iter):
         minstr = instructions.create_from_str_line(s_line, minst.factory())
         if not minstr:
-            raise RuntimeError(f'Error parsing line {idx + 1}: {s_line}')
+            raise RuntimeError(f"Error parsing line {idx + 1}: {s_line}")
         retval.append(minstr)
     return retval
+
 
 def load_minst_kernel_from_file(filename: str) -> list:
     """
@@ -39,11 +50,12 @@ def load_minst_kernel_from_file(filename: str) -> list:
     Raises:
         RuntimeError: If an error occurs while loading the file.
     """
-    with open(filename, 'r') as kernel_minsts:
+    with open(filename, "r", encoding="utf-8") as kernel_minsts:
         try:
             return load_minst_kernel(kernel_minsts)
         except Exception as e:
             raise RuntimeError(f'Error occurred loading file "{filename}"') from e
+
 
 def load_cinst_kernel(line_iter) -> list:
     """
@@ -62,9 +74,10 @@ def load_cinst_kernel(line_iter) -> list:
     for idx, s_line in enumerate(line_iter):
         cinstr = instructions.create_from_str_line(s_line, cinst.factory())
         if not cinstr:
-            raise RuntimeError(f'Error parsing line {idx + 1}: {s_line}')
+            raise RuntimeError(f"Error parsing line {idx + 1}: {s_line}")
         retval.append(cinstr)
     return retval
+
 
 def load_cinst_kernel_from_file(filename: str) -> list:
     """
@@ -79,11 +92,12 @@ def load_cinst_kernel_from_file(filename: str) -> list:
     Raises:
         RuntimeError: If an error occurs while loading the file.
     """
-    with open(filename, 'r') as kernel_cinsts:
+    with open(filename, "r", encoding="utf-8") as kernel_cinsts:
         try:
             return load_cinst_kernel(kernel_cinsts)
         except Exception as e:
             raise RuntimeError(f'Error occurred loading file "{filename}"') from e
+
 
 def load_xinst_kernel(line_iter) -> list:
     """
@@ -102,9 +116,10 @@ def load_xinst_kernel(line_iter) -> list:
     for idx, s_line in enumerate(line_iter):
         xinstr = instructions.create_from_str_line(s_line, xinst.factory())
         if not xinstr:
-            raise RuntimeError(f'Error parsing line {idx + 1}: {s_line}')
+            raise RuntimeError(f"Error parsing line {idx + 1}: {s_line}")
         retval.append(xinstr)
     return retval
+
 
 def load_xinst_kernel_from_file(filename: str) -> list:
     """
@@ -119,11 +134,12 @@ def load_xinst_kernel_from_file(filename: str) -> list:
     Raises:
         RuntimeError: If an error occurs while loading the file.
     """
-    with open(filename, 'r') as kernel_xinsts:
+    with open(filename, "r", encoding="utf-8") as kernel_xinsts:
         try:
             return load_xinst_kernel(kernel_xinsts)
         except Exception as e:
             raise RuntimeError(f'Error occurred loading file "{filename}"') from e
+
 
 def load_dinst_kernel(line_iter) -> list:
     """
@@ -142,10 +158,11 @@ def load_dinst_kernel(line_iter) -> list:
     for idx, s_line in enumerate(line_iter):
         dinstr = dinst.create_from_mem_line(s_line)
         if not dinstr:
-            raise RuntimeError(f'Error parsing line {idx + 1}: {s_line}')
+            raise RuntimeError(f"Error parsing line {idx + 1}: {s_line}")
         retval.append(dinstr)
-        
+
     return retval
+
 
 def load_dinst_kernel_from_file(filename: str) -> list:
     """
@@ -160,9 +177,8 @@ def load_dinst_kernel_from_file(filename: str) -> list:
     Raises:
         RuntimeError: If an error occurs while loading the file.
     """
-    with open(filename, 'r') as kernel_dinsts:
+    with open(filename, "r", encoding="utf-8") as kernel_dinsts:
         try:
             return load_dinst_kernel(kernel_dinsts)
         except Exception as e:
             raise RuntimeError(f'Error occurred loading file "{filename}"') from e
-        
