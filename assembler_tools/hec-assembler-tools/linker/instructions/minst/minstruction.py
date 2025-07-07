@@ -58,12 +58,3 @@ class MInstruction(BaseInstruction):
             ValueError: If the number of tokens is invalid or the instruction name is incorrect.
         """
         super().__init__(tokens, comment=comment)
-
-    def to_line(self) -> str:
-        """
-        Retrieves the string form of the instruction to write to the instruction file.
-
-        Returns:
-            str: The string representation of the instruction, excluding the first token.
-        """
-        return ", ".join(self.tokens[1:])

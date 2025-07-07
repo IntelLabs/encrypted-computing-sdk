@@ -144,11 +144,3 @@ class DInstruction(BaseInstruction):
         @param value The new memory address (string or integer).
         """
         self._address = value
-
-    def to_line(self) -> str:
-        """
-        @brief Retrieves the string form of the instruction to write to the instruction file.
-
-        @return The string representation of the instruction.
-        """
-        return ", ".join(self.tokens)
