@@ -59,21 +59,15 @@ class TestLinkedProgram(unittest.TestCase):
 
         @test Verifies that all instance variables are correctly initialized
         """
-        self.assertEqual(
-            self.program._LinkedProgram__minst_ostream, self.streams["minst"]
-        )
-        self.assertEqual(
-            self.program._LinkedProgram__cinst_ostream, self.streams["cinst"]
-        )
-        self.assertEqual(
-            self.program._LinkedProgram__xinst_ostream, self.streams["xinst"]
-        )
+        self.assertEqual(self.program._minst_ostream, self.streams["minst"])
+        self.assertEqual(self.program._cinst_ostream, self.streams["cinst"])
+        self.assertEqual(self.program._xinst_ostream, self.streams["xinst"])
         self.assertEqual(self.program._LinkedProgram__mem_model, self.mem_model)
-        self.assertEqual(self.program._LinkedProgram__bundle_offset, 0)
-        self.assertEqual(self.program._LinkedProgram__minst_line_offset, 0)
-        self.assertEqual(self.program._LinkedProgram__cinst_line_offset, 0)
-        self.assertEqual(self.program._LinkedProgram__kernel_count, 0)
-        self.assertTrue(self.program._LinkedProgram__is_open)
+        self.assertEqual(self.program._bundle_offset, 0)
+        self.assertEqual(self.program._minst_line_offset, 0)
+        self.assertEqual(self.program._cinst_line_offset, 0)
+        self.assertEqual(self.program._kernel_count, 0)
+        self.assertTrue(self.program.is_open)
 
     def test_is_open_property(self):
         """@brief Test the is_open property.
@@ -81,7 +75,7 @@ class TestLinkedProgram(unittest.TestCase):
         @test Verifies that the is_open property reflects the internal state
         """
         self.assertTrue(self.program.is_open)
-        self.program._LinkedProgram__is_open = False
+        self.program._is_open = False
         self.assertFalse(self.program.is_open)
 
     def test_close(self):
@@ -213,8 +207,8 @@ class TestLinkedProgram(unittest.TestCase):
 
         # Execute the update
         kernel_minstrs = [mock_msyncc, mock_mload, mock_mstore]
-        self.program._LinkedProgram__cinst_line_offset = 10  # Set initial offset
-        self.program._LinkedProgram__kernel_count = 1  # Set kernel count
+        self.program._cinst_line_offset = 10  # Set initial offset
+        self.program._kernel_count = 1  # Set kernel count
         self.program._update_minsts(kernel_minstrs)
 
         # Verify results
@@ -307,8 +301,8 @@ class TestLinkedProgram(unittest.TestCase):
 
         # Execute the method with HBM enabled
         kernel_cinstrs = [mock_ifetch, mock_csyncm]
-        self.program._LinkedProgram__bundle_offset = 10
-        self.program._LinkedProgram__minst_line_offset = 20
+        self.program._bundle_offset = 10
+        self.program._minst_line_offset = 20
         self.program._update_cinsts_addresses_and_offsets(kernel_cinstrs)
 
         # Verify results with HBM enabled
@@ -324,7 +318,7 @@ class TestLinkedProgram(unittest.TestCase):
             ]  # Return different addresses for different vars
 
             kernel_cinstrs = [mock_bload, mock_cstore]
-            self.program._LinkedProgram__kernel_count = 2
+            self.program._kernel_count = 2
             self.program._update_cinsts_addresses_and_offsets(kernel_cinstrs)
 
             # Verify SPAD instructions were updated
@@ -392,7 +386,7 @@ class TestLinkedProgram(unittest.TestCase):
 
         # Execute the method
         kernel_xinstrs = [mock_xinst1, mock_xinst2]
-        self.program._LinkedProgram__bundle_offset = 10
+        self.program._bundle_offset = 10
         last_bundle = self.program._update_xinsts(kernel_xinstrs)
 
         # Verify results
@@ -456,18 +450,18 @@ class TestLinkedProgram(unittest.TestCase):
             mock_update_xinsts.assert_called_once_with(kernel_xinstrs)
 
             # Verify bundle offset was updated
-            self.assertEqual(self.program._LinkedProgram__bundle_offset, 6)  # 5 + 1
+            self.assertEqual(self.program._bundle_offset, 6)  # 5 + 1
 
             # Verify line offsets were updated
             self.assertEqual(
-                self.program._LinkedProgram__minst_line_offset, 1
+                self.program._minst_line_offset, 1
             )  # len(kernel_minstrs) - 1
             self.assertEqual(
-                self.program._LinkedProgram__cinst_line_offset, 1
+                self.program._cinst_line_offset, 1
             )  # len(kernel_cinstrs) - 1
 
             # Verify kernel count was incremented
-            self.assertEqual(self.program._LinkedProgram__kernel_count, 1)
+            self.assertEqual(self.program._kernel_count, 1)
 
             # Verify output streams contain the instructions
             xinst_output = self.streams["xinst"].getvalue()
@@ -523,7 +517,7 @@ class TestLinkedProgram(unittest.TestCase):
                 mock_update_xinsts.assert_called_once_with(kernel_xinstrs)
 
                 # Verify bundle offset was updated
-                self.assertEqual(self.program._LinkedProgram__bundle_offset, 6)  # 5 + 1
+                self.assertEqual(self.program._bundle_offset, 6)  # 5 + 1
 
                 # No MInst output when HBM is disabled
                 minst_output = self.streams["minst"].getvalue()
@@ -535,7 +529,7 @@ class TestLinkedProgram(unittest.TestCase):
         @test Verifies that a RuntimeError is raised when linking to a closed program
         """
         # Close the program
-        self.program._LinkedProgram__is_open = False
+        self.program._is_open = False
 
         # Try to link a kernel
         with self.assertRaises(RuntimeError):

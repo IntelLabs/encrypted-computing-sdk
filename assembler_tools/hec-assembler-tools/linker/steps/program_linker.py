@@ -44,15 +44,15 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             This memory model will be modified by this object when linking kernels.
         @param suppress_comments (bool): Whether to suppress comments in the output.
         """
-        self.__minst_ostream = program_minst_ostream
-        self.__cinst_ostream = program_cinst_ostream
-        self.__xinst_ostream = program_xinst_ostream
+        self._minst_ostream = program_minst_ostream
+        self._cinst_ostream = program_cinst_ostream
+        self._xinst_ostream = program_xinst_ostream
         self.__mem_model = mem_model
-        self.__bundle_offset = 0
-        self.__minst_line_offset = 0
-        self.__cinst_line_offset = 0
-        self.__kernel_count = 0  # Number of kernels linked into this program
-        self.__is_open = (
+        self._bundle_offset = 0
+        self._minst_line_offset = 0
+        self._cinst_line_offset = 0
+        self._kernel_count = 0  # Number of kernels linked into this program
+        self._is_open = (
             True  # Tracks whether this program is still accepting kernels to link
         )
 
@@ -63,7 +63,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
 
         @return bool True if the program is open, False otherwise.
         """
-        return self.__is_open
+        return self._is_open
 
     def close(self):
         """
@@ -77,31 +77,31 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             raise RuntimeError("Program is already closed.")
 
         # Add closing `cexit`
-        tokens = [str(self.__cinst_line_offset), cinst.CExit.name]
+        tokens = [str(self._cinst_line_offset), cinst.CExit.name]
         cexit_cinstr = cinst.CExit(tokens)
         print(
             f"{cexit_cinstr.tokens[0]}, {cexit_cinstr.to_line()}",
-            file=self.__cinst_ostream,
+            file=self._cinst_ostream,
         )
 
         # Add closing msyncc
         tokens = [
-            str(self.__minst_line_offset),
+            str(self._minst_line_offset),
             minst.MSyncc.name,
-            str(self.__cinst_line_offset + 1),
+            str(self._cinst_line_offset + 1),
         ]
         cmsyncc_minstr = minst.MSyncc(tokens)
         print(
             f"{cmsyncc_minstr.tokens[0]}, {cmsyncc_minstr.to_line()}",
             end="",
-            file=self.__minst_ostream,
+            file=self._minst_ostream,
         )
         if not GlobalConfig.suppress_comments:
-            print(" # terminating MInstQ", end="", file=self.__minst_ostream)
-        print(file=self.__minst_ostream)
+            print(" # terminating MInstQ", end="", file=self._minst_ostream)
+        print(file=self._minst_ostream)
 
         # Program has been closed
-        self.__is_open = False
+        self._is_open = False
 
     def _validate_hbm_address(self, var_name: str, hbm_address: int):
         """
@@ -174,13 +174,11 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         for minstr in kernel_minstrs:
             # Update msyncc
             if isinstance(minstr, minst.MSyncc):
-                minstr.target = minstr.target + self.__cinst_line_offset
+                minstr.target = minstr.target + self._cinst_line_offset
             # Change mload variable names into HBM addresses
             if isinstance(minstr, minst.MLoad):
                 var_name = minstr.source
-                hbm_address = self.__mem_model.useVariable(
-                    var_name, self.__kernel_count
-                )
+                hbm_address = self.__mem_model.useVariable(var_name, self._kernel_count)
                 self._validate_hbm_address(var_name, hbm_address)
                 minstr.source = str(hbm_address)
                 minstr.comment = (
@@ -191,9 +189,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             # Change mstore variable names into HBM addresses
             if isinstance(minstr, minst.MStore):
                 var_name = minstr.dest
-                hbm_address = self.__mem_model.useVariable(
-                    var_name, self.__kernel_count
-                )
+                hbm_address = self.__mem_model.useVariable(var_name, self._kernel_count)
                 self._validate_hbm_address(var_name, hbm_address)
                 minstr.dest = str(hbm_address)
                 minstr.comment = (
@@ -300,7 +296,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         for cinstr in kernel_cinstrs:
             # Update ifetch
             if isinstance(cinstr, cinst.IFetch):
-                cinstr.bundle = cinstr.bundle + self.__bundle_offset
+                cinstr.bundle = cinstr.bundle + self._bundle_offset
             # Update xinstfetch
             if isinstance(cinstr, cinst.XInstFetch):
                 raise NotImplementedError(
@@ -308,7 +304,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 )
             # Update csyncm
             if isinstance(cinstr, cinst.CSyncm):
-                cinstr.target = cinstr.target + self.__minst_line_offset
+                cinstr.target = cinstr.target + self._minst_line_offset
 
             if not GlobalConfig.hasHBM:
                 # update all SPAD instruction variable names to be SPAD addresses
@@ -318,7 +314,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 ):
                     var_name = cinstr.source
                     hbm_address = self.__mem_model.useVariable(
-                        var_name, self.__kernel_count
+                        var_name, self._kernel_count
                     )
                     self._validate_spad_address(var_name, hbm_address)
                     cinstr.source = str(hbm_address)
@@ -330,7 +326,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 if isinstance(cinstr, cinst.CStore):
                     var_name = cinstr.dest
                     hbm_address = self.__mem_model.useVariable(
-                        var_name, self.__kernel_count
+                        var_name, self._kernel_count
                     )
                     self._validate_spad_address(var_name, hbm_address)
                     cinstr.dest = str(hbm_address)
@@ -367,9 +363,9 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
 
         @return int The last bundle number after updating.
         """
-        last_bundle = self.__bundle_offset
+        last_bundle = self._bundle_offset
         for xinstr in kernel_xinstrs:
-            xinstr.bundle = xinstr.bundle + self.__bundle_offset
+            xinstr.bundle = xinstr.bundle + self._bundle_offset
             if last_bundle > xinstr.bundle:
                 raise RuntimeError(
                     f'Detected invalid bundle. Instruction bundle is less than previous: "{xinstr.to_line()}"'
@@ -405,37 +401,37 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
 
         self._update_minsts(kernel_minstrs)
         self._update_cinsts(kernel_cinstrs)
-        self.__bundle_offset = self._update_xinsts(kernel_xinstrs) + 1
+        self._bundle_offset = self._update_xinsts(kernel_xinstrs) + 1
 
         # Append the kernel to the output
 
         for xinstr in kernel_xinstrs:
-            print(xinstr.to_line(), end="", file=self.__xinst_ostream)
+            print(xinstr.to_line(), end="", file=self._xinst_ostream)
             if not GlobalConfig.suppress_comments and xinstr.comment:
-                print(f" #{xinstr.comment}", end="", file=self.__xinst_ostream)
-            print(file=self.__xinst_ostream)
+                print(f" #{xinstr.comment}", end="", file=self._xinst_ostream)
+            print(file=self._xinst_ostream)
 
         for idx, cinstr in enumerate(kernel_cinstrs[:-1]):  # Skip the `cexit`
-            line_no = idx + self.__cinst_line_offset
-            print(f"{line_no}, {cinstr.to_line()}", end="", file=self.__cinst_ostream)
+            line_no = idx + self._cinst_line_offset
+            print(f"{line_no}, {cinstr.to_line()}", end="", file=self._cinst_ostream)
             if not GlobalConfig.suppress_comments and cinstr.comment:
-                print(f" #{cinstr.comment}", end="", file=self.__cinst_ostream)
-            print(file=self.__cinst_ostream)
+                print(f" #{cinstr.comment}", end="", file=self._cinst_ostream)
+            print(file=self._cinst_ostream)
 
         for idx, minstr in enumerate(kernel_minstrs[:-1]):  # Skip the exit `msyncc`
-            line_no = idx + self.__minst_line_offset
-            print(f"{line_no}, {minstr.to_line()}", end="", file=self.__minst_ostream)
+            line_no = idx + self._minst_line_offset
+            print(f"{line_no}, {minstr.to_line()}", end="", file=self._minst_ostream)
             if not GlobalConfig.suppress_comments and minstr.comment:
-                print(f" #{minstr.comment}", end="", file=self.__minst_ostream)
-            print(file=self.__minst_ostream)
+                print(f" #{minstr.comment}", end="", file=self._minst_ostream)
+            print(file=self._minst_ostream)
 
-        self.__minst_line_offset += (
+        self._minst_line_offset += (
             len(kernel_minstrs) - 1
         )  # Subtract last line that is getting removed
-        self.__cinst_line_offset += (
+        self._cinst_line_offset += (
             len(kernel_cinstrs) - 1
         )  # Subtract last line that is getting removed
-        self.__kernel_count += 1  # Count the appended kernel
+        self._kernel_count += 1  # Count the appended kernel
 
     @classmethod
     def join_dinst_kernels(
