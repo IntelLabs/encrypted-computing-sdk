@@ -5,7 +5,7 @@
 # generative artificial intelligence solutions
 
 """
-Unit tests for the program_linker module.
+@brief Unit tests for the program_linker module.
 """
 
 import io
@@ -20,10 +20,10 @@ from linker.steps.program_linker import LinkedProgram
 
 # pylint: disable=protected-access
 class TestLinkedProgram(unittest.TestCase):
-    """Tests for the LinkedProgram class."""
+    """@brief Tests for the LinkedProgram class."""
 
     def setUp(self):
-        """Set up test fixtures."""
+        """@brief Set up test fixtures."""
         # Group related stream objects into a dictionary
         self.streams = {
             "minst": io.StringIO(),
@@ -50,12 +50,15 @@ class TestLinkedProgram(unittest.TestCase):
         )
 
     def tearDown(self):
-        """Tear down test fixtures."""
+        """@brief Tear down test fixtures."""
         self.has_hbm_patcher.stop()
         self.suppress_comments_patcher.stop()
 
     def test_init(self):
-        """Test initialization of LinkedProgram."""
+        """@brief Test initialization of LinkedProgram.
+
+        @test Verifies that all instance variables are correctly initialized
+        """
         self.assertEqual(
             self.program._LinkedProgram__minst_ostream, self.streams["minst"]
         )
@@ -73,13 +76,19 @@ class TestLinkedProgram(unittest.TestCase):
         self.assertTrue(self.program._LinkedProgram__is_open)
 
     def test_is_open_property(self):
-        """Test the is_open property."""
+        """@brief Test the is_open property.
+
+        @test Verifies that the is_open property reflects the internal state
+        """
         self.assertTrue(self.program.is_open)
         self.program._LinkedProgram__is_open = False
         self.assertFalse(self.program.is_open)
 
     def test_close(self):
-        """Test closing the program."""
+        """@brief Test closing the program.
+
+        @test Verifies that cexit and msyncc instructions are added and program is marked as closed
+        """
         self.program.close()
 
         # Verify cexit and msyncc were added
@@ -113,7 +122,10 @@ class TestLinkedProgram(unittest.TestCase):
         self.assertNotIn("terminating MInstQ", self.streams["minst"].getvalue())
 
     def test_validate_hbm_address(self):
-        """Test validating a HBM address."""
+        """@brief Test validating a HBM address.
+
+        @test Verifies that valid addresses are accepted and invalid ones raise exceptions
+        """
 
         # Test validating a valid HBM address
         self.mem_model.mem_info_vars = {}
@@ -125,7 +137,10 @@ class TestLinkedProgram(unittest.TestCase):
             self.program._validate_hbm_address("test_var", -1)
 
     def test_validate_hbm_address_mismatch(self):
-        """Test validating an HBM address that doesn't match the declared address."""
+        """@brief Test validating an HBM address that doesn't match the declared address.
+
+        @test Verifies that a RuntimeError is raised when address doesn't match
+        """
         mock_var = MagicMock()
         mock_var.hbm_address = 5
         self.mem_model.mem_info_vars = {"test_var": mock_var}
@@ -134,25 +149,37 @@ class TestLinkedProgram(unittest.TestCase):
             self.program._validate_hbm_address("test_var", 10)
 
     def test_validate_spad_address_valid(self):
-        """Test validating a valid SPAD address with HBM disabled."""
+        """@brief Test validating a valid SPAD address with HBM disabled.
+
+        @test Verifies that valid SPAD addresses are accepted when HBM is disabled
+        """
         with patch.object(GlobalConfig, "hasHBM", False):
             self.mem_model.mem_info_vars = {}
             self.program._validate_spad_address("test_var", 10)
             # No exception should be raised
 
     def test_validate_spad_address_with_hbm_enabled(self):
-        """Test validating a SPAD address with HBM enabled (should raise AssertionError)."""
+        """@brief Test validating a SPAD address with HBM enabled.
+
+        @test Verifies that an AssertionError is raised when HBM is enabled
+        """
         with self.assertRaises(AssertionError):
             self.program._validate_spad_address("test_var", 10)
 
     def test_validate_spad_address_negative(self):
-        """Test validating a negative SPAD address."""
+        """@brief Test validating a negative SPAD address.
+
+        @test Verifies that a RuntimeError is raised for negative addresses
+        """
         with patch.object(GlobalConfig, "hasHBM", False):
             with self.assertRaises(RuntimeError):
                 self.program._validate_spad_address("test_var", -1)
 
     def test_validate_spad_address_mismatch(self):
-        """Test validating a SPAD address that doesn't match the declared address."""
+        """@brief Test validating a SPAD address that doesn't match the declared address.
+
+        @test Verifies that a RuntimeError is raised when address doesn't match
+        """
         with patch.object(GlobalConfig, "hasHBM", False):
             mock_var = MagicMock()
             mock_var.hbm_address = 5
@@ -162,7 +189,10 @@ class TestLinkedProgram(unittest.TestCase):
                 self.program._validate_spad_address("test_var", 10)
 
     def test_update_minsts(self):
-        """Test updating MInsts."""
+        """@brief Test updating MInsts.
+
+        @test Verifies that MInsts are correctly updated with offsets and variable addresses
+        """
         # Create mock MInstructions
         mock_msyncc = MagicMock(spec=minst.MSyncc)
         mock_msyncc.target = 5
@@ -203,7 +233,10 @@ class TestLinkedProgram(unittest.TestCase):
         )
 
     def test_remove_and_merge_csyncm_cnop(self):
-        """Test removing CSyncm instructions and merging CNop instructions."""
+        """@brief Test removing CSyncm instructions and merging CNop instructions.
+
+        @test Verifies that CSyncm instructions are removed and CNop cycles are updated correctly
+        """
         # Create mock CInstructions
         mock_ifetch = MagicMock(spec=cinst.IFetch)
         mock_ifetch.bundle = 1
@@ -250,7 +283,10 @@ class TestLinkedProgram(unittest.TestCase):
                 self.assertEqual(instr.tokens[0], i)
 
     def test_update_cinsts_addresses_and_offsets(self):
-        """Test updating CInst addresses and offsets."""
+        """@brief Test updating CInst addresses and offsets.
+
+        @test Verifies that CInst addresses and offsets are correctly updated
+        """
         # Create mock CInstructions
         mock_ifetch = MagicMock(spec=cinst.IFetch)
         mock_ifetch.bundle = 1
@@ -308,7 +344,10 @@ class TestLinkedProgram(unittest.TestCase):
             self.program._update_cinsts_addresses_and_offsets([mock_xinstfetch])
 
     def test_update_cinsts(self):
-        """Test updating CInsts."""
+        """@brief Test updating CInsts.
+
+        @test Verifies that the correct update methods are called based on HBM configuration
+        """
         # Create a mock for _remove_and_merge_csyncm_cnop and _update_cinsts_addresses_and_offsets
         with patch.object(
             LinkedProgram, "_remove_and_merge_csyncm_cnop"
@@ -337,7 +376,10 @@ class TestLinkedProgram(unittest.TestCase):
                 mock_update.assert_called_once_with(kernel_cinstrs)
 
     def test_update_xinsts(self):
-        """Test updating XInsts."""
+        """@brief Test updating XInsts.
+
+        @test Verifies that XInst bundles are correctly updated and invalid sequences are detected
+        """
         # Create mock XInstructions
         mock_xinst1 = MagicMock()
         mock_xinst1.bundle = 1
@@ -367,7 +409,10 @@ class TestLinkedProgram(unittest.TestCase):
             self.program._update_xinsts(kernel_xinstrs)
 
     def test_link_kernel(self):
-        """Test linking a kernel."""
+        """@brief Test linking a kernel.
+
+        @test Verifies that a kernel is correctly linked with updated instructions
+        """
         # Create mocks for the update methods
         with patch.object(
             LinkedProgram, "_update_minsts"
@@ -440,7 +485,10 @@ class TestLinkedProgram(unittest.TestCase):
             self.assertIn("minst_comment0", minst_output)
 
     def test_link_kernel_with_no_hbm(self):
-        """Test linking a kernel with HBM disabled."""
+        """@brief Test linking a kernel with HBM disabled.
+
+        @test Verifies that MInsts are ignored when HBM is disabled
+        """
         with patch.object(GlobalConfig, "hasHBM", False):
             # Create mocks for the update methods
             with patch.object(
@@ -482,7 +530,10 @@ class TestLinkedProgram(unittest.TestCase):
                 self.assertEqual(minst_output, "")
 
     def test_link_kernel_with_closed_program(self):
-        """Test linking a kernel with a closed program."""
+        """@brief Test linking a kernel with a closed program.
+
+        @test Verifies that a RuntimeError is raised when linking to a closed program
+        """
         # Close the program
         self.program._LinkedProgram__is_open = False
 
@@ -491,7 +542,10 @@ class TestLinkedProgram(unittest.TestCase):
             self.program.link_kernel([], [], [])
 
     def test_link_kernel_with_suppress_comments(self):
-        """Test linking a kernel with comments suppressed."""
+        """@brief Test linking a kernel with comments suppressed.
+
+        @test Verifies that comments are not included in the output when suppressed
+        """
         with patch.object(GlobalConfig, "suppress_comments", True):
             # Create mocks for the update methods
             with patch.object(LinkedProgram, "_update_minsts"), patch.object(
@@ -527,15 +581,21 @@ class TestLinkedProgram(unittest.TestCase):
 
 
 class TestJoinDinstKernels(unittest.TestCase):
-    """Tests for the join_dinst_kernels static method."""
+    """@brief Tests for the join_dinst_kernels static method."""
 
     def test_join_dinst_kernels_empty(self):
-        """Test joining empty list of DInst kernels."""
+        """@brief Test joining empty list of DInst kernels.
+
+        @test Verifies that a ValueError is raised for an empty list
+        """
         with self.assertRaises(ValueError):
             LinkedProgram.join_dinst_kernels([])
 
     def test_join_dinst_kernels_single_kernel(self):
-        """Test joining a single DInst kernel."""
+        """@brief Test joining a single DInst kernel.
+
+        @test Verifies that instructions from a single kernel are correctly processed
+        """
         # Create mock DInstructions
         mock_dload = MagicMock(spec=dinst.DLoad)
         mock_dload.var = "var1"
@@ -556,7 +616,10 @@ class TestJoinDinstKernels(unittest.TestCase):
         self.assertEqual(mock_dstore.address, 1)
 
     def test_join_dinst_kernels_multiple_kernels(self):
-        """Test joining multiple DInst kernels."""
+        """@brief Test joining multiple DInst kernels.
+
+        @test Verifies that instructions from multiple kernels are correctly merged
+        """
         # Create mock DInstructions for first kernel
         mock_dload1 = MagicMock(spec=dinst.DLoad)
         mock_dload1.var = "var1"
@@ -593,7 +656,10 @@ class TestJoinDinstKernels(unittest.TestCase):
         self.assertEqual(used_addresses, {0, 1, 2})  # Three consecutive addresses
 
     def test_join_dinst_kernels_with_carry_over_vars(self):
-        """Test joining DInst kernels with carry-over variables that are both input and output."""
+        """@brief Test joining DInst kernels with carry-over variables.
+
+        @test Verifies that variables used across kernels are properly consolidated
+        """
         # Create mock DInstructions for first kernel
         mock_dload1 = MagicMock(spec=dinst.DLoad)
         mock_dload1.var = "var1"

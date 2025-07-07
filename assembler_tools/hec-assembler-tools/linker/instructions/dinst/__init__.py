@@ -4,7 +4,7 @@
 # These contents may have been developed with support from one or more Intel-operated
 # generative artificial intelligence solutions
 
-"""This module provides functionality to create and manage data instructions"""
+"""@brief This module provides functionality to create and manage data instructions"""
 
 from typing import Optional
 
@@ -20,24 +20,21 @@ DKeyGen = dkeygen.Instruction
 
 def factory() -> set:
     """
-    Creates a set of all DInstruction classes.
+    @brief Creates a set of all DInstruction classes.
 
-    Returns:
-        set: A set containing all DInstruction classes.
+    @return A set containing all DInstruction classes.
     """
     return {DLoad, DStore, DKeyGen}
 
 
 def create_from_mem_line(line: str) -> dinstruction.DInstruction:
     """
-    Parses an data instruction from a line of the memory map.
+    @brief Parses an data instruction from a line of the memory map.
 
-    Parameters:
-        line (str): Line of text from which to parse an instruction.
-
-    Returns:
-        DInstruction or None: The parsed DInstruction object, or None if no object could be
-        parsed from the specified input line.
+    @param line Line of text from which to parse an instruction.
+    @return The parsed DInstruction object, or None if no object could be
+            parsed from the specified input line.
+    @throws RuntimeError If no valid instruction is found or if there's an error parsing the memory map line.
     """
     retval: Optional[dinstruction.DInstruction] = None
     tokens, comment = tokenize_from_line(line)

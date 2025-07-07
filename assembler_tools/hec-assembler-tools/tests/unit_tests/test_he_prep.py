@@ -5,7 +5,7 @@
 # generative artificial intelligence solutions
 
 """
-Unit tests for he_prep module.
+@brief Unit tests for he_prep module.
 """
 
 from unittest import mock
@@ -18,10 +18,10 @@ import he_prep
 
 def test_main_assigns_and_saves(monkeypatch, tmp_path):
     """
-    Test that the main function assigns register banks, processes instructions, and saves the output.
+    @brief Test that the main function assigns register banks, processes instructions, and saves the output.
 
-    This test uses monkeypatching to mock dependencies and verifies that the output file
-    contains the expected instruction after processing a dummy input file.
+    @details This test uses monkeypatching to mock dependencies and verifies that the output file
+             contains the expected instruction after processing a dummy input file.
     """
     # Prepare dummy input file
     input_file = tmp_path / "input.csv"
@@ -48,7 +48,7 @@ def test_main_assigns_and_saves(monkeypatch, tmp_path):
 
 def test_main_no_input_file():
     """
-    Test that main raises an error when no input file is provided.
+    @brief Test that main raises an error when no input file is provided.
     """
     with pytest.raises(FileNotFoundError):
         he_prep.main(
@@ -58,7 +58,7 @@ def test_main_no_input_file():
 
 def test_main_no_output_file():
     """
-    Test that main raises an error when no output file is provided.
+    @brief Test that main raises an error when no output file is provided.
     """
     with pytest.raises(FileNotFoundError):
         he_prep.main(
@@ -68,9 +68,9 @@ def test_main_no_output_file():
 
 def test_main_no_instructions(monkeypatch):
     """
-    Test that main handles the case where no instructions are processed.
+    @brief Test that main handles the case where no instructions are processed.
 
-    This test checks that the function can handle an empty instruction list without errors.
+    @details This test checks that the function can handle an empty instruction list without errors.
     """
     input_file = "empty_input.csv"
     output_file = "empty_output.csv"
@@ -101,7 +101,7 @@ def test_main_no_instructions(monkeypatch):
 
 def test_main_invalid_input_file(tmp_path):
     """
-    Test that main raises an error when the input file does not exist.
+    @brief Test that main raises an error when the input file does not exist.
     """
     input_file = tmp_path / "non_existent.csv"
     output_file = tmp_path / "output.csv"
@@ -114,8 +114,9 @@ def test_main_invalid_input_file(tmp_path):
 
 def test_main_invalid_output_file(tmp_path):
     """
-    Test that main raises an error when the output file cannot be created.
-    This test checks that the function handles file permission errors gracefully.
+    @brief Test that main raises an error when the output file cannot be created.
+
+    @details This test checks that the function handles file permission errors gracefully.
     """
     input_file = tmp_path / "input.csv"
     input_file.write_text("")  # Write empty string to avoid SyntaxError
@@ -133,7 +134,7 @@ def test_main_invalid_output_file(tmp_path):
 
 def test_parse_args():
     """
-    Test that parse_args returns the expected arguments.
+    @brief Test that parse_args returns the expected arguments.
     """
     test_args = [
         "prog",

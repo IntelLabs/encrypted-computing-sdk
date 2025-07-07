@@ -369,10 +369,10 @@ class TestHelperFunctions:
         with patch("linker.loader.load_minst_kernel_from_file", return_value=[]), patch(
             "linker.loader.load_cinst_kernel_from_file", return_value=[]
         ), patch(
-            "linker.steps.variable_discovery.discoverVariables",
+            "linker.steps.variable_discovery.discover_variables",
             return_value=["var1", "var2"],
         ), patch(
-            "linker.steps.variable_discovery.discoverVariablesSPAD",
+            "linker.steps.variable_discovery.discover_variables_spad",
             return_value=["var1", "var2"],
         ):
             he_link.scan_variables(input_files, mock_mem_model, mock_verbose)
@@ -450,7 +450,7 @@ class TestMainFunction:
     @pytest.mark.parametrize("multi_mem_files", [True, False])
     def test_main(self, multi_mem_files):
         """
-        @brief Test main function with multi_mem_files=True
+        @brief Test main function with and without multi_mem_files
         """
         # Arrange
         mock_config = MagicMock()
@@ -460,75 +460,93 @@ class TestMainFunction:
         mock_config.suppress_comments = False
         mock_config.use_xinstfetch = False
 
-        mock_verbose = MagicMock()
+        # Setup input files with conditional mem files
+        input_files = [
+            he_link.KernelFiles(
+                prefix="prefix1",
+                minst="prefix1.minst",
+                cinst="prefix1.cinst",
+                xinst="prefix1.xinst",
+                mem="prefix1.mem" if multi_mem_files else None,
+            ),
+            he_link.KernelFiles(
+                prefix="prefix2",
+                minst="prefix2.minst",
+                cinst="prefix2.cinst",
+                xinst="prefix2.xinst",
+                mem="prefix2.mem" if multi_mem_files else None,
+            ),
+        ]
+
+        # Create a dictionary of mocks to reduce the number of local variables
+        mocks = {
+            "prepare_output": MagicMock(),
+            "prepare_input": MagicMock(return_value=input_files),
+            "scan_variables": MagicMock(),
+            "check_unused_variables": MagicMock(),
+            "link_kernels": MagicMock(),
+            "from_dinstrs": MagicMock(),
+            "from_file_iter": MagicMock(),
+            "load_dinst": MagicMock(return_value=["1", "2"]),
+            "join_dinst": MagicMock(return_value=[]),
+            "dump_instructions": MagicMock(),
+        }
 
         # Act
         with patch(
             "assembler.common.constants.convertBytes2Words", return_value=1024
-        ), patch("he_link.prepare_output_files") as mock_prepare_output, patch(
-            "he_link.prepare_input_files"
-        ) as mock_prepare_input, patch(
+        ), patch("he_link.prepare_output_files", mocks["prepare_output"]), patch(
+            "he_link.prepare_input_files", mocks["prepare_input"]
+        ), patch(
             "assembler.common.counter.Counter.reset"
         ), patch(
-            "linker.loader.load_dinst_kernel_from_file", return_value=["1", "2"]
-        ) as mock_load_dinst_kernel_from_file, patch(
-            "linker.instructions.BaseInstruction.dump_instructions_to_file"
-        ) as mock_dump_instructions, patch(
+            "linker.loader.load_dinst_kernel_from_file", mocks["load_dinst"]
+        ), patch(
+            "linker.instructions.BaseInstruction.dump_instructions_to_file",
+            mocks["dump_instructions"],
+        ), patch(
             "linker.steps.program_linker.LinkedProgram.join_dinst_kernels",
-            return_value=[],
-        ) as mock_join_dinst_kernels, patch(
-            "assembler.memory_model.mem_info.MemInfo.from_dinstrs"
-        ) as mock_from_dinstrs, patch(
-            "assembler.memory_model.mem_info.MemInfo.from_file_iter"
-        ) as mock_from_file_iter, patch(
+            mocks["join_dinst"],
+        ), patch(
+            "assembler.memory_model.mem_info.MemInfo.from_dinstrs",
+            mocks["from_dinstrs"],
+        ), patch(
+            "assembler.memory_model.mem_info.MemInfo.from_file_iter",
+            mocks["from_file_iter"],
+        ), patch(
             "linker.MemoryModel"
         ), patch(
-            "he_link.scan_variables"
-        ) as mock_scan_variables, patch(
-            "he_link.check_unused_variables"
-        ) as mock_check_unused_variables, patch(
-            "he_link.link_kernels"
-        ) as mock_link_kernels, patch(
-            "he_link.BaseInstruction.dump_instructions_to_file"
-        ) as mock_dump_instructions:
+            "he_link.scan_variables", mocks["scan_variables"]
+        ), patch(
+            "he_link.check_unused_variables", mocks["check_unused_variables"]
+        ), patch(
+            "he_link.link_kernels", mocks["link_kernels"]
+        ), patch(
+            "he_link.BaseInstruction.dump_instructions_to_file",
+            mocks["dump_instructions"],
+        ):
 
-            mock_prepare_input.return_value = [
-                he_link.KernelFiles(
-                    prefix="prefix1",
-                    minst="prefix1.minst",
-                    cinst="prefix1.cinst",
-                    xinst="prefix1.xinst",
-                    mem=None,
-                ),
-                he_link.KernelFiles(
-                    prefix="prefix2",
-                    minst="prefix2.minst",
-                    cinst="prefix2.cinst",
-                    xinst="prefix2.xinst",
-                    mem=None,
-                ),
-            ]
-            he_link.main(mock_config, mock_verbose)
+            he_link.main(mock_config, MagicMock())
 
         # Assert pipeline is run as expected
-        mock_prepare_output.assert_called_once()
-        mock_prepare_input.assert_called_once()
-        mock_scan_variables.assert_called_once()
-        mock_check_unused_variables.assert_called_once()
-        mock_link_kernels.assert_called_once()
+        mocks["prepare_output"].assert_called_once()
+        mocks["prepare_input"].assert_called_once()
+        mocks["scan_variables"].assert_called_once()
+        mocks["check_unused_variables"].assert_called_once()
+        mocks["link_kernels"].assert_called_once()
 
         if multi_mem_files:
             # Should use from_dinstrs, not from_file_iter
-            assert mock_from_dinstrs.called
-            assert mock_load_dinst_kernel_from_file.called
-            assert mock_join_dinst_kernels.called
-            assert mock_dump_instructions.called
+            assert mocks["from_dinstrs"].called
+            assert mocks["load_dinst"].called
+            assert mocks["join_dinst"].called
+            assert mocks["dump_instructions"].called
 
-            assert not mock_from_file_iter.called
+            assert not mocks["from_file_iter"].called
         else:
             # Should use from_file_iter, not from_dinstrs
-            assert mock_from_file_iter.called
-            assert not mock_from_dinstrs.called
+            assert mocks["from_file_iter"].called
+            assert not mocks["from_dinstrs"].called
 
     def test_warning_on_use_xinstfetch(self):
         """

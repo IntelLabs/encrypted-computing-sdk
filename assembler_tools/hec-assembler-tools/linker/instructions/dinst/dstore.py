@@ -5,7 +5,7 @@
 # generative artificial intelligence solutions
 
 """
-This module implements the DStore instruction for storing data to memory.
+@brief This module implements the DStore instruction for storing data to memory.
 
 The DStore instruction is used to store data to specified memory locations
 during the assembly process.
@@ -17,35 +17,32 @@ from .dinstruction import DInstruction
 
 class Instruction(DInstruction):
     """
-    Encapsulates a `dstore` DInstruction.
+    @brief Encapsulates a `dstore` DInstruction.
     """
 
     @classmethod
     def _get_num_tokens(cls) -> int:
         """
-        Gets the number of tokens required for the instruction.
+        @brief Gets the number of tokens required for the instruction.
 
-        Returns:
-            int: The number of tokens, which is 3.
+        @return The number of tokens, which is 3.
         """
         return 3
 
     @classmethod
     def _get_name(cls) -> str:
         """
-        Gets the name of the instruction.
+        @brief Gets the name of the instruction.
 
-        Returns:
-            str: The name of the instruction.
+        @return The name of the instruction.
         """
         return MemInfo.Const.Keyword.STORE
 
     @property
     def tokens(self) -> list:
         """
-        Gets the list of tokens for the instruction.
+        @brief Gets the list of tokens for the instruction.
 
-        Returns:
-            list: The list of tokens.
+        @return The list of tokens.
         """
         return [self.name, self.var, str(self.address)] + self._tokens[3:]

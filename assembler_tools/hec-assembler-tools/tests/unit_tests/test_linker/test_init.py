@@ -5,7 +5,7 @@
 # generative artificial intelligence solutions
 
 """
-Unit tests for the memory model classes in linker/__init__.py.
+@brief Unit tests for the memory model classes in linker/__init__.py.
 """
 
 import unittest
@@ -17,10 +17,13 @@ from linker import VariableInfo, HBM, MemoryModel
 
 
 class TestVariableInfo(unittest.TestCase):
-    """Tests for the VariableInfo class."""
+    """@brief Tests for the VariableInfo class."""
 
     def test_init(self):
-        """Test initialization of VariableInfo."""
+        """@brief Test initialization of VariableInfo.
+
+        @test Verifies that VariableInfo is properly initialized with the given values
+        """
         var_info = VariableInfo("test_var", 42)
         self.assertEqual(var_info.var_name, "test_var")
         self.assertEqual(var_info.hbm_address, 42)
@@ -28,7 +31,10 @@ class TestVariableInfo(unittest.TestCase):
         self.assertEqual(var_info.last_kernel_used, -1)
 
     def test_init_default_values(self):
-        """Test initialization with default values."""
+        """@brief Test initialization with default values.
+
+        @test Verifies that VariableInfo is properly initialized with default values
+        """
         var_info = VariableInfo("test_var")
         self.assertEqual(var_info.var_name, "test_var")
         self.assertEqual(var_info.hbm_address, -1)
@@ -37,15 +43,18 @@ class TestVariableInfo(unittest.TestCase):
 
 
 class TestHBM(unittest.TestCase):
-    """Tests for the HBM class."""
+    """@brief Tests for the HBM class."""
 
     def setUp(self):
-        """Set up test fixtures."""
+        """@brief Set up test fixtures."""
         self.hbm_size = 10
         self.hbm = HBM(self.hbm_size)
 
     def test_init(self):
-        """Test initialization of HBM."""
+        """@brief Test initialization of HBM.
+
+        @test Verifies that HBM is properly initialized with the given size
+        """
         self.assertEqual(len(self.hbm.buffer), self.hbm_size)
         self.assertEqual(self.hbm.capacity, self.hbm_size)
         # Check that buffer is initialized with None values
@@ -53,18 +62,27 @@ class TestHBM(unittest.TestCase):
             self.assertIsNone(item)
 
     def test_init_invalid_size(self):
-        """Test initialization with invalid size."""
+        """@brief Test initialization with invalid size.
+
+        @test Verifies that ValueError is raised for invalid sizes
+        """
         with self.assertRaises(ValueError):
             HBM(0)
         with self.assertRaises(ValueError):
             HBM(-1)
 
     def test_capacity_property(self):
-        """Test the capacity property."""
+        """@brief Test the capacity property.
+
+        @test Verifies that the capacity property returns the correct size
+        """
         self.assertEqual(self.hbm.capacity, self.hbm_size)
 
     def test_buffer_property(self):
-        """Test the buffer property."""
+        """@brief Test the buffer property.
+
+        @test Verifies that the buffer property returns the correct buffer
+        """
         buffer = self.hbm.buffer
         self.assertEqual(len(buffer), self.hbm_size)
         # Check that buffer is initialized with None values
@@ -72,14 +90,20 @@ class TestHBM(unittest.TestCase):
             self.assertIsNone(item)
 
     def test_force_allocate_valid(self):
-        """Test forceAllocate with valid parameters."""
+        """@brief Test forceAllocate with valid parameters.
+
+        @test Verifies that a variable is properly allocated at the specified address
+        """
         var_info = VariableInfo("test_var")
         self.hbm.forceAllocate(var_info, 5)
         self.assertEqual(var_info.hbm_address, 5)
         self.assertEqual(self.hbm.buffer[5], var_info)
 
     def test_force_allocate_out_of_bounds(self):
-        """Test forceAllocate with out of bounds address."""
+        """@brief Test forceAllocate with out of bounds address.
+
+        @test Verifies that IndexError is raised for out-of-bounds addresses
+        """
         var_info = VariableInfo("test_var")
         with self.assertRaises(IndexError):
             self.hbm.forceAllocate(var_info, -1)
@@ -87,13 +111,19 @@ class TestHBM(unittest.TestCase):
             self.hbm.forceAllocate(var_info, self.hbm_size)
 
     def test_force_allocate_already_allocated(self):
-        """Test forceAllocate with already allocated variable."""
+        """@brief Test forceAllocate with already allocated variable.
+
+        @test Verifies that ValueError is raised when variable is already allocated
+        """
         var_info = VariableInfo("test_var", 3)
         with self.assertRaises(ValueError):
             self.hbm.forceAllocate(var_info, 5)
 
     def test_force_allocate_address_occupied_with_hbm(self):
-        """Test forceAllocate with address occupied and HBM enabled."""
+        """@brief Test forceAllocate with address occupied and HBM enabled.
+
+        @test Verifies that RuntimeError is raised when address is occupied
+        """
         with patch.object(GlobalConfig, "hasHBM", True):
             # Occupy address 5
             var_info1 = VariableInfo("var1")
@@ -106,7 +136,10 @@ class TestHBM(unittest.TestCase):
                 self.hbm.forceAllocate(var_info2, 5)
 
     def test_force_allocate_address_occupied_without_hbm(self):
-        """Test forceAllocate with address occupied and HBM disabled."""
+        """@brief Test forceAllocate with address occupied and HBM disabled.
+
+        @test Verifies that RuntimeError is raised when address is occupied
+        """
         with patch.object(GlobalConfig, "hasHBM", False):
             # Occupy address 5
             var_info1 = VariableInfo("var1")
@@ -119,7 +152,10 @@ class TestHBM(unittest.TestCase):
                 self.hbm.forceAllocate(var_info2, 5)
 
     def test_force_allocate_address_recyclable_with_hbm(self):
-        """Test forceAllocate with recyclable address and HBM enabled."""
+        """@brief Test forceAllocate with recyclable address and HBM enabled.
+
+        @test Verifies that an address can be recycled when the variable is not used
+        """
         with patch.object(GlobalConfig, "hasHBM", True):
             # Occupy address 5 with a variable that's not used
             var_info1 = VariableInfo("var1")
@@ -136,7 +172,10 @@ class TestHBM(unittest.TestCase):
             self.assertEqual(self.hbm.buffer[5], var_info2)
 
     def test_allocate(self):
-        """Test allocate method."""
+        """@brief Test allocate method.
+
+        @test Verifies that a variable is allocated at the first available address
+        """
         var_info = VariableInfo("test_var")
         self.hbm.allocate(var_info)
         # The variable should be allocated at the first available address (0)
@@ -144,7 +183,10 @@ class TestHBM(unittest.TestCase):
         self.assertEqual(self.hbm.buffer[0], var_info)
 
     def test_allocate_full_memory(self):
-        """Test allocate with full memory."""
+        """@brief Test allocate with full memory.
+
+        @test Verifies that RuntimeError is raised when memory is full
+        """
         # Fill up the HBM
         for i in range(self.hbm_size):
             var_info = VariableInfo(f"var{i}")
@@ -157,7 +199,10 @@ class TestHBM(unittest.TestCase):
             self.hbm.allocate(var_info)
 
     def test_allocate_with_recycling(self):
-        """Test allocate with recycling unused addresses."""
+        """@brief Test allocate with recycling unused addresses.
+
+        @test Verifies that unused addresses can be recycled
+        """
         with patch.object(GlobalConfig, "hasHBM", True):
             # Fill up the HBM
             for i in range(self.hbm_size):
@@ -174,10 +219,10 @@ class TestHBM(unittest.TestCase):
 
 
 class TestMemoryModel(unittest.TestCase):
-    """Tests for the MemoryModel class."""
+    """@brief Tests for the MemoryModel class."""
 
     def setUp(self):
-        """Set up test fixtures."""
+        """@brief Set up test fixtures."""
         # Create a mock MemInfo
         self.mock_mem_info = MagicMock(spec=mem_info.MemInfo)
 
@@ -221,7 +266,10 @@ class TestMemoryModel(unittest.TestCase):
         self.memory_model = MemoryModel(10, self.mock_mem_info)
 
     def test_init(self):
-        """Test initialization of MemoryModel."""
+        """@brief Test initialization of MemoryModel.
+
+        @test Verifies that MemoryModel is properly initialized
+        """
         self.assertIsInstance(self.memory_model.hbm, HBM)
         self.assertEqual(self.memory_model.hbm.capacity, 10)
 
@@ -238,7 +286,10 @@ class TestMemoryModel(unittest.TestCase):
         self.assertIn("meta_var", self.memory_model.mem_info_meta)
 
     def test_add_variable_new(self):
-        """Test adding a new variable."""
+        """@brief Test adding a new variable.
+
+        @test Verifies that a new variable is correctly added to the model
+        """
         self.memory_model.addVariable("test_var")
 
         # Check that variable was added
@@ -251,7 +302,10 @@ class TestMemoryModel(unittest.TestCase):
         self.assertEqual(var_info.hbm_address, -1)
 
     def test_add_variable_existing(self):
-        """Test adding an existing variable."""
+        """@brief Test adding an existing variable.
+
+        @test Verifies that the uses count is incremented for an existing variable
+        """
         # Add the variable first
         self.memory_model.addVariable("test_var")
 
@@ -263,7 +317,10 @@ class TestMemoryModel(unittest.TestCase):
         self.assertEqual(var_info.uses, 2)
 
     def test_add_variable_from_mem_info(self):
-        """Test adding a variable that's in mem_info."""
+        """@brief Test adding a variable that's in mem_info.
+
+        @test Verifies that a variable from mem_info is correctly added with its HBM address
+        """
         self.memory_model.addVariable("input_var")
 
         # Check that variable was added
@@ -276,7 +333,10 @@ class TestMemoryModel(unittest.TestCase):
         self.assertEqual(var_info.hbm_address, 1)
 
     def test_add_variable_from_fixed_addr_vars(self):
-        """Test adding a variable that's in fixed_addr_vars."""
+        """@brief Test adding a variable that's in fixed_addr_vars.
+
+        @test Verifies that a fixed-address variable is added with infinite uses
+        """
         self.memory_model.addVariable("output_var")
 
         # Check that variable was added
@@ -290,7 +350,10 @@ class TestMemoryModel(unittest.TestCase):
         self.assertEqual(var_info.hbm_address, 2)
 
     def test_use_variable(self):
-        """Test using a variable."""
+        """@brief Test using a variable.
+
+        @test Verifies that using a variable decrements its uses count and allocates an HBM address
+        """
         # Add the variable first
         self.memory_model.addVariable("test_var")
 
@@ -312,7 +375,10 @@ class TestMemoryModel(unittest.TestCase):
         self.assertEqual(self.memory_model.hbm.buffer[hbm_address], var_info)
 
     def test_use_variable_already_allocated(self):
-        """Test using a variable that already has an HBM address."""
+        """@brief Test using a variable that already has an HBM address.
+
+        @test Verifies that the existing HBM address is returned
+        """
         # Add a variable from mem_info which already has an HBM address
         self.memory_model.addVariable("input_var")
 

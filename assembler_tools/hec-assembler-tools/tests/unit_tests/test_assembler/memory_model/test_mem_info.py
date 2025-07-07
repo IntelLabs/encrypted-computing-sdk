@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Unit tests for the memory model mem_info module.
+@brief Unit tests for the memory model mem_info module.
 """
 
 import unittest
@@ -19,10 +19,10 @@ from assembler.memory_model.mem_info import (
 
 
 class TestMemInfoVariable(unittest.TestCase):
-    """Tests for the MemInfoVariable class."""
+    """@brief Tests for the MemInfoVariable class."""
 
     def test_init_valid(self):
-        """Test initialization with valid parameters."""
+        """@brief Test initialization with valid parameters."""
         with patch(
             "assembler.memory_model.variable.Variable.validateName", return_value=True
         ):
@@ -31,7 +31,7 @@ class TestMemInfoVariable(unittest.TestCase):
             self.assertEqual(var.hbm_address, 42)
 
     def test_init_strips_whitespace(self):
-        """Test that initialization strips whitespace from variable name."""
+        """@brief Test that initialization strips whitespace from variable name."""
         with patch(
             "assembler.memory_model.variable.Variable.validateName", return_value=True
         ):
@@ -39,7 +39,7 @@ class TestMemInfoVariable(unittest.TestCase):
             self.assertEqual(var.var_name, "test_var")
 
     def test_init_invalid_name(self):
-        """Test initialization with invalid variable name."""
+        """@brief Test initialization with invalid variable name."""
         with patch(
             "assembler.memory_model.variable.Variable.validateName", return_value=False
         ):
@@ -47,7 +47,7 @@ class TestMemInfoVariable(unittest.TestCase):
                 MemInfoVariable("invalid!var", 42)
 
     def test_repr(self):
-        """Test the __repr__ method."""
+        """@brief Test the __repr__ method."""
         with patch(
             "assembler.memory_model.variable.Variable.validateName", return_value=True
         ):
@@ -57,7 +57,7 @@ class TestMemInfoVariable(unittest.TestCase):
             )
 
     def test_as_dict(self):
-        """Test the as_dict method."""
+        """@brief Test the as_dict method."""
         with patch(
             "assembler.memory_model.variable.Variable.validateName", return_value=True
         ):
@@ -66,10 +66,10 @@ class TestMemInfoVariable(unittest.TestCase):
 
 
 class TestMemInfoKeygenVariable(unittest.TestCase):
-    """Tests for the MemInfoKeygenVariable class."""
+    """@brief Tests for the MemInfoKeygenVariable class."""
 
     def test_init_valid(self):
-        """Test initialization with valid parameters."""
+        """@brief Test initialization with valid parameters."""
         with patch(
             "assembler.memory_model.variable.Variable.validateName", return_value=True
         ):
@@ -80,7 +80,7 @@ class TestMemInfoKeygenVariable(unittest.TestCase):
             self.assertEqual(var.key_index, 3)
 
     def test_init_negative_seed_index(self):
-        """Test initialization with negative seed index."""
+        """@brief Test initialization with negative seed index."""
         with patch(
             "assembler.memory_model.variable.Variable.validateName", return_value=True
         ):
@@ -88,7 +88,7 @@ class TestMemInfoKeygenVariable(unittest.TestCase):
                 MemInfoKeygenVariable("test_var", -1, 3)
 
     def test_init_negative_key_index(self):
-        """Test initialization with negative key index."""
+        """@brief Test initialization with negative key index."""
         with patch(
             "assembler.memory_model.variable.Variable.validateName", return_value=True
         ):
@@ -96,7 +96,7 @@ class TestMemInfoKeygenVariable(unittest.TestCase):
                 MemInfoKeygenVariable("test_var", 2, -1)
 
     def test_as_dict(self):
-        """Test the as_dict method."""
+        """@brief Test the as_dict method."""
         with patch(
             "assembler.memory_model.variable.Variable.validateName", return_value=True
         ):
@@ -107,10 +107,10 @@ class TestMemInfoKeygenVariable(unittest.TestCase):
 
 
 class TestMemInfoMetadata(unittest.TestCase):
-    """Tests for the MemInfo.Metadata class."""
+    """@brief Tests for the MemInfo.Metadata class."""
 
     def test_parse_meta_field_from_mem_tokens_valid(self):
-        """Test parsing a valid metadata field."""
+        """@brief Test parsing a valid metadata field."""
         tokens = ["dload", "LOAD_ONES", "42", "ones_var"]
         result = MemInfo.Metadata.parse_meta_field_from_mem_tokens(
             tokens, "LOAD_ONES", var_prefix="ONES"
@@ -120,7 +120,7 @@ class TestMemInfoMetadata(unittest.TestCase):
         self.assertEqual(result.hbm_address, 42)
 
     def test_parse_meta_field_from_mem_tokens_no_name(self):
-        """Test parsing a metadata field without explicit name."""
+        """@brief Test parsing a metadata field without explicit name."""
         tokens = ["dload", "LOAD_ONES", "42"]
         result = MemInfo.Metadata.parse_meta_field_from_mem_tokens(
             tokens, "LOAD_ONES", var_prefix="ONES"
@@ -130,7 +130,7 @@ class TestMemInfoMetadata(unittest.TestCase):
         self.assertEqual(result.hbm_address, 42)
 
     def test_parse_meta_field_from_mem_tokens_with_extra(self):
-        """Test parsing a metadata field with var_extra."""
+        """@brief Test parsing a metadata field with var_extra."""
         tokens = ["dload", "LOAD_ONES", "42"]
         result = MemInfo.Metadata.parse_meta_field_from_mem_tokens(
             tokens, "LOAD_ONES", var_prefix="ONES", var_extra="_extra"
@@ -140,7 +140,7 @@ class TestMemInfoMetadata(unittest.TestCase):
         self.assertEqual(result.hbm_address, 42)
 
     def test_parse_meta_field_from_mem_tokens_invalid(self):
-        """Test parsing an invalid metadata field."""
+        """@brief Test parsing an invalid metadata field."""
         # Not enough tokens
         tokens = ["dload"]
         result = MemInfo.Metadata.parse_meta_field_from_mem_tokens(
@@ -163,7 +163,7 @@ class TestMemInfoMetadata(unittest.TestCase):
         self.assertIsNone(result)
 
     def test_metadata_init_and_properties(self):
-        """Test initialization and properties of Metadata class."""
+        """@brief Test initialization and properties of Metadata class."""
         # Prepare test data
         metadata_dict = {
             "ones": [{"var_name": "ones_var", "hbm_address": 1}],
@@ -201,7 +201,7 @@ class TestMemInfoMetadata(unittest.TestCase):
         self.assertEqual(metadata.keygen_seeds[0].var_name, "keygen_seed")
 
     def test_get_item(self):
-        """Test the __getitem__ method."""
+        """@brief Test the __getitem__ method."""
         metadata_dict = {"ones": [{"var_name": "ones_var", "hbm_address": 1}]}
         metadata = MemInfo.Metadata(**metadata_dict)
 
@@ -212,10 +212,10 @@ class TestMemInfoMetadata(unittest.TestCase):
 
 
 class TestMemInfoParsers(unittest.TestCase):
-    """Tests for the various parser methods in MemInfo."""
+    """@brief Tests for the various parser methods in MemInfo."""
 
     def test_ones_parse_from_mem_tokens(self):
-        """Test parsing Ones metadata from tokens."""
+        """@brief Test parsing Ones metadata from tokens."""
         tokens = ["dload", "LOAD_ONES", "42", "ones_var"]
         with patch(
             "assembler.memory_model.mem_info.MemInfo.Metadata.parse_meta_field_from_mem_tokens"
@@ -230,7 +230,7 @@ class TestMemInfoParsers(unittest.TestCase):
             self.assertEqual(result, mock_parse.return_value)
 
     def test_ntt_aux_table_parse_from_mem_tokens(self):
-        """Test parsing NTTAuxTable metadata from tokens."""
+        """@brief Test parsing NTTAuxTable metadata from tokens."""
         tokens = ["dload", "LOAD_NTT_AUX_TABLE", "42", "ntt_aux_var"]
         with patch(
             "assembler.memory_model.mem_info.MemInfo.Metadata.parse_meta_field_from_mem_tokens"
@@ -245,7 +245,7 @@ class TestMemInfoParsers(unittest.TestCase):
             self.assertEqual(result, mock_parse.return_value)
 
     def test_ntt_routing_table_parse_from_mem_tokens(self):
-        """Test parsing NTTRoutingTable metadata from tokens."""
+        """@brief Test parsing NTTRoutingTable metadata from tokens."""
         tokens = ["dload", "LOAD_NTT_ROUTING_TABLE", "42", "ntt_route_var"]
         with patch(
             "assembler.memory_model.mem_info.MemInfo.Metadata.parse_meta_field_from_mem_tokens"
@@ -260,7 +260,7 @@ class TestMemInfoParsers(unittest.TestCase):
             self.assertEqual(result, mock_parse.return_value)
 
     def test_intt_aux_table_parse_from_mem_tokens(self):
-        """Test parsing iNTTAuxTable metadata from tokens."""
+        """@brief Test parsing iNTTAuxTable metadata from tokens."""
         tokens = ["dload", "LOAD_iNTT_AUX_TABLE", "42", "intt_aux_var"]
         with patch(
             "assembler.memory_model.mem_info.MemInfo.Metadata.parse_meta_field_from_mem_tokens"
@@ -275,7 +275,7 @@ class TestMemInfoParsers(unittest.TestCase):
             self.assertEqual(result, mock_parse.return_value)
 
     def test_intt_routing_table_parse_from_mem_tokens(self):
-        """Test parsing iNTTRoutingTable metadata from tokens."""
+        """@brief Test parsing iNTTRoutingTable metadata from tokens."""
         tokens = ["dload", "LOAD_iNTT_ROUTING_TABLE", "42", "intt_route_var"]
         with patch(
             "assembler.memory_model.mem_info.MemInfo.Metadata.parse_meta_field_from_mem_tokens"
@@ -290,7 +290,7 @@ class TestMemInfoParsers(unittest.TestCase):
             self.assertEqual(result, mock_parse.return_value)
 
     def test_twiddle_parse_from_mem_tokens(self):
-        """Test parsing Twiddle metadata from tokens."""
+        """@brief Test parsing Twiddle metadata from tokens."""
         tokens = ["dload", "LOAD_TWIDDLE", "42", "twiddle_var"]
         with patch(
             "assembler.memory_model.mem_info.MemInfo.Metadata.parse_meta_field_from_mem_tokens"
@@ -305,7 +305,7 @@ class TestMemInfoParsers(unittest.TestCase):
             self.assertEqual(result, mock_parse.return_value)
 
     def test_keygen_seed_parse_from_mem_tokens(self):
-        """Test parsing KeygenSeed metadata from tokens."""
+        """@brief Test parsing KeygenSeed metadata from tokens."""
         tokens = ["dload", "LOAD_KEYGEN_SEED", "42", "keygen_seed_var"]
         with patch(
             "assembler.memory_model.mem_info.MemInfo.Metadata.parse_meta_field_from_mem_tokens"
@@ -320,7 +320,7 @@ class TestMemInfoParsers(unittest.TestCase):
             self.assertEqual(result, mock_parse.return_value)
 
     def test_keygen_parse_from_mem_tokens_valid(self):
-        """Test parsing a valid keygen variable."""
+        """@brief Test parsing a valid keygen variable."""
         tokens = ["keygen", "2", "3", "keygen_var"]
         result = MemInfo.Keygen.parse_from_mem_tokens(tokens)
         self.assertIsNotNone(result)
@@ -329,7 +329,7 @@ class TestMemInfoParsers(unittest.TestCase):
         self.assertEqual(result.key_index, 3)
 
     def test_keygen_parse_from_mem_tokens_invalid(self):
-        """Test parsing an invalid keygen variable."""
+        """@brief Test parsing an invalid keygen variable."""
         # Not enough tokens
         tokens = ["keygen", "2", "3"]
         result = MemInfo.Keygen.parse_from_mem_tokens(tokens)
@@ -341,7 +341,7 @@ class TestMemInfoParsers(unittest.TestCase):
         self.assertIsNone(result)
 
     def test_input_parse_from_mem_tokens_valid(self):
-        """Test parsing a valid input variable."""
+        """@brief Test parsing a valid input variable."""
         tokens = ["dload", "poly", "42", "input_var"]
         with patch(
             "assembler.memory_model.variable.Variable.validateName", return_value=True
@@ -352,7 +352,7 @@ class TestMemInfoParsers(unittest.TestCase):
             self.assertEqual(result.hbm_address, 42)
 
     def test_input_parse_from_mem_tokens_invalid(self):
-        """Test parsing an invalid input variable."""
+        """@brief Test parsing an invalid input variable."""
         # Not enough tokens
         tokens = ["dload", "poly", "42"]
         result = MemInfo.Input.parse_from_mem_tokens(tokens)
@@ -368,7 +368,7 @@ class TestMemInfoParsers(unittest.TestCase):
         self.assertIsNone(result)
 
     def test_output_parse_from_mem_tokens_valid(self):
-        """Test parsing a valid output variable."""
+        """@brief Test parsing a valid output variable."""
         tokens = ["dstore", "output_var", "42"]
         with patch(
             "assembler.memory_model.variable.Variable.validateName", return_value=True
@@ -379,7 +379,7 @@ class TestMemInfoParsers(unittest.TestCase):
             self.assertEqual(result.hbm_address, 42)
 
     def test_output_parse_from_mem_tokens_invalid(self):
-        """Test parsing an invalid output variable."""
+        """@brief Test parsing an invalid output variable."""
         # Not enough tokens
         tokens = ["store", "output_var"]
         result = MemInfo.Output.parse_from_mem_tokens(tokens)
@@ -392,10 +392,10 @@ class TestMemInfoParsers(unittest.TestCase):
 
 
 class TestMemInfo(unittest.TestCase):
-    """Tests for the MemInfo class."""
+    """@brief Tests for the MemInfo class."""
 
     def test_init_default(self):
-        """Test default initialization."""
+        """@brief Test default initialization."""
         mem_info = MemInfo()
         self.assertEqual(len(mem_info.keygens), 0)
         self.assertEqual(len(mem_info.inputs), 0)
@@ -404,7 +404,7 @@ class TestMemInfo(unittest.TestCase):
         self.assertIsInstance(mem_info.metadata, MemInfo.Metadata)
 
     def test_init_with_data(self):
-        """Test initialization with data."""
+        """@brief Test initialization with data."""
         # Prepare test data
         test_data = {
             "keygens": [{"var_name": "keygen_var", "seed_index": 1, "key_index": 2}],
@@ -438,7 +438,7 @@ class TestMemInfo(unittest.TestCase):
             self.assertEqual(mem_info.metadata.twiddle[0].var_name, "twiddle_var")
 
     def test_factory_dict(self):
-        """Test the factory_dict property."""
+        """@brief Test the factory_dict property."""
         mem_info = MemInfo()
         factory_dict = mem_info.factory_dict
 
@@ -460,7 +460,7 @@ class TestMemInfo(unittest.TestCase):
         self.assertEqual(factory_dict[MemInfo.Output], mem_info.outputs)
 
     def test_mem_info_types(self):
-        """Test the mem_info_types class property."""
+        """@brief Test the mem_info_types class property."""
         mem_info_types = MemInfo.mem_info_types
 
         # Verify expected types are in the list
@@ -476,7 +476,7 @@ class TestMemInfo(unittest.TestCase):
         self.assertIn(MemInfo.Metadata.Twiddle, mem_info_types)
 
     def test_get_meminfo_var_from_tokens_valid(self):
-        """Test getting a MemInfo variable from valid tokens."""
+        """@brief Test getting a MemInfo variable from valid tokens."""
         tokens = ["keygen", "2", "3", "keygen_var"]
 
         # Mock the parse_from_mem_tokens method to return a mock variable
@@ -491,7 +491,7 @@ class TestMemInfo(unittest.TestCase):
             self.assertEqual(var_type, MemInfo.Keygen)
 
     def test_get_meminfo_var_from_tokens_not_found(self):
-        """Test getting a MemInfo variable when no parser can handle it."""
+        """@brief Test getting a MemInfo variable when no parser can handle it."""
         tokens = ["unknown", "token"]
 
         # Mock all parse_from_mem_tokens methods to return None
@@ -509,7 +509,7 @@ class TestMemInfo(unittest.TestCase):
             self.assertIsNone(var_type)
 
     def test_add_meminfo_var_from_tokens_valid(self):
-        """Test adding a MemInfo variable from valid tokens."""
+        """@brief Test adding a MemInfo variable from valid tokens."""
         tokens = ["keygen", "2", "3", "keygen_var"]
         mem_info = MemInfo()
 
@@ -534,7 +534,7 @@ class TestMemInfo(unittest.TestCase):
             mock_list.append.assert_called_once_with(mock_variable)
 
     def test_add_meminfo_var_from_tokens_not_found(self):
-        """Test adding a MemInfo variable when no parser can handle it."""
+        """@brief Test adding a MemInfo variable when no parser can handle it."""
         tokens = ["unknown", "token"]
         mem_info = MemInfo()
 
@@ -547,7 +547,7 @@ class TestMemInfo(unittest.TestCase):
                 mem_info.add_meminfo_var_from_tokens(tokens)
 
     def test_from_file_iter_valid(self):
-        """Test creating a MemInfo from a valid file iterator."""
+        """@brief Test creating a MemInfo from a valid file iterator."""
         # Mock lines
         lines = [
             "keygen, 2, 3, keygen_var",
@@ -588,7 +588,7 @@ class TestMemInfo(unittest.TestCase):
             self.assertEqual(mock_add_var.call_count, 4)
 
     def test_from_file_iter_error(self):
-        """Test creating a MemInfo when an error occurs."""
+        """@brief Test creating a MemInfo when an error occurs."""
         # Mock lines
         lines = ["invalid line"]
 
@@ -614,7 +614,7 @@ class TestMemInfo(unittest.TestCase):
             self.assertIn("1: invalid line", str(context.exception))
 
     def test_from_dinstrs_valid(self):
-        """Test creating a MemInfo from valid DInstructions."""
+        """@brief Test creating a MemInfo from valid DInstructions."""
         # Mock DInstructions
         dinstrs = [
             MagicMock(tokens=["keygen", "2", "3", "keygen_var"]),
@@ -643,7 +643,7 @@ class TestMemInfo(unittest.TestCase):
             )
 
     def test_from_dinstrs_error(self):
-        """Test creating a MemInfo when an error occurs."""
+        """@brief Test creating a MemInfo when an error occurs."""
         # Mock DInstructions
         dinstrs = [MagicMock(tokens=["invalid"])]
 
@@ -663,7 +663,7 @@ class TestMemInfo(unittest.TestCase):
             self.assertIn("1: ['invalid']", str(context.exception))
 
     def test_as_dict(self):
-        """Test the as_dict method."""
+        """@brief Test the as_dict method."""
         # Create a MemInfo with test data
         with patch("assembler.memory_model.mem_info.MemInfo.validate"):
 
@@ -705,7 +705,7 @@ class TestMemInfo(unittest.TestCase):
             self.assertEqual(result["metadata"]["ones"], [ones_dict])
 
     def test_validate_valid(self):
-        """Test validation with valid data."""
+        """@brief Test validation with valid data."""
 
         ones_dict = {"var_name": "ones_var", "hbm_address": 44}
         twiddle_dict = {"var_name": "twiddle_var", "hbm_address": 45}
@@ -727,7 +727,7 @@ class TestMemInfo(unittest.TestCase):
         mem_info.validate()  # Should not raise any exceptions
 
     def test_validate_twiddle_mismatch(self):
-        """Test validation with mismatched twiddle count."""
+        """@brief Test validation with mismatched twiddle count."""
 
         ones_dict = {"var_name": "ones_var", "hbm_address": 44}
         twiddle_dict = {"var_name": "twiddle_var", "hbm_address": 45}
@@ -752,7 +752,7 @@ class TestMemInfo(unittest.TestCase):
             )
 
     def test_validate_duplicate_var_name(self):
-        """Test validation with duplicate variable names but different HBM addresses."""
+        """@brief Test validation with duplicate variable names but different HBM addresses."""
         # Create variable dictionaries with duplicate names but different addresses
         intt_aux_dict = {"var_name": "duplicate", "hbm_address": 1}
         ntt_route_dict = {"var_name": "duplicate", "hbm_address": 2}
@@ -777,10 +777,10 @@ class TestMemInfo(unittest.TestCase):
 
 
 class TestUpdateMemoryModelWithMemInfo(unittest.TestCase):
-    """Tests for the updateMemoryModelWithMemInfo function."""
+    """@brief Tests for the updateMemoryModelWithMemInfo function."""
 
     def setUp(self):
-        """Set up common test fixtures."""
+        """@brief Set up common test fixtures."""
         # Create mock MemoryModel
         self.mock_mem_model = MagicMock()
         self.mock_mem_model.retrieveVarAdd = MagicMock()
@@ -818,7 +818,7 @@ class TestUpdateMemoryModelWithMemInfo(unittest.TestCase):
         self.mock_mem_info.metadata = self.mock_metadata
 
     def test_update_memory_model_inputs(self):
-        """Test updating memory model with input variables."""
+        """@brief Test updating memory model with input variables."""
         # Call the function
         with patch(
             "assembler.memory_model.mem_info._allocateMemInfoVariable"
@@ -829,7 +829,7 @@ class TestUpdateMemoryModelWithMemInfo(unittest.TestCase):
             mock_allocate.assert_any_call(self.mock_mem_model, self.vars["input"])
 
     def test_update_memory_model_outputs(self):
-        """Test updating memory model with output variables."""
+        """@brief Test updating memory model with output variables."""
         # Call the function
         with patch(
             "assembler.memory_model.mem_info._allocateMemInfoVariable"
@@ -843,7 +843,7 @@ class TestUpdateMemoryModelWithMemInfo(unittest.TestCase):
             )
 
     def test_update_memory_model_metadata(self):
-        """Test updating memory model with metadata variables."""
+        """@brief Test updating memory model with metadata variables."""
         # Call the function
         with patch(
             "assembler.memory_model.mem_info._allocateMemInfoVariable"
@@ -891,10 +891,10 @@ class TestUpdateMemoryModelWithMemInfo(unittest.TestCase):
 
 
 class TestAllocateMemInfoVariable(unittest.TestCase):
-    """Tests for the _allocateMemInfoVariable function."""
+    """@brief Tests for the _allocateMemInfoVariable function."""
 
     def test_allocate_mem_info_variable_success(self):
-        """Test successful allocation of a MemInfo variable."""
+        """@brief Test successful allocation of a MemInfo variable."""
         # Create mock MemoryModel and variable
         mock_mem_model = MagicMock()
         mock_var_info = MagicMock(var_name="test_var", hbm_address=42)
@@ -918,7 +918,7 @@ class TestAllocateMemInfoVariable(unittest.TestCase):
             )
 
     def test_allocate_mem_info_variable_not_in_model(self):
-        """Test allocation when the variable is not in the memory model."""
+        """@brief Test allocation when the variable is not in the memory model."""
         # Create mock MemoryModel and variable
         mock_mem_model = MagicMock()
         mock_var_info = MagicMock(var_name="missing_var", hbm_address=42)
@@ -943,7 +943,7 @@ class TestAllocateMemInfoVariable(unittest.TestCase):
             )
 
     def test_allocate_mem_info_variable_mismatch(self):
-        """Test allocation when the variable has a different HBM address."""
+        """@brief Test allocation when the variable has a different HBM address."""
         # Create mock MemoryModel and variable
         mock_mem_model = MagicMock()
         mock_var_info = MagicMock(var_name="test_var", hbm_address=42)

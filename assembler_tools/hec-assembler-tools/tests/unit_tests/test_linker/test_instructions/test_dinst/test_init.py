@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Unit tests for the dinst package initialization module.
+@brief Unit tests for the dinst package initialization module.
 
 This module tests the factory functions and initialization utilities for
 data instructions.
@@ -17,14 +17,17 @@ from linker.instructions.dinst import DLoad, DStore, DKeyGen
 
 class TestDInstModule(unittest.TestCase):
     """
-    Test cases for data instruction initialization.
+    @brief Test cases for data instruction initialization.
 
-    These tests verify that the data instruction factory correctly creates
+    @details These tests verify that the data instruction factory correctly creates
     instruction instances and properly handles initialization errors.
     """
 
     def test_factory(self):
-        """Test that factory returns the expected set of instruction classes"""
+        """@brief Test that factory returns the expected set of instruction classes
+
+        @test Verifies the factory returns a set containing DLoad, DStore, and DKeyGen
+        """
         instruction_set = factory()
         self.assertIsInstance(instruction_set, set)
         self.assertEqual(len(instruction_set), 3)
@@ -35,7 +38,10 @@ class TestDInstModule(unittest.TestCase):
     @patch("assembler.instructions.tokenize_from_line")
     @patch("assembler.memory_model.mem_info.MemInfo.get_meminfo_var_from_tokens")
     def test_create_from_mem_line_dload_input(self, mock_get_meminfo, mock_tokenize):
-        """Test create_from_mem_line creates DLoad instruction"""
+        """@brief Test create_from_mem_line creates DLoad instruction
+
+        @test Verifies that a DLoad instruction is created with correct properties
+        """
         # Setup mocks
         tokens = ["dload", "poly", "0x123", "var1"]
         comment = "Test comment"
@@ -58,7 +64,10 @@ class TestDInstModule(unittest.TestCase):
     @patch("assembler.instructions.tokenize_from_line")
     @patch("assembler.memory_model.mem_info.MemInfo.get_meminfo_var_from_tokens")
     def test_create_from_mem_line_dload_meta(self, mock_get_meminfo, mock_tokenize):
-        """Test create_from_mem_line creates DLoad instruction"""
+        """@brief Test create_from_mem_line creates DLoad instruction for metadata
+
+        @test Verifies that a DLoad instruction is created for metadata entries
+        """
         # Setup mocks
         tokens = ["dload", "meta", "1"]
         comment = "Test comment"
@@ -81,7 +90,10 @@ class TestDInstModule(unittest.TestCase):
     @patch("assembler.instructions.tokenize_from_line")
     @patch("assembler.memory_model.mem_info.MemInfo.get_meminfo_var_from_tokens")
     def test_create_from_mem_line_dstore(self, mock_get_meminfo, mock_tokenize):
-        """Test create_from_mem_line creates DStore instruction"""
+        """@brief Test create_from_mem_line creates DStore instruction
+
+        @test Verifies that a DStore instruction is created with correct properties
+        """
         # Setup mocks
         tokens = ["dstore", "var1", "0x456"]
         comment = "Test comment"
@@ -104,7 +116,10 @@ class TestDInstModule(unittest.TestCase):
     @patch("assembler.instructions.tokenize_from_line")
     @patch("assembler.memory_model.mem_info.MemInfo.get_meminfo_var_from_tokens")
     def test_create_from_mem_line_dkeygen(self, mock_get_meminfo, mock_tokenize):
-        """Test create_from_mem_line creates DKeyGen instruction"""
+        """@brief Test create_from_mem_line creates DKeyGen instruction
+
+        @test Verifies that a DKeyGen instruction is created with correct properties
+        """
         # Setup mocks
         tokens = ["keygen", "key1", "type1", "256"]
         comment = "Test comment"
@@ -128,7 +143,10 @@ class TestDInstModule(unittest.TestCase):
     @patch("assembler.instructions.tokenize_from_line")
     @patch("assembler.memory_model.mem_info.MemInfo.get_meminfo_var_from_tokens")
     def test_create_from_mem_line_invalid(self, mock_get_meminfo, mock_tokenize):
-        """Test create_from_mem_line with invalid instruction"""
+        """@brief Test create_from_mem_line with invalid instruction
+
+        @test Verifies that RuntimeError is raised for invalid instructions
+        """
         # Setup mocks to return invalid tokens
         tokens = ["invalid_instruction", "var1", "0x123"]
         comment = ""
@@ -144,7 +162,10 @@ class TestDInstModule(unittest.TestCase):
     @patch("assembler.instructions.tokenize_from_line")
     @patch("assembler.memory_model.mem_info.MemInfo.get_meminfo_var_from_tokens")
     def test_create_from_mem_line_meminfo_error(self, mock_get_meminfo, mock_tokenize):
-        """Test create_from_mem_line with MemInfo error"""
+        """@brief Test create_from_mem_line with MemInfo error
+
+        @test Verifies that RuntimeError is wrapped with line information
+        """
         # Setup mocks
         tokens = ["dstore", "var1", "0x123"]
         comment = ""

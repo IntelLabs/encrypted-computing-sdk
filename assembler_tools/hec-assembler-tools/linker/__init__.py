@@ -4,7 +4,7 @@
 # These contents may have been developed with support from one or more Intel-operated
 # generative artificial intelligence solutions
 
-"""linker/__init__.py contains classes to encapsulate the memory model used by the linker."""
+"""@brief linker/__init__.py contains classes to encapsulate the memory model used by the linker."""
 
 import collections.abc as collections
 from assembler.common.config import GlobalConfig
@@ -14,16 +14,15 @@ from typing import Dict
 
 class VariableInfo(mem_info.MemInfoVariable):
     """
-    Represents information about a variable in the memory model.
+    @brief Represents information about a variable in the memory model.
     """
 
     def __init__(self, var_name, hbm_address=-1):
         """
-        Initializes a VariableInfo object.
+        @brief Initializes a VariableInfo object.
 
-        Parameters:
-            var_name (str): The name of the variable.
-            hbm_address (int): The HBM address of the variable. Defaults to -1.
+        @param var_name The name of the variable.
+        @param hbm_address The HBM address of the variable. Defaults to -1.
         """
         super().__init__(var_name, hbm_address)
         self.uses = 0
@@ -32,18 +31,15 @@ class VariableInfo(mem_info.MemInfoVariable):
 
 class HBM:
     """
-    Represents the HBM model.
+    @brief Represents the HBM model.
     """
 
     def __init__(self, hbm_size_words: int):
         """
-        Initializes an HBM object.
+        @brief Initializes an HBM object.
 
-        Parameters:
-            hbm_size_words (int): The size of the HBM in words.
-
-        Raises:
-            ValueError: If hbm_size_words is less than 1.
+        @param hbm_size_words The size of the HBM in words.
+        @throws ValueError If hbm_size_words is less than 1.
         """
         if hbm_size_words < 1:
             raise ValueError("`hbm_size_words` must be a positive integer.")
@@ -53,35 +49,30 @@ class HBM:
     @property
     def capacity(self) -> int:
         """
-        Gets the capacity in words for the HBM buffer.
+        @brief Gets the capacity in words for the HBM buffer.
 
-        Returns:
-            int: The capacity of the HBM buffer.
+        @return The capacity of the HBM buffer.
         """
         return len(self.buffer)
 
     @property
     def buffer(self) -> list:
         """
-        Gets the HBM buffer.
+        @brief Gets the HBM buffer.
 
-        Returns:
-            list: The HBM buffer.
+        @return The HBM buffer.
         """
         return self.__buffer
 
     def forceAllocate(self, var_info: VariableInfo, hbm_address: int):
         """
-        Forcefully allocates a variable at a specific HBM address.
+        @brief Forcefully allocates a variable at a specific HBM address.
 
-        Parameters:
-            var_info (VariableInfo): The variable information.
-            hbm_address (int): The HBM address to allocate the variable.
-
-        Raises:
-            IndexError: If hbm_address is out of bounds.
-            ValueError: If the variable is already allocated at a different address.
-            RuntimeError: If the HBM address is already occupied by another variable.
+        @param var_info The variable information.
+        @param hbm_address The HBM address to allocate the variable.
+        @throws IndexError If hbm_address is out of bounds.
+        @throws ValueError If the variable is already allocated at a different address.
+        @throws RuntimeError If the HBM address is already occupied by another variable.
         """
         if hbm_address < 0 or hbm_address >= len(self.buffer):
             raise IndexError(
@@ -123,13 +114,10 @@ class HBM:
 
     def allocate(self, var_info: VariableInfo):
         """
-        Allocates a variable in the HBM.
+        @brief Allocates a variable in the HBM.
 
-        Parameters:
-            var_info (VariableInfo): The variable information.
-
-        Raises:
-            RuntimeError: If there is no available HBM memory.
+        @param var_info The variable information.
+        @throws RuntimeError If there is no available HBM memory.
         """
         # Find next available HBM address
         retval = -1
@@ -154,16 +142,15 @@ class HBM:
 
 class MemoryModel:
     """
-    Encapsulates the memory model for a linker run, tracking HBM usage and program variables.
+    @brief Encapsulates the memory model for a linker run, tracking HBM usage and program variables.
     """
 
     def __init__(self, hbm_size_words: int, mem_meta_info: mem_info.MemInfo):
         """
-        Initializes a MemoryModel object.
+        @brief Initializes a MemoryModel object.
 
-        Parameters:
-            hbm_size_words (int): The size of the HBM in words.
-            mem_meta_info (mem_info.MemInfo): The memory metadata information.
+        @param hbm_size_words The size of the HBM in words.
+        @param mem_meta_info The memory metadata information.
         """
         self.hbm = HBM(hbm_size_words)
         self.__mem_info = mem_meta_info
@@ -219,41 +206,42 @@ class MemoryModel:
     @property
     def mem_info_meta(self) -> collections.Collection:
         """
-        Set of metadata variable names in MemInfo used to construct this object.
+        @brief Set of metadata variable names in MemInfo used to construct this object.
+
         Clients must not modify this set.
+
+        @return Collection of metadata variable names.
         """
         return self.__mem_info_meta
 
     @property
     def mem_info_vars(self) -> collections.Collection:
         """
-        Gets the set of variable names in MemInfo used to construct this object.
+        @brief Gets the set of variable names in MemInfo used to construct this object.
 
-        Returns:
-            collections.Collection: The set of variable names.
+        @return The set of variable names.
         """
         return self.__mem_info_vars
 
     @property
     def variables(self) -> dict:
         """
-        Gets direct access to internal variables dictionary.
+        @brief Gets direct access to internal variables dictionary.
 
         Clients should use as read-only. Must not add, replace, remove or change
         contents in any way. Use provided helper functions to manipulate.
 
-        Returns:
-            dict: A dictionary of variables.
+        @return A dictionary of variables.
         """
         return self.__variables
 
     def addVariable(self, var_name: str):
         """
-        Adds a variable to the HBM model. If variable already exists, its `uses`
-        field is incremented.
+        @brief Adds a variable to the HBM model.
 
-        Parameters:
-            var_name (str): The name of the variable to add.
+        If variable already exists, its `uses` field is incremented.
+
+        @param var_name The name of the variable to add.
         """
         var_info: VariableInfo
         if var_name in self.variables:
@@ -273,17 +261,14 @@ class MemoryModel:
 
     def useVariable(self, var_name: str, kernel: int) -> int:
         """
-        Uses a variable, decrementing its usage count.
+        @brief Uses a variable, decrementing its usage count.
 
         If a variable usage count reaches zero, it will be deallocated from HBM, if needed,
         when a future kernel requires HBM space.
 
-        Parameters:
-            var_name (str): The name of the variable to use.
-            kernel (int): The kernel that is using the variable.
-
-        Returns:
-            int: The HBM address for the variable.
+        @param var_name The name of the variable to use.
+        @param kernel The kernel that is using the variable.
+        @return The HBM address for the variable.
         """
         var_info: VariableInfo = self.variables[var_name]
         assert var_info.uses > 0

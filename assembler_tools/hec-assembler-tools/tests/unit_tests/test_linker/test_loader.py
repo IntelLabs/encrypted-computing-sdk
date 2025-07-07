@@ -5,7 +5,7 @@
 # generative artificial intelligence solutions
 
 """
-Unit tests for the loader module.
+@brief Unit tests for the loader module.
 """
 
 import unittest
@@ -24,10 +24,10 @@ from linker.loader import (
 
 
 class TestLoader(unittest.TestCase):
-    """Tests for the loader module functions."""
+    """@brief Tests for the loader module functions."""
 
     def setUp(self):
-        """Set up test fixtures."""
+        """@brief Set up test fixtures."""
         # Sample instruction lines for each type
         self.minst_lines = ["MINST arg1, arg2", "MINST arg3, arg4"]
         self.cinst_lines = ["CINST arg1, arg2", "CINST arg3, arg4"]
@@ -43,7 +43,10 @@ class TestLoader(unittest.TestCase):
     @patch("linker.instructions.create_from_str_line")
     @patch("linker.instructions.minst.factory")
     def test_load_minst_kernel_success(self, mock_factory, mock_create):
-        """Test successful loading of MInstructions from an iterator."""
+        """@brief Test successful loading of MInstructions from an iterator.
+
+        @test Verifies that MInstructions are properly created from string lines
+        """
         # Configure mocks
         mock_factory.return_value = "minst_factory"
         mock_create.side_effect = self.mock_minst
@@ -66,7 +69,10 @@ class TestLoader(unittest.TestCase):
     @patch("linker.instructions.create_from_str_line")
     @patch("linker.instructions.minst.factory")
     def test_load_minst_kernel_failure(self, mock_factory, mock_create):
-        """Test error handling when loading MInstructions fails."""
+        """@brief Test error handling when loading MInstructions fails.
+
+        @test Verifies that a RuntimeError is raised when parsing fails
+        """
         # Configure mocks
         mock_factory.return_value = "minst_factory"
         mock_create.return_value = None
@@ -82,7 +88,10 @@ class TestLoader(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("linker.loader.load_minst_kernel")
     def test_load_minst_kernel_from_file_success(self, mock_load, mock_file):
-        """Test successful loading of MInstructions from a file."""
+        """@brief Test successful loading of MInstructions from a file.
+
+        @test Verifies that file contents are properly passed to load_minst_kernel
+        """
         # Configure mocks
         mock_file.return_value.__enter__.return_value = self.minst_lines
         mock_load.return_value = self.mock_minst
@@ -92,13 +101,16 @@ class TestLoader(unittest.TestCase):
 
         # Verify the results
         self.assertEqual(result, self.mock_minst)
-        mock_file.assert_called_once_with("test.minst", "r")
+        mock_file.assert_called_once_with("test.minst", "r", encoding="utf-8")
         mock_load.assert_called_once_with(self.minst_lines)
 
     @patch("builtins.open", new_callable=mock_open)
     @patch("linker.loader.load_minst_kernel")
     def test_load_minst_kernel_from_file_failure(self, mock_load, mock_file):
-        """Test error handling when loading MInstructions from a file fails."""
+        """@brief Test error handling when loading MInstructions from a file fails.
+
+        @test Verifies that a RuntimeError is raised with appropriate message
+        """
         # Configure mocks
         mock_file.return_value.__enter__.return_value = self.minst_lines
         mock_load.side_effect = Exception("Test error")
@@ -114,7 +126,10 @@ class TestLoader(unittest.TestCase):
     @patch("linker.instructions.create_from_str_line")
     @patch("linker.instructions.cinst.factory")
     def test_load_cinst_kernel_success(self, mock_factory, mock_create):
-        """Test successful loading of CInstructions from an iterator."""
+        """@brief Test successful loading of CInstructions from an iterator.
+
+        @test Verifies that CInstructions are properly created from string lines
+        """
         # Configure mocks
         mock_factory.return_value = "cinst_factory"
         mock_create.side_effect = self.mock_cinst
@@ -137,7 +152,10 @@ class TestLoader(unittest.TestCase):
     @patch("linker.instructions.create_from_str_line")
     @patch("linker.instructions.cinst.factory")
     def test_load_cinst_kernel_failure(self, mock_factory, mock_create):
-        """Test error handling when loading CInstructions fails."""
+        """@brief Test error handling when loading CInstructions fails.
+
+        @test Verifies that a RuntimeError is raised when parsing fails
+        """
         # Configure mocks
         mock_factory.return_value = "cinst_factory"
         mock_create.return_value = None
@@ -153,7 +171,10 @@ class TestLoader(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("linker.loader.load_cinst_kernel")
     def test_load_cinst_kernel_from_file_success(self, mock_load, mock_file):
-        """Test successful loading of CInstructions from a file."""
+        """@brief Test successful loading of CInstructions from a file.
+
+        @test Verifies that file contents are properly passed to load_cinst_kernel
+        """
         # Configure mocks
         mock_file.return_value.__enter__.return_value = self.cinst_lines
         mock_load.return_value = self.mock_cinst
@@ -163,13 +184,16 @@ class TestLoader(unittest.TestCase):
 
         # Verify the results
         self.assertEqual(result, self.mock_cinst)
-        mock_file.assert_called_once_with("test.cinst", "r")
+        mock_file.assert_called_once_with("test.cinst", "r", encoding="utf-8")
         mock_load.assert_called_once_with(self.cinst_lines)
 
     @patch("builtins.open", new_callable=mock_open)
     @patch("linker.loader.load_cinst_kernel")
     def test_load_cinst_kernel_from_file_failure(self, mock_load, mock_file):
-        """Test error handling when loading CInstructions from a file fails."""
+        """@brief Test error handling when loading CInstructions from a file fails.
+
+        @test Verifies that a RuntimeError is raised with appropriate message
+        """
         # Configure mocks
         mock_file.return_value.__enter__.return_value = self.cinst_lines
         mock_load.side_effect = Exception("Test error")
@@ -185,7 +209,10 @@ class TestLoader(unittest.TestCase):
     @patch("linker.instructions.create_from_str_line")
     @patch("linker.instructions.xinst.factory")
     def test_load_xinst_kernel_success(self, mock_factory, mock_create):
-        """Test successful loading of XInstructions from an iterator."""
+        """@brief Test successful loading of XInstructions from an iterator.
+
+        @test Verifies that XInstructions are properly created from string lines
+        """
         # Configure mocks
         mock_factory.return_value = "xinst_factory"
         mock_create.side_effect = self.mock_xinst
@@ -208,7 +235,10 @@ class TestLoader(unittest.TestCase):
     @patch("linker.instructions.create_from_str_line")
     @patch("linker.instructions.xinst.factory")
     def test_load_xinst_kernel_failure(self, mock_factory, mock_create):
-        """Test error handling when loading XInstructions fails."""
+        """@brief Test error handling when loading XInstructions fails.
+
+        @test Verifies that a RuntimeError is raised when parsing fails
+        """
         # Configure mocks
         mock_factory.return_value = "xinst_factory"
         mock_create.return_value = None
@@ -224,7 +254,10 @@ class TestLoader(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("linker.loader.load_xinst_kernel")
     def test_load_xinst_kernel_from_file_success(self, mock_load, mock_file):
-        """Test successful loading of XInstructions from a file."""
+        """@brief Test successful loading of XInstructions from a file.
+
+        @test Verifies that file contents are properly passed to load_xinst_kernel
+        """
         # Configure mocks
         mock_file.return_value.__enter__.return_value = self.xinst_lines
         mock_load.return_value = self.mock_xinst
@@ -234,13 +267,16 @@ class TestLoader(unittest.TestCase):
 
         # Verify the results
         self.assertEqual(result, self.mock_xinst)
-        mock_file.assert_called_once_with("test.xinst", "r")
+        mock_file.assert_called_once_with("test.xinst", "r", encoding="utf-8")
         mock_load.assert_called_once_with(self.xinst_lines)
 
     @patch("builtins.open", new_callable=mock_open)
     @patch("linker.loader.load_xinst_kernel")
     def test_load_xinst_kernel_from_file_failure(self, mock_load, mock_file):
-        """Test error handling when loading XInstructions from a file fails."""
+        """@brief Test error handling when loading XInstructions from a file fails.
+
+        @test Verifies that a RuntimeError is raised with appropriate message
+        """
         # Configure mocks
         mock_file.return_value.__enter__.return_value = self.xinst_lines
         mock_load.side_effect = Exception("Test error")
@@ -255,7 +291,10 @@ class TestLoader(unittest.TestCase):
 
     @patch("linker.instructions.dinst.create_from_mem_line")
     def test_load_dinst_kernel_success(self, mock_create):
-        """Test successful loading of DInstructions from an iterator."""
+        """@brief Test successful loading of DInstructions from an iterator.
+
+        @test Verifies that DInstructions are properly created from string lines
+        """
         # Configure mocks
         mock_create.side_effect = self.mock_dinst
 
@@ -271,7 +310,10 @@ class TestLoader(unittest.TestCase):
 
     @patch("linker.instructions.dinst.create_from_mem_line")
     def test_load_dinst_kernel_failure(self, mock_create):
-        """Test error handling when loading DInstructions fails."""
+        """@brief Test error handling when loading DInstructions fails.
+
+        @test Verifies that a RuntimeError is raised when parsing fails
+        """
         # Configure mocks
         mock_create.return_value = None
 
@@ -286,7 +328,10 @@ class TestLoader(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("linker.loader.load_dinst_kernel")
     def test_load_dinst_kernel_from_file_success(self, mock_load, mock_file):
-        """Test successful loading of DInstructions from a file."""
+        """@brief Test successful loading of DInstructions from a file.
+
+        @test Verifies that file contents are properly passed to load_dinst_kernel
+        """
         # Configure mocks
         mock_file.return_value.__enter__.return_value = self.dinst_lines
         mock_load.return_value = self.mock_dinst
@@ -296,13 +341,16 @@ class TestLoader(unittest.TestCase):
 
         # Verify the results
         self.assertEqual(result, self.mock_dinst)
-        mock_file.assert_called_once_with("test.dinst", "r")
+        mock_file.assert_called_once_with("test.dinst", "r", encoding="utf-8")
         mock_load.assert_called_once_with(self.dinst_lines)
 
     @patch("builtins.open", new_callable=mock_open)
     @patch("linker.loader.load_dinst_kernel")
     def test_load_dinst_kernel_from_file_failure(self, mock_load, mock_file):
-        """Test error handling when loading DInstructions from a file fails."""
+        """@brief Test error handling when loading DInstructions from a file fails.
+
+        @test Verifies that a RuntimeError is raised with appropriate message
+        """
         # Configure mocks
         mock_file.return_value.__enter__.return_value = self.dinst_lines
         mock_load.side_effect = Exception("Test error")

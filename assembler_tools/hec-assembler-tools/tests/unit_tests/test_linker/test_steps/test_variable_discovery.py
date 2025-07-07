@@ -5,20 +5,20 @@
 # generative artificial intelligence solutions
 
 """
-Unit tests for the variable discovery module.
+@brief Unit tests for the variable discovery module.
 """
 
 import unittest
 from unittest.mock import patch, MagicMock
 
-from linker.steps.variable_discovery import discoverVariables, discoverVariablesSPAD
+from linker.steps.variable_discovery import discover_variables, discover_variables_spad
 
 
 class TestVariableDiscovery(unittest.TestCase):
-    """Tests for the variable discovery functions."""
+    """@brief Tests for the variable discovery functions."""
 
     def setUp(self):
-        """Set up test fixtures."""
+        """@brief Set up test fixtures."""
         # Group MInstructions in a dictionary
         self.m_instrs = {
             "load": MagicMock(source="var1"),
@@ -42,7 +42,10 @@ class TestVariableDiscovery(unittest.TestCase):
     def test_discover_variables_valid(
         self, mock_validate, mock_minst_class, mock_minst
     ):
-        """Test discovering variables from valid MInstructions."""
+        """@brief Test discovering variables from valid MInstructions.
+
+        @test Verifies that variables are correctly discovered from MLoad and MStore instructions
+        """
         # Setup mocks
         mock_minst.MLoad = MagicMock()
         mock_minst.MStore = MagicMock()
@@ -82,7 +85,7 @@ class TestVariableDiscovery(unittest.TestCase):
             ]
 
             # Call the function
-            result = list(discoverVariables(minstrs))
+            result = list(discover_variables(minstrs))
 
             # Verify results
             self.assertEqual(result, ["var1", "var2"])
@@ -90,22 +93,28 @@ class TestVariableDiscovery(unittest.TestCase):
             mock_validate.assert_any_call("var2")
 
     def test_discover_variables_empty_list(self):
-        """Test discovering variables from an empty list of MInstructions."""
+        """@brief Test discovering variables from an empty list of MInstructions.
+
+        @test Verifies that an empty list is returned when no instructions are provided
+        """
         # No need to patch isinstance for an empty list
-        result = list(discoverVariables([]))
+        result = list(discover_variables([]))
 
         # Verify results - should be an empty list
         self.assertEqual(result, [])
 
     def test_discover_variables_invalid_type(self):
-        """Test discovering variables with invalid types in the list."""
+        """@brief Test discovering variables with invalid types in the list.
+
+        @test Verifies that a TypeError is raised when an invalid object is in the list
+        """
         # Setup mock to fail the isinstance check
         invalid_obj = MagicMock()
 
         with patch("linker.steps.variable_discovery.isinstance", return_value=False):
             # Call the function with a list containing an invalid type
             with self.assertRaises(TypeError) as context:
-                list(discoverVariables([invalid_obj]))
+                list(discover_variables([invalid_obj]))
 
             # Verify the error message
             self.assertIn("not a valid MInstruction", str(context.exception))
@@ -113,7 +122,10 @@ class TestVariableDiscovery(unittest.TestCase):
     @patch("linker.steps.variable_discovery.minst")
     @patch("assembler.memory_model.variable.Variable.validateName")
     def test_discover_variables_invalid_variable_name(self, mock_validate, mock_minst):
-        """Test discovering variables with an invalid variable name."""
+        """@brief Test discovering variables with an invalid variable name.
+
+        @test Verifies that a RuntimeError is raised when a variable name is invalid
+        """
         # Setup mocks
         mock_minst.MLoad = MagicMock()
 
@@ -126,7 +138,7 @@ class TestVariableDiscovery(unittest.TestCase):
         ):
             # Call the function
             with self.assertRaises(RuntimeError) as context:
-                list(discoverVariables([self.m_instrs["load"]]))
+                list(discover_variables([self.m_instrs["load"]]))
 
             # Verify the error message
             self.assertIn("Invalid Variable name", str(context.exception))
@@ -137,7 +149,10 @@ class TestVariableDiscovery(unittest.TestCase):
     def test_discover_variables_spad_valid(
         self, mock_validate, mock_cinst_class, mock_cinst
     ):
-        """Test discovering variables from valid CInstructions."""
+        """@brief Test discovering variables from valid CInstructions.
+
+        @test Verifies that variables are correctly discovered from all relevant CInstruction types
+        """
         # Setup mocks
         mock_cinst.BLoad = MagicMock()
         mock_cinst.CLoad = MagicMock()
@@ -182,7 +197,7 @@ class TestVariableDiscovery(unittest.TestCase):
             "linker.steps.variable_discovery.isinstance", side_effect=mock_isinstance
         ):
             # Call the function
-            result = list(discoverVariablesSPAD(cinstrs))
+            result = list(discover_variables_spad(cinstrs))
 
             # Verify results
             self.assertEqual(result, ["var3", "var4", "var5", "var6", "var7"])
@@ -193,22 +208,28 @@ class TestVariableDiscovery(unittest.TestCase):
             mock_validate.assert_any_call("var7")
 
     def test_discover_variables_spad_empty_list(self):
-        """Test discovering variables from an empty list of CInstructions."""
+        """@brief Test discovering variables from an empty list of CInstructions.
+
+        @test Verifies that an empty list is returned when no instructions are provided
+        """
         # Call the function with an empty list
-        result = list(discoverVariablesSPAD([]))
+        result = list(discover_variables_spad([]))
 
         # Verify results - should be an empty list
         self.assertEqual(result, [])
 
     def test_discover_variables_spad_invalid_type(self):
-        """Test discovering variables with invalid types in the list."""
+        """@brief Test discovering variables with invalid types in the list.
+
+        @test Verifies that a TypeError is raised when an invalid object is in the list
+        """
         # Setup mock
         invalid_obj = MagicMock()
 
         with patch("linker.steps.variable_discovery.isinstance", return_value=False):
             # Call the function with a list containing an invalid type
             with self.assertRaises(TypeError) as context:
-                list(discoverVariablesSPAD([invalid_obj]))
+                list(discover_variables_spad([invalid_obj]))
 
             # Verify the error message
             self.assertIn("not a valid MInstruction", str(context.exception))
@@ -219,7 +240,10 @@ class TestVariableDiscovery(unittest.TestCase):
     def test_discover_variables_spad_invalid_variable_name(
         self, mock_validate, mock_cinst_class, mock_cinst
     ):
-        """Test discovering variables with an invalid variable name."""
+        """@brief Test discovering variables with an invalid variable name.
+
+        @test Verifies that a RuntimeError is raised when a variable name is invalid
+        """
         # Setup mocks
         mock_cinst.BLoad = MagicMock()
 
@@ -241,7 +265,7 @@ class TestVariableDiscovery(unittest.TestCase):
         ):
             # Call the function
             with self.assertRaises(RuntimeError) as context:
-                list(discoverVariablesSPAD([self.c_instrs["bload"]]))
+                list(discover_variables_spad([self.c_instrs["bload"]]))
 
             # Verify the error message
             self.assertIn("Invalid Variable name", str(context.exception))

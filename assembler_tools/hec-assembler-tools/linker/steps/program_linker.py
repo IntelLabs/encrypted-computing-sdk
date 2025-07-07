@@ -4,8 +4,9 @@
 # These contents may have been developed with support from one or more Intel-operated
 # generative artificial intelligence solutions
 
-"""This module provides functionality to link kernels into a program."""
+"""@brief This module provides functionality to link kernels into a program."""
 
+from typing import Dict, Any, cast
 from linker import MemoryModel
 from linker.instructions import minst, cinst, dinst
 from linker.instructions.dinst.dinstruction import DInstruction
@@ -116,11 +117,13 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 f'Invalid negative HBM address for variable "{var_name}".'
             )
         if var_name in self.__mem_model.mem_info_vars:
-            if self.__mem_model.mem_info_vars[var_name].hbm_address != hbm_address:
+            # Cast to dictionary to fix the indexing error
+            mem_info_vars_dict = cast(Dict[str, Any], self.__mem_model.mem_info_vars)
+            if mem_info_vars_dict[var_name].hbm_address != hbm_address:
                 raise RuntimeError(
                     (
                         f"Declared HBM address "
-                        f"({self.__mem_model.mem_info_vars[var_name].hbm_address})"
+                        f"({mem_info_vars_dict[var_name].hbm_address})"
                         f" of mem Variable '{var_name}'"
                         f" differs from allocated HBM address ({hbm_address})."
                     )
@@ -145,11 +148,13 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 f'Invalid negative SPAD address for variable "{var_name}".'
             )
         if var_name in self.__mem_model.mem_info_vars:
-            if self.__mem_model.mem_info_vars[var_name].hbm_address != spad_address:
+            # Cast to dictionary to fix the indexing error
+            mem_info_vars_dict = cast(Dict[str, Any], self.__mem_model.mem_info_vars)
+            if mem_info_vars_dict[var_name].hbm_address != spad_address:
                 raise RuntimeError(
                     (
                         f"Declared HBM address"
-                        f" ({self.__mem_model.mem_info_vars[var_name].hbm_address})"
+                        f" ({mem_info_vars_dict[var_name].hbm_address})"
                         f" of mem Variable '{var_name}'"
                         f" differs from allocated HBM address ({spad_address})."
                     )

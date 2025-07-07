@@ -310,7 +310,7 @@ def scan_variables(input_files, mem_model, verbose_stream):
                     file=verbose_stream,
                 )
             kernel_cinstrs = loader.load_cinst_kernel_from_file(kernel.cinst)
-            for var_name in variable_discovery.discoverVariablesSPAD(kernel_cinstrs):
+            for var_name in variable_discovery.discover_variables_spad(kernel_cinstrs):
                 mem_model.addVariable(var_name)
         else:
             if verbose_stream:
@@ -320,7 +320,7 @@ def scan_variables(input_files, mem_model, verbose_stream):
                     file=verbose_stream,
                 )
             kernel_minstrs = loader.load_minst_kernel_from_file(kernel.minst)
-            for var_name in variable_discovery.discoverVariables(kernel_minstrs):
+            for var_name in variable_discovery.discover_variables(kernel_minstrs):
                 mem_model.addVariable(var_name)
 
 

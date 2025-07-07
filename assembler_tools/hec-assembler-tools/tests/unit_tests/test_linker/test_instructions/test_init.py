@@ -5,7 +5,7 @@
 # generative artificial intelligence solutions
 
 """
-Unit tests for the linker instructions initialization module.
+@brief Unit tests for the linker instructions initialization module.
 
 This module contains tests that verify the behavior of the instruction factory
 and initialization functionality.
@@ -19,7 +19,7 @@ from linker.instructions import create_from_str_line
 
 class TestCreateFromStrLine(unittest.TestCase):
     """
-    Test cases for instruction initialization functionality.
+    @brief Test cases for instruction initialization functionality.
 
     These tests verify that instructions are correctly initialized,
     their tokens are properly processed, and their factories work as expected.
@@ -41,7 +41,12 @@ class TestCreateFromStrLine(unittest.TestCase):
 
     @patch("linker.instructions.tokenize_from_line")
     def test_create_from_str_line_success(self, mock_tokenize):
-        """Test successful instruction creation"""
+        """
+        @brief Test successful instruction creation
+
+        @test Verifies that an instruction is correctly created from a string line
+        when a valid factory is provided
+        """
         # Setup mock
         tokens = ["instruction", "arg1", "arg2"]
         comment = "Test comment"
@@ -59,7 +64,11 @@ class TestCreateFromStrLine(unittest.TestCase):
 
     @patch("linker.instructions.tokenize_from_line")
     def test_create_from_str_line_failure(self, mock_tokenize):
-        """Test when no instruction can be created"""
+        """
+        @brief Test when no instruction can be created
+
+        @test Verifies that None is returned when instruction creation fails
+        """
         # Setup mock
         tokens = ["unknown", "arg1", "arg2"]
         comment = "Test comment"
@@ -78,7 +87,12 @@ class TestCreateFromStrLine(unittest.TestCase):
 
     @patch("linker.instructions.tokenize_from_line")
     def test_create_from_str_line_multiple_instruction_types(self, mock_tokenize):
-        """Test with multiple instruction types in factory"""
+        """
+        @brief Test with multiple instruction types in factory
+
+        @test Verifies that the function tries each instruction type in the factory
+        until one succeeds
+        """
         # Setup mocks
         tokens = ["instruction", "arg1", "arg2"]
         comment = "Test comment"
@@ -103,7 +117,12 @@ class TestCreateFromStrLine(unittest.TestCase):
 
     @patch("linker.instructions.tokenize_from_line")
     def test_create_from_str_line_exception_handling(self, mock_tokenize):
-        """Test that general exceptions are caught"""
+        """
+        @brief Test that general exceptions are caught
+
+        @test Verifies that unexpected exceptions during instruction creation are
+        handled gracefully and None is returned
+        """
         # Setup mock
         tokens = ["instruction", "arg1", "arg2"]
         comment = "Test comment"

@@ -5,7 +5,7 @@
 # or more Intel-operated generative artificial intelligence solutions
 
 """
-This module provides functionality to load different types of instruction kernels
+@brief This module provides functionality to load different types of instruction kernels
 """
 
 from linker.instructions import minst
@@ -17,16 +17,11 @@ from linker import instructions
 
 def load_minst_kernel(line_iter) -> list:
     """
-    Loads MInstruction kernel from an iterator of lines.
+    @brief Loads MInstruction kernel from an iterator of lines.
 
-    Parameters:
-        line_iter: An iterator over lines of MInstruction strings.
-
-    Returns:
-        list: A list of MInstruction objects.
-
-    Raises:
-        RuntimeError: If a line cannot be parsed into an MInstruction.
+    @param line_iter An iterator over lines of MInstruction strings.
+    @return A list of MInstruction objects.
+    @throws RuntimeError If a line cannot be parsed into an MInstruction.
     """
     retval = []
     for idx, s_line in enumerate(line_iter):
@@ -39,16 +34,11 @@ def load_minst_kernel(line_iter) -> list:
 
 def load_minst_kernel_from_file(filename: str) -> list:
     """
-    Loads MInstruction kernel from a file.
+    @brief Loads MInstruction kernel from a file.
 
-    Parameters:
-        filename (str): The file containing MInstruction strings.
-
-    Returns:
-        list: A list of MInstruction objects.
-
-    Raises:
-        RuntimeError: If an error occurs while loading the file.
+    @param filename The file containing MInstruction strings.
+    @return A list of MInstruction objects.
+    @throws RuntimeError If an error occurs while loading the file.
     """
     with open(filename, "r", encoding="utf-8") as kernel_minsts:
         try:
@@ -59,16 +49,11 @@ def load_minst_kernel_from_file(filename: str) -> list:
 
 def load_cinst_kernel(line_iter) -> list:
     """
-    Loads CInstruction kernel from an iterator of lines.
+    @brief Loads CInstruction kernel from an iterator of lines.
 
-    Parameters:
-        line_iter: An iterator over lines of CInstruction strings.
-
-    Returns:
-        list: A list of CInstruction objects.
-
-    Raises:
-        RuntimeError: If a line cannot be parsed into a CInstruction.
+    @param line_iter An iterator over lines of CInstruction strings.
+    @return A list of CInstruction objects.
+    @throws RuntimeError If a line cannot be parsed into a CInstruction.
     """
     retval = []
     for idx, s_line in enumerate(line_iter):
@@ -81,16 +66,11 @@ def load_cinst_kernel(line_iter) -> list:
 
 def load_cinst_kernel_from_file(filename: str) -> list:
     """
-    Loads CInstruction kernel from a file.
+    @brief Loads CInstruction kernel from a file.
 
-    Parameters:
-        filename (str): The file containing CInstruction strings.
-
-    Returns:
-        list: A list of CInstruction objects.
-
-    Raises:
-        RuntimeError: If an error occurs while loading the file.
+    @param filename The file containing CInstruction strings.
+    @return A list of CInstruction objects.
+    @throws RuntimeError If an error occurs while loading the file.
     """
     with open(filename, "r", encoding="utf-8") as kernel_cinsts:
         try:
@@ -101,16 +81,11 @@ def load_cinst_kernel_from_file(filename: str) -> list:
 
 def load_xinst_kernel(line_iter) -> list:
     """
-    Loads XInstruction kernel from an iterator of lines.
+    @brief Loads XInstruction kernel from an iterator of lines.
 
-    Parameters:
-        line_iter: An iterator over lines of XInstruction strings.
-
-    Returns:
-        list: A list of XInstruction objects.
-
-    Raises:
-        RuntimeError: If a line cannot be parsed into an XInstruction.
+    @param line_iter An iterator over lines of XInstruction strings.
+    @return A list of XInstruction objects.
+    @throws RuntimeError If a line cannot be parsed into an XInstruction.
     """
     retval = []
     for idx, s_line in enumerate(line_iter):
@@ -123,16 +98,11 @@ def load_xinst_kernel(line_iter) -> list:
 
 def load_xinst_kernel_from_file(filename: str) -> list:
     """
-    Loads XInstruction kernel from a file.
+    @brief Loads XInstruction kernel from a file.
 
-    Parameters:
-        filename (str): The file containing XInstruction strings.
-
-    Returns:
-        list: A list of XInstruction objects.
-
-    Raises:
-        RuntimeError: If an error occurs while loading the file.
+    @param filename The file containing XInstruction strings.
+    @return A list of XInstruction objects.
+    @throws RuntimeError If an error occurs while loading the file.
     """
     with open(filename, "r", encoding="utf-8") as kernel_xinsts:
         try:
@@ -143,16 +113,11 @@ def load_xinst_kernel_from_file(filename: str) -> list:
 
 def load_dinst_kernel(line_iter) -> list:
     """
-    Loads DInstruction kernel from an iterator of lines.
+    @brief Loads DInstruction kernel from an iterator of lines.
 
-    Parameters:
-        line_iter: An iterator over lines of DInstruction strings.
-
-    Returns:
-        list: A list of DInstruction objects.
-
-    Raises:
-        RuntimeError: If a line cannot be parsed into an DInstruction.
+    @param line_iter An iterator over lines of DInstruction strings.
+    @return A list of DInstruction objects.
+    @throws RuntimeError If a line cannot be parsed into an DInstruction.
     """
     retval = []
     for idx, s_line in enumerate(line_iter):
@@ -166,16 +131,11 @@ def load_dinst_kernel(line_iter) -> list:
 
 def load_dinst_kernel_from_file(filename: str) -> list:
     """
-    Loads DInstruction kernel from a file.
+    @brief Loads DInstruction kernel from a file.
 
-    Parameters:
-        filename (str): The file containing DInstruction strings.
-
-    Returns:
-        list: A list of DInstruction objects.
-
-    Raises:
-        RuntimeError: If an error occurs while loading the file.
+    @param filename The file containing DInstruction strings.
+    @return A list of DInstruction objects.
+    @throws RuntimeError If an error occurs while loading the file.
     """
     with open(filename, "r", encoding="utf-8") as kernel_dinsts:
         try:

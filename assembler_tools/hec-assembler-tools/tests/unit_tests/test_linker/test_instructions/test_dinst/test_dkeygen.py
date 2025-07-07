@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Unit tests for the DKeygen instruction class.
+@brief Unit tests for the DKeygen instruction class.
 
 This module tests the functionality of the DKeygen instruction which is
 responsible for key generation operations.
@@ -17,9 +17,9 @@ from linker.instructions.dinst.dkeygen import Instruction
 
 class TestDKeygenInstruction(unittest.TestCase):
     """
-    Test cases for the DKeygen instruction class.
+    @brief Test cases for the DKeygen instruction class.
 
-    These tests verify that the DKeygen instruction correctly handles token
+    @details These tests verify that the DKeygen instruction correctly handles token
     parsing, name resolution, and serialization.
     """
 
@@ -33,27 +33,42 @@ class TestDKeygenInstruction(unittest.TestCase):
         )
 
     def test_get_num_tokens(self):
-        """Test that _get_num_tokens returns 4"""
+        """@brief Test that _get_num_tokens returns 4
+
+        @test Verifies the instruction requires exactly 4 tokens
+        """
         self.assertEqual(Instruction.num_tokens, 4)
 
     def test_get_name(self):
-        """Test that _get_name returns the expected value"""
+        """@brief Test that _get_name returns the expected value
+
+        @test Verifies the instruction name matches the MemInfo constant
+        """
         self.assertEqual(Instruction.name, MemInfo.Const.Keyword.KEYGEN)
 
     def test_initialization_valid_input(self):
-        """Test that initialization can set up the correct properties with valid name"""
+        """@brief Test that initialization can set up the correct properties with valid name
+
+        @test Verifies the instruction is properly initialized with valid tokens
+        """
         inst = Instruction(
             [MemInfo.Const.Keyword.KEYGEN, self.seed_idx, self.key_idx, self.var_name]
         )
         self.assertEqual(inst.name, MemInfo.Const.Keyword.KEYGEN)
 
     def test_initialization_invalid_name(self):
-        """Test that initialization raises exception with invalid name"""
+        """@brief Test that initialization raises exception with invalid name
+
+        @test Verifies ValueError is raised when an invalid instruction name is provided
+        """
         with self.assertRaises(ValueError):  # Adjust exception type if needed
             Instruction(["invalid_name", self.seed_idx, self.key_idx, self.var_name])
 
     def test_tokens_property(self):
-        """Test that tokens property returns the correct list"""
+        """@brief Test that tokens property returns the correct list
+
+        @test Verifies the tokens property correctly formats the instruction tokens
+        """
         # Since tokens property implementation is not visible in the dkeygen.py file,
         # this test assumes default behavior from parent class or basic functionality
         expected_tokens = [
@@ -65,7 +80,10 @@ class TestDKeygenInstruction(unittest.TestCase):
         self.assertEqual(self.inst.tokens[:4], expected_tokens)
 
     def test_tokens_with_additional_data(self):
-        """Test tokens property with additional tokens"""
+        """@brief Test tokens property with additional tokens
+
+        @test Verifies extra tokens are preserved in the tokens property
+        """
         additional_token = "extra"
         inst_with_extra = Instruction(
             [
@@ -84,19 +102,28 @@ class TestDKeygenInstruction(unittest.TestCase):
         return_value=None,
     )
     def test_inheritance(self, mock_init):
-        """Test that Instruction properly extends DInstruction"""
+        """@brief Test that Instruction properly extends DInstruction
+
+        @test Verifies the parent constructor is called during initialization
+        """
         # Ensure that DInstruction methods are called as expected
         Instruction([Instruction.name, self.seed_idx, self.key_idx, self.var_name])
         # Verify DInstruction.__init__ was called
         mock_init.assert_called()
 
     def test_invalid_token_count_too_few(self):
-        """Test behavior when fewer tokens than required are provided"""
+        """@brief Test behavior when fewer tokens than required are provided
+
+        @test Verifies ValueError is raised when too few tokens are provided
+        """
         with self.assertRaises(ValueError):  # Adjust exception type if needed
             Instruction([MemInfo.Const.Keyword.KEYGEN, self.seed_idx, self.key_idx])
 
     def test_invalid_token_count_too_many(self):
-        """Test behavior when more tokens than required are provided"""
+        """@brief Test behavior when more tokens than required are provided
+
+        @test Verifies extra tokens are handled gracefully without errors
+        """
         # This should not raise an error as additional tokens are handled
         inst = Instruction(
             [
