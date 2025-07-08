@@ -178,7 +178,9 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             # Change mload variable names into HBM addresses
             if isinstance(minstr, minst.MLoad):
                 var_name = minstr.source
-                hbm_address = self.__mem_model.useVariable(var_name, self._kernel_count)
+                hbm_address = self.__mem_model.use_variable(
+                    var_name, self._kernel_count
+                )
                 self._validate_hbm_address(var_name, hbm_address)
                 minstr.source = str(hbm_address)
                 minstr.comment = (
@@ -189,7 +191,9 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             # Change mstore variable names into HBM addresses
             if isinstance(minstr, minst.MStore):
                 var_name = minstr.dest
-                hbm_address = self.__mem_model.useVariable(var_name, self._kernel_count)
+                hbm_address = self.__mem_model.use_variable(
+                    var_name, self._kernel_count
+                )
                 self._validate_hbm_address(var_name, hbm_address)
                 minstr.dest = str(hbm_address)
                 minstr.comment = (
@@ -313,7 +317,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                     cinstr, (cinst.BLoad, cinst.BOnes, cinst.CLoad, cinst.NLoad)
                 ):
                     var_name = cinstr.source
-                    hbm_address = self.__mem_model.useVariable(
+                    hbm_address = self.__mem_model.use_variable(
                         var_name, self._kernel_count
                     )
                     self._validate_spad_address(var_name, hbm_address)
@@ -325,7 +329,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                     )
                 if isinstance(cinstr, cinst.CStore):
                     var_name = cinstr.dest
-                    hbm_address = self.__mem_model.useVariable(
+                    hbm_address = self.__mem_model.use_variable(
                         var_name, self._kernel_count
                     )
                     self._validate_spad_address(var_name, hbm_address)

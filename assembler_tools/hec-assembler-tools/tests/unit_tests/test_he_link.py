@@ -379,9 +379,9 @@ class TestHelperFunctions:
 
         # Assert
         if has_hbm:
-            assert mock_mem_model.addVariable.call_count == 2
+            assert mock_mem_model.add_variable.call_count == 2
         else:
-            assert mock_mem_model.addVariable.call_count == 2
+            assert mock_mem_model.add_variable.call_count == 2
 
     def test_check_unused_variables(self):
         """

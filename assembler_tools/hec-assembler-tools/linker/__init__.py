@@ -7,9 +7,10 @@
 """@brief linker/__init__.py contains classes to encapsulate the memory model used by the linker."""
 
 import collections.abc as collections
+from typing import Dict
+
 from assembler.common.config import GlobalConfig
 from assembler.memory_model import mem_info
-from typing import Dict
 
 
 class VariableInfo(mem_info.MemInfoVariable):
@@ -64,7 +65,7 @@ class HBM:
         """
         return self.__buffer
 
-    def forceAllocate(self, var_info: VariableInfo, hbm_address: int):
+    def force_allocate(self, var_info: VariableInfo, hbm_address: int):
         """
         @brief Forcefully allocates a variable at a specific HBM address.
 
@@ -76,9 +77,7 @@ class HBM:
         """
         if hbm_address < 0 or hbm_address >= len(self.buffer):
             raise IndexError(
-                "`hbm_address` out of bounds. Expected a word address in range [0, {}), but {} received".format(
-                    len(self.buffer), hbm_address
-                )
+                f"`hbm_address` out of bounds. Expected a word address in range [0, {len(self.buffer)}), but {hbm_address} received"
             )
         if var_info.hbm_address != hbm_address:
             if var_info.hbm_address >= 0:
@@ -93,10 +92,8 @@ class HBM:
                 # Note: there is no HBM, so, SPAD is used as the sole memory space
                 if in_var_info and in_var_info.uses > 0:
                     raise RuntimeError(
-                        (
-                            "HBM address {} already occupied by variable {} "
-                            "when attempting to allocate variable {}"
-                        ).format(hbm_address, in_var_info.var_name, var_info.var_name)
+                        f"HBM address {hbm_address} already occupied by variable {in_var_info.var_name} "
+                        f"when attempting to allocate variable {var_info.var_name}"
                     )
             else:
                 if in_var_info and (
@@ -104,10 +101,8 @@ class HBM:
                     or in_var_info.last_kernel_used >= var_info.last_kernel_used
                 ):
                     raise RuntimeError(
-                        (
-                            "HBM address {} already occupied by variable {} "
-                            "when attempting to allocate variable {}"
-                        ).format(hbm_address, in_var_info.var_name, var_info.var_name)
+                        f"HBM address {hbm_address} already occupied by variable {in_var_info.var_name} "
+                        f"when attempting to allocate variable {var_info.var_name}"
                     )
             var_info.hbm_address = hbm_address
             self.buffer[hbm_address] = var_info
@@ -137,7 +132,7 @@ class HBM:
                     break
         if retval < 0:
             raise RuntimeError("Out of HBM memory.")
-        self.forceAllocate(var_info, retval)
+        self.force_allocate(var_info, retval)
 
 
 class MemoryModel:
@@ -157,50 +152,60 @@ class MemoryModel:
         self.__variables: Dict[str, VariableInfo] = (
             {}
         )  # dict(var_name: str, VariableInfo)
-        self.__keygen_vars = {
-            var_info.var_name: var_info for var_info in self.__mem_info.keygens
+
+        # Group related collections into a dictionary
+        self.__mem_collections = {
+            "keygen_vars": {
+                var_info.var_name: var_info for var_info in self.__mem_info.keygens
+            },
+            "inputs": {
+                var_info.var_name: var_info for var_info in self.__mem_info.inputs
+            },
+            "outputs": {
+                var_info.var_name: var_info for var_info in self.__mem_info.outputs
+            },
+            "meta": (
+                {
+                    var_info.var_name: var_info
+                    for var_info in self.__mem_info.metadata.intt_auxiliary_table
+                }
+                | {
+                    var_info.var_name: var_info
+                    for var_info in self.__mem_info.metadata.intt_routing_table
+                }
+                | {
+                    var_info.var_name: var_info
+                    for var_info in self.__mem_info.metadata.ntt_auxiliary_table
+                }
+                | {
+                    var_info.var_name: var_info
+                    for var_info in self.__mem_info.metadata.ntt_routing_table
+                }
+                | {
+                    var_info.var_name: var_info
+                    for var_info in self.__mem_info.metadata.ones
+                }
+                | {
+                    var_info.var_name: var_info
+                    for var_info in self.__mem_info.metadata.twiddle
+                }
+                | {
+                    var_info.var_name: var_info
+                    for var_info in self.__mem_info.metadata.keygen_seeds
+                }
+            ),
         }
-        self.__mem_info_inputs = {
-            var_info.var_name: var_info for var_info in self.__mem_info.inputs
-        }
-        self.__mem_info_outputs = {
-            var_info.var_name: var_info for var_info in self.__mem_info.outputs
-        }
-        self.__mem_info_meta = (
-            {
-                var_info.var_name: var_info
-                for var_info in self.__mem_info.metadata.intt_auxiliary_table
-            }
-            | {
-                var_info.var_name: var_info
-                for var_info in self.__mem_info.metadata.intt_routing_table
-            }
-            | {
-                var_info.var_name: var_info
-                for var_info in self.__mem_info.metadata.ntt_auxiliary_table
-            }
-            | {
-                var_info.var_name: var_info
-                for var_info in self.__mem_info.metadata.ntt_routing_table
-            }
-            | {
-                var_info.var_name: var_info
-                for var_info in self.__mem_info.metadata.ones
-            }
-            | {
-                var_info.var_name: var_info
-                for var_info in self.__mem_info.metadata.twiddle
-            }
-            | {
-                var_info.var_name: var_info
-                for var_info in self.__mem_info.metadata.keygen_seeds
-            }
+
+        # Derived collections
+        self.__mem_info_fixed_addr_vars = (
+            self.__mem_collections["outputs"] | self.__mem_collections["meta"]
         )
-        self.__mem_info_fixed_addr_vars = self.__mem_info_outputs | self.__mem_info_meta
         # Keygen variables should not be part of mem_info_vars set since they
         # do not start in HBM
         self.__mem_info_vars = (
-            self.__mem_info_inputs | self.__mem_info_outputs | self.__mem_info_meta
+            self.__mem_collections["inputs"]
+            | self.__mem_collections["outputs"]
+            | self.__mem_collections["meta"]
         )
 
     @property
@@ -212,7 +217,7 @@ class MemoryModel:
 
         @return Collection of metadata variable names.
         """
-        return self.__mem_info_meta
+        return self.__mem_collections["meta"]
 
     @property
     def mem_info_vars(self) -> collections.Collection:
@@ -235,7 +240,7 @@ class MemoryModel:
         """
         return self.__variables
 
-    def addVariable(self, var_name: str):
+    def add_variable(self, var_name: str):
         """
         @brief Adds a variable to the HBM model.
 
@@ -253,13 +258,13 @@ class MemoryModel:
                 # with predefined HBM address
                 if var_name in self.__mem_info_fixed_addr_vars:
                     var_info.uses = float("inf")
-                self.hbm.forceAllocate(
+                self.hbm.force_allocate(
                     var_info, self.__mem_info_vars[var_name].hbm_address
                 )
             self.variables[var_name] = var_info
         var_info.uses += 1
 
-    def useVariable(self, var_name: str, kernel: int) -> int:
+    def use_variable(self, var_name: str, kernel: int) -> int:
         """
         @brief Uses a variable, decrementing its usage count.
 

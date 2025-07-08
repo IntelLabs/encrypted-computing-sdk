@@ -90,37 +90,37 @@ class TestHBM(unittest.TestCase):
             self.assertIsNone(item)
 
     def test_force_allocate_valid(self):
-        """@brief Test forceAllocate with valid parameters.
+        """@brief Test force_allocate with valid parameters.
 
         @test Verifies that a variable is properly allocated at the specified address
         """
         var_info = VariableInfo("test_var")
-        self.hbm.forceAllocate(var_info, 5)
+        self.hbm.force_allocate(var_info, 5)
         self.assertEqual(var_info.hbm_address, 5)
         self.assertEqual(self.hbm.buffer[5], var_info)
 
     def test_force_allocate_out_of_bounds(self):
-        """@brief Test forceAllocate with out of bounds address.
+        """@brief Test force_allocate with out of bounds address.
 
         @test Verifies that IndexError is raised for out-of-bounds addresses
         """
         var_info = VariableInfo("test_var")
         with self.assertRaises(IndexError):
-            self.hbm.forceAllocate(var_info, -1)
+            self.hbm.force_allocate(var_info, -1)
         with self.assertRaises(IndexError):
-            self.hbm.forceAllocate(var_info, self.hbm_size)
+            self.hbm.force_allocate(var_info, self.hbm_size)
 
     def test_force_allocate_already_allocated(self):
-        """@brief Test forceAllocate with already allocated variable.
+        """@brief Test force_allocate with already allocated variable.
 
         @test Verifies that ValueError is raised when variable is already allocated
         """
         var_info = VariableInfo("test_var", 3)
         with self.assertRaises(ValueError):
-            self.hbm.forceAllocate(var_info, 5)
+            self.hbm.force_allocate(var_info, 5)
 
     def test_force_allocate_address_occupied_with_hbm(self):
-        """@brief Test forceAllocate with address occupied and HBM enabled.
+        """@brief Test force_allocate with address occupied and HBM enabled.
 
         @test Verifies that RuntimeError is raised when address is occupied
         """
@@ -128,15 +128,15 @@ class TestHBM(unittest.TestCase):
             # Occupy address 5
             var_info1 = VariableInfo("var1")
             var_info1.uses = 1
-            self.hbm.forceAllocate(var_info1, 5)
+            self.hbm.force_allocate(var_info1, 5)
 
             # Try to allocate another variable at the same address
             var_info2 = VariableInfo("var2")
             with self.assertRaises(RuntimeError):
-                self.hbm.forceAllocate(var_info2, 5)
+                self.hbm.force_allocate(var_info2, 5)
 
     def test_force_allocate_address_occupied_without_hbm(self):
-        """@brief Test forceAllocate with address occupied and HBM disabled.
+        """@brief Test force_allocate with address occupied and HBM disabled.
 
         @test Verifies that RuntimeError is raised when address is occupied
         """
@@ -144,15 +144,15 @@ class TestHBM(unittest.TestCase):
             # Occupy address 5
             var_info1 = VariableInfo("var1")
             var_info1.uses = 1
-            self.hbm.forceAllocate(var_info1, 5)
+            self.hbm.force_allocate(var_info1, 5)
 
             # Try to allocate another variable at the same address
             var_info2 = VariableInfo("var2")
             with self.assertRaises(RuntimeError):
-                self.hbm.forceAllocate(var_info2, 5)
+                self.hbm.force_allocate(var_info2, 5)
 
     def test_force_allocate_address_recyclable_with_hbm(self):
-        """@brief Test forceAllocate with recyclable address and HBM enabled.
+        """@brief Test force_allocate with recyclable address and HBM enabled.
 
         @test Verifies that an address can be recycled when the variable is not used
         """
@@ -161,12 +161,12 @@ class TestHBM(unittest.TestCase):
             var_info1 = VariableInfo("var1")
             var_info1.uses = 0
             var_info1.last_kernel_used = 1
-            self.hbm.forceAllocate(var_info1, 5)
+            self.hbm.force_allocate(var_info1, 5)
 
             # Allocate another variable at the same address with higher kernel index
             var_info2 = VariableInfo("var2")
             var_info2.last_kernel_used = 2
-            self.hbm.forceAllocate(var_info2, 5)
+            self.hbm.force_allocate(var_info2, 5)
 
             # Check that the new variable is at the address
             self.assertEqual(self.hbm.buffer[5], var_info2)
@@ -191,7 +191,7 @@ class TestHBM(unittest.TestCase):
         for i in range(self.hbm_size):
             var_info = VariableInfo(f"var{i}")
             var_info.uses = 1
-            self.hbm.forceAllocate(var_info, i)
+            self.hbm.force_allocate(var_info, i)
 
         # Try to allocate another variable
         var_info = VariableInfo("test_var")
@@ -209,7 +209,7 @@ class TestHBM(unittest.TestCase):
                 var_info = VariableInfo(f"var{i}")
                 var_info.uses = 1 if i != 3 else 0
                 var_info.last_kernel_used = 1
-                self.hbm.forceAllocate(var_info, i)
+                self.hbm.force_allocate(var_info, i)
 
             # Allocate a new variable - should reuse address 3
             var_info = VariableInfo("test_var")
@@ -290,7 +290,7 @@ class TestMemoryModel(unittest.TestCase):
 
         @test Verifies that a new variable is correctly added to the model
         """
-        self.memory_model.addVariable("test_var")
+        self.memory_model.add_variable("test_var")
 
         # Check that variable was added
         self.assertIn("test_var", self.memory_model.variables)
@@ -307,10 +307,10 @@ class TestMemoryModel(unittest.TestCase):
         @test Verifies that the uses count is incremented for an existing variable
         """
         # Add the variable first
-        self.memory_model.addVariable("test_var")
+        self.memory_model.add_variable("test_var")
 
         # Add it again
-        self.memory_model.addVariable("test_var")
+        self.memory_model.add_variable("test_var")
 
         # Check that the uses were incremented
         var_info = self.memory_model.variables["test_var"]
@@ -321,7 +321,7 @@ class TestMemoryModel(unittest.TestCase):
 
         @test Verifies that a variable from mem_info is correctly added with its HBM address
         """
-        self.memory_model.addVariable("input_var")
+        self.memory_model.add_variable("input_var")
 
         # Check that variable was added
         self.assertIn("input_var", self.memory_model.variables)
@@ -337,7 +337,7 @@ class TestMemoryModel(unittest.TestCase):
 
         @test Verifies that a fixed-address variable is added with infinite uses
         """
-        self.memory_model.addVariable("output_var")
+        self.memory_model.add_variable("output_var")
 
         # Check that variable was added
         self.assertIn("output_var", self.memory_model.variables)
@@ -355,10 +355,10 @@ class TestMemoryModel(unittest.TestCase):
         @test Verifies that using a variable decrements its uses count and allocates an HBM address
         """
         # Add the variable first
-        self.memory_model.addVariable("test_var")
+        self.memory_model.add_variable("test_var")
 
         # Use the variable
-        hbm_address = self.memory_model.useVariable("test_var", 1)
+        hbm_address = self.memory_model.use_variable("test_var", 1)
 
         # Check that uses were decremented
         var_info = self.memory_model.variables["test_var"]
@@ -380,10 +380,10 @@ class TestMemoryModel(unittest.TestCase):
         @test Verifies that the existing HBM address is returned
         """
         # Add a variable from mem_info which already has an HBM address
-        self.memory_model.addVariable("input_var")
+        self.memory_model.add_variable("input_var")
 
         # Use the variable
-        hbm_address = self.memory_model.useVariable("input_var", 1)
+        hbm_address = self.memory_model.use_variable("input_var", 1)
 
         # Check that the returned HBM address is the one from mem_info
         self.assertEqual(hbm_address, 1)

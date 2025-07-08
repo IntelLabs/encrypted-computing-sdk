@@ -311,7 +311,7 @@ def scan_variables(input_files, mem_model, verbose_stream):
                 )
             kernel_cinstrs = loader.load_cinst_kernel_from_file(kernel.cinst)
             for var_name in variable_discovery.discover_variables_spad(kernel_cinstrs):
-                mem_model.addVariable(var_name)
+                mem_model.add_variable(var_name)
         else:
             if verbose_stream:
                 print(
@@ -321,7 +321,7 @@ def scan_variables(input_files, mem_model, verbose_stream):
                 )
             kernel_minstrs = loader.load_minst_kernel_from_file(kernel.minst)
             for var_name in variable_discovery.discover_variables(kernel_minstrs):
-                mem_model.addVariable(var_name)
+                mem_model.add_variable(var_name)
 
 
 def check_unused_variables(mem_model):

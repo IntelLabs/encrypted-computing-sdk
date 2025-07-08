@@ -118,9 +118,9 @@ class TestCreateFromStrLine(unittest.TestCase):
     @patch("linker.instructions.tokenize_from_line")
     def test_create_from_str_line_exception_handling(self, mock_tokenize):
         """
-        @brief Test that general exceptions are caught
+        @brief Test that specific exceptions are caught
 
-        @test Verifies that unexpected exceptions during instruction creation are
+        @test Verifies that expected exceptions during instruction creation are
         handled gracefully and None is returned
         """
         # Setup mock
@@ -128,8 +128,8 @@ class TestCreateFromStrLine(unittest.TestCase):
         comment = "Test comment"
         mock_tokenize.return_value = (tokens, comment)
 
-        # Make instruction creation raise a different exception
-        self.mock_class.side_effect = Exception("Unexpected error")
+        # Make instruction creation raise one of the expected exception types
+        self.mock_class.side_effect = ValueError("Invalid values")
 
         # Call function - should handle the exception and return None
         result = create_from_str_line(

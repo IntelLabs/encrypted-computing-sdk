@@ -200,7 +200,7 @@ class TestLinkedProgram(unittest.TestCase):
         mock_mstore.comment = None
 
         # Set up memory model mock
-        self.mem_model.useVariable.side_effect = [
+        self.mem_model.use_variable.side_effect = [
             10,
             20,
         ]  # Return different addresses for different vars
@@ -222,7 +222,7 @@ class TestLinkedProgram(unittest.TestCase):
         self.assertEqual(mock_mstore.dest, "20")  # Replaced with HBM address
 
         # Verify the memory model was used correctly
-        self.mem_model.useVariable.assert_has_calls(
+        self.mem_model.use_variable.assert_has_calls(
             [call("input_var", 1), call("output_var", 1)]
         )
 
@@ -312,7 +312,7 @@ class TestLinkedProgram(unittest.TestCase):
         # Test with HBM disabled
         with patch.object(GlobalConfig, "hasHBM", False):
             # Set up memory model mock
-            self.mem_model.useVariable.side_effect = [
+            self.mem_model.use_variable.side_effect = [
                 30,
                 40,
             ]  # Return different addresses for different vars
@@ -329,7 +329,7 @@ class TestLinkedProgram(unittest.TestCase):
             self.assertEqual(mock_cstore.dest, "40")
 
             # Verify the memory model was used correctly
-            self.mem_model.useVariable.assert_has_calls(
+            self.mem_model.use_variable.assert_has_calls(
                 [call("var1", 2), call("var2", 2)]
             )
 

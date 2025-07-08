@@ -25,7 +25,7 @@ def create_from_str_line(line: str, factory) -> Optional[BaseInstruction]:
     for instr_type in factory:
         try:
             retval = instr_type(tokens, comment)
-        except:
+        except (TypeError, ValueError, AttributeError):
             retval = None
         if retval:
             break
