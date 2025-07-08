@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Intel Corporation
+# Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
 """Module containing conversions or operations from isa to p-isa."""
@@ -89,7 +89,7 @@ class Mod(HighOp):
                 stages.append(
                     Stage(
                         [
-                            Comment("Mod Stage 1"),
+                            Comment("Mod Stage 1 <reorderable>"),
                             muli_last_half(
                                 self.context,
                                 temp_input_remaining_rns,
@@ -194,7 +194,7 @@ class Mod(HighOp):
             + stages[2].pisa_ops
             + [
                 Muli(self.context, self.output, temp_input_remaining_rns, iq),
-                Comment("End of mod kernel"),
+                Comment("End of mod kernel </reorderable>"),
             ]
         )
 
