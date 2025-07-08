@@ -1,6 +1,7 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+# pylint: disable=duplicate-code
 """This module implements the base class for MInstructions."""
 
 from linker.instructions.instruction import BaseInstruction
@@ -58,3 +59,12 @@ class MInstruction(BaseInstruction):
             ValueError: If the number of tokens is invalid or the instruction name is incorrect.
         """
         super().__init__(tokens, comment=comment)
+
+    def to_line(self) -> str:
+        """
+        Retrieves the string form of the instruction to write to the instruction file.
+
+        Returns:
+            str: The string representation of the instruction, excluding the first token.
+        """
+        return ", ".join(self.tokens[1:])

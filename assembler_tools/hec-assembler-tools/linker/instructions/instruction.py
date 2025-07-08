@@ -196,5 +196,5 @@ class BaseInstruction:
         if not GlobalConfig.suppress_comments:
             comment_str = f" # {self.comment}" if self.comment else ""
 
-        tokens_str = ", ".join(self._tokens)
+        tokens_str = ", ".join(self.tokens)
         return f"{tokens_str}{comment_str}"

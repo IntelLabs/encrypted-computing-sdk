@@ -347,7 +347,7 @@ def main(run_config: LinkerRunConfig, verbose_stream=NullIO()):
     and links each kernel, writing the output to specified files.
 
     @param run_config The configuration object containing run parameters.
-    @param verbose_stream The stream to which verbose output is printed. Defaults to None.
+    @param verbose_stream The stream to which verbose output is printed. Defaults to NullIO.
 
     @return None
     """

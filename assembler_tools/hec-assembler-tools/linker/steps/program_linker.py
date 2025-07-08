@@ -213,7 +213,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         csyncm_count = 0
         while i < len(kernel_cinstrs):
             cinstr = kernel_cinstrs[i]
-            cinstr.tokens[0] = i  # Update the line number
+            cinstr.tokens[0] = str(i)  # Update the line number
 
             # ------------------------------
             # This code block will remove csyncm instructions and keep track,
@@ -276,7 +276,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         i = 0
         while i < len(kernel_cinstrs):
             cinstr = kernel_cinstrs[i]
-            cinstr.tokens[0] = i
+            cinstr.tokens[0] = str(i)
             if isinstance(cinstr, cinst.CNop):
                 # Do look ahead
                 if i + 1 < len(kernel_cinstrs):
