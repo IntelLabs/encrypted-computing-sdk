@@ -274,7 +274,7 @@ class TestLinkedProgram(unittest.TestCase):
 
             # Verify the line numbers were updated
             for i, instr in enumerate(kernel_cinstrs):
-                self.assertEqual(instr.tokens[0], i)
+                self.assertEqual(instr.tokens[0], str(i))
 
     def test_update_cinsts_addresses_and_offsets(self):
         """@brief Test updating CInst addresses and offsets.
