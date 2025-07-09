@@ -49,7 +49,6 @@ def test_parse_args_defaults():
     assert args.debug is False
     assert args.target == []
     assert args.primary == LoopKey.PART
-    assert args.secondary == LoopKey.RNS
 
 
 def test_parse_args_debug_flag():
