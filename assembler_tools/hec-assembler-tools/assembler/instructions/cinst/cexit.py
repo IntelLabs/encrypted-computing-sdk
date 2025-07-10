@@ -1,4 +1,8 @@
-﻿from .cinstruction import CInstruction
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+from .cinstruction import CInstruction
+
 
 class Instruction(CInstruction):
     """
@@ -11,7 +15,7 @@ class Instruction(CInstruction):
     """
 
     @classmethod
-    def _get_OP_NAME_ASM(cls) -> str:
+    def _get_op_name_asm(cls) -> str:
         """
         Returns the ASM name for the operation.
 
@@ -20,11 +24,9 @@ class Instruction(CInstruction):
         """
         return "cexit"
 
-    def __init__(self,
-                 id: int,
-                 throughput : int = None,
-                 latency : int = None,
-                 comment: str = ""):
+    def __init__(
+        self, id: int, throughput: int = None, latency: int = None, comment: str = ""
+    ):
         """
         Constructs a new `cexit` CInstruction.
 
@@ -47,13 +49,16 @@ class Instruction(CInstruction):
         Returns:
             str: A string representation of the Instruction object.
         """
-        retval=('<{}({}) object at {}>(id={}[0], '
-                  'throughput={}, latency={})').format(type(self).__name__,
-                                                           self.name,
-                                                           hex(id(self)),
-                                                           self.id,
-                                                           self.throughput,
-                                                           self.latency)
+        retval = (
+            "<{}({}) object at {}>(id={}[0], " "throughput={}, latency={})"
+        ).format(
+            type(self).__name__,
+            self.name,
+            hex(id(self)),
+            self.id,
+            self.throughput,
+            self.latency,
+        )
         return retval
 
     def _set_dests(self, value):
@@ -80,7 +85,7 @@ class Instruction(CInstruction):
         """
         raise RuntimeError(f"Instruction `{self.name}` does not have parameters.")
 
-    def _toCASMISAFormat(self, *extra_args) -> str:
+    def _to_casmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to ASM format.
 
@@ -93,10 +98,10 @@ class Instruction(CInstruction):
         Returns:
             str: The ASM format string of the instruction.
         """
-        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
+        assert len(self.dests) == Instruction._OP_NUM_DESTS
+        assert len(self.sources) == Instruction._OP_NUM_SOURCES
 
         if extra_args:
-            raise ValueError('`extra_args` not supported.')
+            raise ValueError("`extra_args` not supported.")
 
-        return super()._toCASMISAFormat()
+        return super()._to_casmisa_format()

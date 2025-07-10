@@ -1,5 +1,18 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""
+Counter module providing sequential value generation with reset capability.
+
+This module implements a Counter class that allows for the creation and management of
+counters that generate sequential values. These counters can be individually reset
+or collectively reset through the class interface, making them useful for various
+numbering and sequence generation tasks in the assembler.
+"""
 
 import itertools
+from typing import Set, Optional
+
 
 class Counter:
     """
@@ -18,7 +31,8 @@ class Counter:
         This iterator starts at a specified value and increments by a specified step.
         It can be reset to start over from its initial start value.
         """
-        def __init__(self, start = 0, step = 1):
+
+        def __init__(self, start=0, step=1):
             """
             Initializes a new CounterIter object.
 
@@ -28,7 +42,7 @@ class Counter:
             """
             self.__start = start
             self.__step = step
-            self.__counter = None # itertools.counter
+            self.__counter = None  # itertools.counter
             self.reset()
 
         def __next__(self):
@@ -66,10 +80,10 @@ class Counter:
             """
             self.__counter = itertools.count(self.start, self.step)
 
-    __counters = set()
+    __counters: Set["Counter.CounterIter"] = set()
 
     @classmethod
-    def count(cls, start = 0, step = 1) -> CounterIter:
+    def count(cls, start=0, step=1) -> "Counter.CounterIter":
         """
         Creates a new counter iterator that returns evenly spaced values.
 
@@ -85,7 +99,7 @@ class Counter:
         return retval
 
     @classmethod
-    def reset(cls, counter: CounterIter = None):
+    def reset(cls, counter: Optional["Counter.CounterIter"] = None):
         """
         Reset the specified counter, or all counters if none is specified.
 
@@ -93,9 +107,9 @@ class Counter:
         over from their respective `start` values.
 
         Args:
-            counter (CounterIter, optional): The counter to reset.
+            counter (Optional[CounterIter], optional): The counter to reset.
             If None, all counters are reset.
         """
-        counters_to_reset = cls.__counters if counter is None else { counter }
+        counters_to_reset = cls.__counters if counter is None else {counter}
         for c in counters_to_reset:
             c.reset()

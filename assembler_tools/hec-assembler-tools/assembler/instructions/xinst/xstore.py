@@ -1,7 +1,11 @@
-﻿from assembler.common.cycle_tracking import CycleType
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+from assembler.common.cycle_tracking import CycleType
 from .xinstruction import XInstruction
 from assembler.memory_model import MemoryModel
 from assembler.memory_model.variable import Variable
+
 
 class Instruction(XInstruction):
     """
@@ -13,7 +17,7 @@ class Instruction(XInstruction):
 
     For more information, check the specification:
         https://github.com/IntelLabs/hec-assembler-tools/blob/master/docsrc/inst_spec/xinst/xinst_xstore.md
-        
+
     Attributes:
         dest_spad_address (int): The SPAD address where the source variable will be stored.
 
@@ -21,10 +25,12 @@ class Instruction(XInstruction):
         reset_GlobalCycleReady: Resets the global cycle ready for `xstore` instructions.
     """
 
-    __xstore_global_cycle_ready = CycleType(0, 0) # private class attribute to track cycle ready among xstores
+    __xstore_global_cycle_ready = CycleType(
+        0, 0
+    )  # private class attribute to track cycle ready among xstores
 
     @classmethod
-    def _get_OP_NAME_ASM(cls) -> str:
+    def _get_op_name_asm(cls) -> str:
         """
         Returns the ASM name of the operation.
 
@@ -33,14 +39,16 @@ class Instruction(XInstruction):
         """
         return "xstore"
 
-    def __init__(self,
-                 id: int,
-                 src: list,
-                 mem_model: MemoryModel,
-                 dest_spad_addr: int = -1,
-                 throughput: int = None,
-                 latency: int = None,
-                 comment: str = ""):
+    def __init__(
+        self,
+        id: int,
+        src: list,
+        mem_model: MemoryModel,
+        dest_spad_addr: int = -1,
+        throughput: int = None,
+        latency: int = None,
+        comment: str = "",
+    ):
         """
         Constructs a new `xstore` MInstruction.
 
@@ -66,41 +74,55 @@ class Instruction(XInstruction):
             ValueError: If `mem_model` is not an instance of `MemoryModel` or if `dest_spad_addr` is invalid.
         """
         if not isinstance(mem_model, MemoryModel):
-            raise ValueError('`mem_model` must be an instance of `MemoryModel`.')
+            raise ValueError("`mem_model` must be an instance of `MemoryModel`.")
         if not throughput:
             throughput = Instruction._OP_DEFAULT_THROUGHPUT
         if not latency:
             latency = Instruction._OP_DEFAULT_LATENCY
-        N = 0 # Does not require ring-size
+        N = 0  # Does not require ring-size
         super().__init__(id, N, throughput, latency, comment=comment)
         self.__mem_model = mem_model
         self._set_sources(src)
         self.__internal_set_dests(src)
 
         if dest_spad_addr < 0 and src[0].spad_address < 0:
-            raise ValueError('`dest_spad_addr` must be a valid SPAD address if source variable is not allocated in SPAD.')
-        if dest_spad_addr >= 0 and src[0].spad_address >= 0 and dest_spad_addr != src[0].spad_address:
-            raise ValueError('`dest_spad_addr` must be null SPAD address (negative) if source variable is allocated in SPAD.')
-        self.dest_spad_address = src[0].spad_address if dest_spad_addr < 0 else dest_spad_addr
+            raise ValueError(
+                "`dest_spad_addr` must be a valid SPAD address if source variable is not allocated in SPAD."
+            )
+        if (
+            dest_spad_addr >= 0
+            and src[0].spad_address >= 0
+            and dest_spad_addr != src[0].spad_address
+        ):
+            raise ValueError(
+                "`dest_spad_addr` must be null SPAD address (negative) if source variable is allocated in SPAD."
+            )
+        self.dest_spad_address = (
+            src[0].spad_address if dest_spad_addr < 0 else dest_spad_addr
+        )
 
     def __repr__(self):
         """
         Returns a string representation of the Instruction object.
 
         Returns:
-            str: A string representation of the Instruction object, including 
+            str: A string representation of the Instruction object, including
                  its type, name, memory address, ID, source, memory model, destination SPAD address, throughput, and latency.
         """
-        retval=('<{}({}) object at {}>(id={}[0], '
-                  'src={}, mem_model, dest_spad_addr={}, '
-                  'throughput={}, latency={})').format(type(self).__name__,
-                                                           self.name,
-                                                           hex(id(self)),
-                                                           self.id,
-                                                           self.dests,
-                                                           self.dest_spad_address,
-                                                           self.throughput,
-                                                           self.latency)
+        retval = (
+            "<{}({}) object at {}>(id={}[0], "
+            "src={}, mem_model, dest_spad_addr={}, "
+            "throughput={}, latency={})"
+        ).format(
+            type(self).__name__,
+            self.name,
+            hex(id(self)),
+            self.id,
+            self.dests,
+            self.dest_spad_address,
+            self.throughput,
+            self.latency,
+        )
         return retval
 
     @classmethod
@@ -111,7 +133,7 @@ class Instruction(XInstruction):
         Parameters:
             value (CycleType): The cycle type value to set.
         """
-        if (value > cls.__xstore_global_cycle_ready):
+        if value > cls.__xstore_global_cycle_ready:
             cls.__xstore_global_cycle_ready = value
 
     @classmethod
@@ -148,9 +170,14 @@ class Instruction(XInstruction):
             TypeError: If the list does not contain `Variable` objects.
         """
         if len(value) != Instruction._OP_NUM_DESTS:
-            raise ValueError(("`value`: Expected list of {} `Variable` objects, "
-                              "but list with {} elements received.".format(Instruction._OP_NUM_SOURCES,
-                                                                           len(value))))
+            raise ValueError(
+                (
+                    "`value`: Expected list of {} `Variable` objects, "
+                    "but list with {} elements received.".format(
+                        Instruction._OP_NUM_SOURCES, len(value)
+                    )
+                )
+            )
         if not all(isinstance(x, Variable) for x in value):
             raise ValueError("`value`: Expected list of `Variable` objects.")
         super()._set_dests(value)
@@ -167,9 +194,14 @@ class Instruction(XInstruction):
             TypeError: If the list does not contain `Variable` objects.
         """
         if len(value) != Instruction._OP_NUM_SOURCES:
-            raise ValueError(("`value`: Expected list of {} `Variable` objects, "
-                              "but list with {} elements received.".format(Instruction._OP_NUM_SOURCES,
-                                                                           len(value))))
+            raise ValueError(
+                (
+                    "`value`: Expected list of {} `Variable` objects, "
+                    "but list with {} elements received.".format(
+                        Instruction._OP_NUM_SOURCES, len(value)
+                    )
+                )
+            )
         if not all(isinstance(x, Variable) for x in value):
             raise ValueError("`value`: Expected list of `Variable` objects.")
         super()._set_sources(value)
@@ -188,8 +220,7 @@ class Instruction(XInstruction):
         # sources and the global cycles-ready for other xstores.
         # An xstore cannot be within _OP_DEFAULT_LATENCY cycles from another xstore
         # because they both use the SPAD-CE data channel.
-        return max(super()._get_cycle_ready(),
-                   Instruction.__xstore_global_cycle_ready)
+        return max(super()._get_cycle_ready(), Instruction.__xstore_global_cycle_ready)
 
     def _schedule(self, cycle_count: CycleType, schedule_id: int) -> int:
         """
@@ -212,35 +243,54 @@ class Instruction(XInstruction):
             int: The throughput for this instruction. i.e. the number of cycles by which to advance
                  the current cycle counter.
         """
-        assert(Instruction._OP_NUM_SOURCES > 0 and len(self.sources) == Instruction._OP_NUM_SOURCES)
-        assert(Instruction._OP_NUM_DESTS > 0 and len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(all(src == dst for src, dst in zip(self.sources, self.dests)))
+        assert (
+            Instruction._OP_NUM_SOURCES > 0
+            and len(self.sources) == Instruction._OP_NUM_SOURCES
+        )
+        assert (
+            Instruction._OP_NUM_DESTS > 0
+            and len(self.dests) == Instruction._OP_NUM_DESTS
+        )
+        assert all(src == dst for src, dst in zip(self.sources, self.dests))
 
         if not isinstance(self.sources[0], Variable):
-            raise RuntimeError('XInstruction ({}, id = {}) already scheduled.'.format(self.name, self.id))
-        
-        store_buffer_item = MemoryModel.StoreBufferValueType(variable=self.sources[0],
-                                                             dest_spad_address=self.dest_spad_address)
+            raise RuntimeError(
+                "XInstruction ({}, id = {}) already scheduled.".format(
+                    self.name, self.id
+                )
+            )
+
+        store_buffer_item = MemoryModel.StoreBufferValueType(
+            variable=self.sources[0], dest_spad_address=self.dest_spad_address
+        )
         register = self.sources[0].register
         retval = super()._schedule(cycle_count, schedule_id)
         # Perform xstore
-        register.register_dirty = False # Register has been flushed
+        register.register_dirty = False  # Register has been flushed
         register.allocateVariable(None)
-        self.sources[0] = register # Make the register the source for freezing, since variable is no longer in it
-        self.__mem_model.store_buffer[store_buffer_item.variable.name] = store_buffer_item
+        self.sources[0] = (
+            register  # Make the register the source for freezing, since variable is no longer in it
+        )
+        self.__mem_model.store_buffer[store_buffer_item.variable.name] = (
+            store_buffer_item
+        )
         # Matching CInst cstore completes the xstore
 
         if self.comment:
-            self.comment += ';'
-        self.comment += ' variable "{}": SPAD({}) <- {}'.format(store_buffer_item.variable.name,
-                                                                store_buffer_item.dest_spad_address,
-                                                                register.name)
+            self.comment += ";"
+        self.comment += ' variable "{}": SPAD({}) <- {}'.format(
+            store_buffer_item.variable.name,
+            store_buffer_item.dest_spad_address,
+            register.name,
+        )
 
         # Set the global cycle ready for next xstore
-        Instruction.__set_xstoreGlobalCycleReady(CycleType(cycle_count.bundle, cycle_count.cycle + self.latency))
+        Instruction.__set_xstoreGlobalCycleReady(
+            CycleType(cycle_count.bundle, cycle_count.cycle + self.latency)
+        )
         return retval
 
-    def _toPISAFormat(self, *extra_args) -> str:
+    def _to_pisa_format(self, *extra_args) -> str:
         """
         This instruction has no PISA equivalent.
 
@@ -249,7 +299,7 @@ class Instruction(XInstruction):
         """
         return None
 
-    def _toXASMISAFormat(self, *extra_args) -> str:
+    def _to_xasmisa_format(self, *extra_args) -> str:
         """
         Converts the instruction to ASM-ISA format.
 
@@ -266,18 +316,16 @@ class Instruction(XInstruction):
         Raises:
             ValueError: If extra arguments are provided.
         """
-        assert(len(self.dests) == Instruction._OP_NUM_DESTS)
-        assert(len(self.sources) == Instruction._OP_NUM_SOURCES)
+        assert len(self.dests) == Instruction._OP_NUM_DESTS
+        assert len(self.sources) == Instruction._OP_NUM_SOURCES
 
         if extra_args:
-            raise ValueError('`extra_args` not supported.')
+            raise ValueError("`extra_args` not supported.")
 
         preamble = (self.id[0],)
         # Instruction sources
-        extra_args = tuple(src.toXASMISAFormat() for src in self.sources) + extra_args
+        extra_args = tuple(src.to_xasmisa_format() for src in self.sources) + extra_args
         # Instruction destinations
-        # extra_args = tuple(dst.toCASMISAFormat() for dst in self.dests) + extra_args
+        # extra_args = tuple(dst.to_casmisa_format() for dst in self.dests) + extra_args
         # extra_args += (0,) # res = 0
-        return self.toStringFormat(preamble,
-                                   self.OP_NAME_ASM,
-                                   *extra_args)
+        return self.to_string_format(preamble, self.op_name_asm, *extra_args)

@@ -36,6 +36,7 @@ from kernel_parser.parser import KernelParser
 from kernel_optimization.loops import loop_interchange
 from const.options import LoopKey
 from pisa_generators.basic import mixed_to_pisa_ops
+from high_parser.config import Config
 
 
 def parse_args():
@@ -43,12 +44,22 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Kernel Graph Parser")
     parser.add_argument("-d", "--debug", action="store_true", help="Enable Debug Print")
     parser.add_argument(
+        "-l", "--legacy", action="store_true", help="Enable Legacy Mode"
+    )
+    parser.add_argument(
         "-t",
         "--target",
         nargs="*",
         default=[],
         # Composition high ops such are ntt, mod, and relin are not currently supported
-        choices=["add", "sub", "mul", "muli", "copy"],  # currently supports single ops
+        choices=[
+            "add",
+            "sub",
+            "mul",
+            "muli",
+            "copy",
+            "ntt",
+        ],  # currently supports single ops
         help="List of high_op names",
     )
     parser.add_argument(
@@ -78,6 +89,7 @@ def main(args):
     """Main function to read input and parse each line with KernelParser."""
     input_lines = sys.stdin.read().strip().splitlines()
     valid_kernels = []
+    Config.legacy_mode = args.legacy
 
     for line in input_lines:
         try:
@@ -97,7 +109,7 @@ def main(args):
             )
         for kernel in valid_kernels:
             if args.target and any(
-                target.capitalize() in str(kernel) for target in args.target
+                target.lower() in str(kernel).lower() for target in args.target
             ):
                 kernel = loop_interchange(
                     kernel.to_pisa(),
