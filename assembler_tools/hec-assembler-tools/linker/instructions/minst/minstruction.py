@@ -1,10 +1,27 @@
-﻿
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# pylint: disable=duplicate-code
+"""This module implements the base class for MInstructions."""
+
 from linker.instructions.instruction import BaseInstruction
+
 
 class MInstruction(BaseInstruction):
     """
     Represents an MInstruction, inheriting from BaseInstruction.
     """
+
+    @classmethod
+    def _get_name(cls) -> str:
+        """
+        Derived classes should implement this method and return correct
+        name for the instruction.
+
+        Raises:
+            NotImplementedError: Abstract method. This base method should not be called.
+        """
+        raise NotImplementedError()
 
     @classmethod
     def _get_name_token_index(cls) -> int:
@@ -15,6 +32,17 @@ class MInstruction(BaseInstruction):
             int: The index of the name token, which is 1.
         """
         return 1
+
+    @classmethod
+    def _get_num_tokens(cls) -> int:
+        """
+        Derived classes should implement this method and return correct
+        required number of tokens for the instruction.
+
+        Raises:
+            NotImplementedError: Abstract method. This base method should not be called.
+        """
+        raise NotImplementedError()
 
     # Constructor
     # -----------

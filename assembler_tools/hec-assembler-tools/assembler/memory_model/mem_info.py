@@ -1,8 +1,13 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+# These contents may have been developed with support from one
+# or more Intel-operated generative artificial intelligence solutions
+
 from assembler.common import constants
 from assembler.instructions import tokenize_from_line
+from typing import Optional
+from assembler.common.decorators import *
 from assembler.memory_model.variable import Variable
 from . import MemoryModel
 
@@ -113,7 +118,7 @@ class MemInfo:
 
         class Ones:
             @classmethod
-            def parseFromMemLine(cls, tokens: list) -> MemInfoVariable:
+            def parse_from_mem_tokens(cls, tokens: list) -> MemInfoVariable:
                 """
                 Parses a ones metadata variable from a tokenized line.
 
@@ -123,7 +128,7 @@ class MemInfo:
                 Returns:
                     MemInfoVariable: The parsed ones metadata variable.
                 """
-                return MemInfo.Metadata.parseMetaFieldFromMemLine(
+                return MemInfo.Metadata.parse_meta_field_from_mem_tokens(
                     tokens,
                     MemInfo.Const.Keyword.LOAD_ONES,
                     var_prefix=MemInfo.Const.Keyword.LOAD_ONES,
@@ -131,7 +136,7 @@ class MemInfo:
 
         class NTTAuxTable:
             @classmethod
-            def parseFromMemLine(cls, tokens: list) -> MemInfoVariable:
+            def parse_from_mem_tokens(cls, tokens: list) -> MemInfoVariable:
                 """
                 Parses an NTT auxiliary table metadata variable from a tokenized line.
 
@@ -141,7 +146,7 @@ class MemInfo:
                 Returns:
                     MemInfoVariable: The parsed NTT auxiliary table metadata variable.
                 """
-                return MemInfo.Metadata.parseMetaFieldFromMemLine(
+                return MemInfo.Metadata.parse_meta_field_from_mem_tokens(
                     tokens,
                     MemInfo.Const.Keyword.LOAD_NTT_AUX_TABLE,
                     var_prefix=MemInfo.Const.Keyword.LOAD_NTT_AUX_TABLE,
@@ -149,7 +154,7 @@ class MemInfo:
 
         class NTTRoutingTable:
             @classmethod
-            def parseFromMemLine(cls, tokens: list) -> MemInfoVariable:
+            def parse_from_mem_tokens(cls, tokens: list) -> MemInfoVariable:
                 """
                 Parses an NTT routing table metadata variable from a tokenized line.
 
@@ -159,7 +164,7 @@ class MemInfo:
                 Returns:
                     MemInfoVariable: The parsed NTT routing table metadata variable.
                 """
-                return MemInfo.Metadata.parseMetaFieldFromMemLine(
+                return MemInfo.Metadata.parse_meta_field_from_mem_tokens(
                     tokens,
                     MemInfo.Const.Keyword.LOAD_NTT_ROUTING_TABLE,
                     var_prefix=MemInfo.Const.Keyword.LOAD_NTT_ROUTING_TABLE,
@@ -167,7 +172,7 @@ class MemInfo:
 
         class iNTTAuxTable:
             @classmethod
-            def parseFromMemLine(cls, tokens: list) -> MemInfoVariable:
+            def parse_from_mem_tokens(cls, tokens: list) -> MemInfoVariable:
                 """
                 Parses an iNTT auxiliary table metadata variable from a tokenized line.
 
@@ -177,7 +182,7 @@ class MemInfo:
                 Returns:
                     MemInfoVariable: The parsed iNTT auxiliary table metadata variable.
                 """
-                return MemInfo.Metadata.parseMetaFieldFromMemLine(
+                return MemInfo.Metadata.parse_meta_field_from_mem_tokens(
                     tokens,
                     MemInfo.Const.Keyword.LOAD_iNTT_AUX_TABLE,
                     var_prefix=MemInfo.Const.Keyword.LOAD_iNTT_AUX_TABLE,
@@ -185,7 +190,7 @@ class MemInfo:
 
         class iNTTRoutingTable:
             @classmethod
-            def parseFromMemLine(cls, tokens: list) -> MemInfoVariable:
+            def parse_from_mem_tokens(cls, tokens: list) -> MemInfoVariable:
                 """
                 Parses an iNTT routing table metadata variable from a tokenized line.
 
@@ -195,7 +200,7 @@ class MemInfo:
                 Returns:
                     MemInfoVariable: The parsed iNTT routing table metadata variable.
                 """
-                return MemInfo.Metadata.parseMetaFieldFromMemLine(
+                return MemInfo.Metadata.parse_meta_field_from_mem_tokens(
                     tokens,
                     MemInfo.Const.Keyword.LOAD_iNTT_ROUTING_TABLE,
                     var_prefix=MemInfo.Const.Keyword.LOAD_iNTT_ROUTING_TABLE,
@@ -203,7 +208,7 @@ class MemInfo:
 
         class Twiddle:
             @classmethod
-            def parseFromMemLine(cls, tokens: list) -> MemInfoVariable:
+            def parse_from_mem_tokens(cls, tokens: list) -> MemInfoVariable:
                 """
                 Parses a twiddle metadata variable from a tokenized line.
 
@@ -213,7 +218,7 @@ class MemInfo:
                 Returns:
                     MemInfoVariable: The parsed twiddle metadata variable.
                 """
-                return MemInfo.Metadata.parseMetaFieldFromMemLine(
+                return MemInfo.Metadata.parse_meta_field_from_mem_tokens(
                     tokens,
                     MemInfo.Const.Keyword.LOAD_TWIDDLE,
                     var_prefix=MemInfo.Const.Keyword.LOAD_TWIDDLE,
@@ -221,7 +226,7 @@ class MemInfo:
 
         class KeygenSeed:
             @classmethod
-            def parseFromMemLine(cls, tokens: list) -> MemInfoVariable:
+            def parse_from_mem_tokens(cls, tokens: list) -> MemInfoVariable:
                 """
                 Parses a keygen seed metadata variable from a tokenized line.
 
@@ -231,14 +236,14 @@ class MemInfo:
                 Returns:
                     MemInfoVariable: The parsed keygen seed metadata variable.
                 """
-                return MemInfo.Metadata.parseMetaFieldFromMemLine(
+                return MemInfo.Metadata.parse_meta_field_from_mem_tokens(
                     tokens,
                     MemInfo.Const.Keyword.LOAD_KEYGEN_SEED,
                     var_prefix=MemInfo.Const.Keyword.LOAD_KEYGEN_SEED,
                 )
 
         @classmethod
-        def parseMetaFieldFromMemLine(
+        def parse_meta_field_from_mem_tokens(
             cls,
             tokens: list,
             meta_field_name: str,
@@ -373,7 +378,7 @@ class MemInfo:
 
     class Keygen:
         @classmethod
-        def parseFromMemLine(cls, tokens: list) -> MemInfoVariable:
+        def parse_from_mem_tokens(cls, tokens: list) -> MemInfoVariable:
             """
             Parses a keygen variable from a tokenized line.
 
@@ -396,7 +401,7 @@ class MemInfo:
 
     class Input:
         @classmethod
-        def parseFromMemLine(cls, tokens: list) -> MemInfoVariable:
+        def parse_from_mem_tokens(cls, tokens: list) -> MemInfoVariable:
             """
             Parses an input variable from a tokenized line.
 
@@ -422,7 +427,7 @@ class MemInfo:
 
     class Output:
         @classmethod
-        def parseFromMemLine(cls, tokens: list) -> MemInfoVariable:
+        def parse_from_mem_tokens(cls, tokens: list) -> MemInfoVariable:
             """
             Parses an output variable from a tokenized line.
 
@@ -448,28 +453,97 @@ class MemInfo:
         Initializes a new MemInfo object.
 
         Clients may call this method without parameters for default initialization.
-        Clients should use MemInfo.from_iter() constructor to parse the contents of a .mem file.
+        Clients should use MemInfo.from_file_iter() constructor to parse the contents of a .mem file.
 
         Args:
             kwargs (dict): A dictionary as generated by the method MemInfo.as_dict(). This is provided as
             a shortcut to creating a MemInfo object from structured data such as the contents of a YAML file.
         """
-        self.__keygens = [
-            MemInfoVariable(**d) for d in kwargs.get(MemInfo.Const.FIELD_KEYGENS, [])
+        self._keygens = [
+            MemInfoKeygenVariable(**d)
+            for d in kwargs.get(MemInfo.Const.FIELD_KEYGENS, [])
         ]
-        self.__inputs = [
+        self._inputs = [
             MemInfoVariable(**d) for d in kwargs.get(MemInfo.Const.FIELD_INPUTS, [])
         ]
-        self.__outputs = [
+        self._outputs = [
             MemInfoVariable(**d) for d in kwargs.get(MemInfo.Const.FIELD_OUTPUTS, [])
         ]
-        self.__metadata = MemInfo.Metadata(
+        self._metadata = MemInfo.Metadata(
             **kwargs.get(MemInfo.Const.FIELD_METADATA, {})
         )
         self.validate()
 
+    @property
+    def factory_dict(self):
+        """
+        Returns a dictionary mapping MemInfo types to their respective factory methods.
+
+        This is used to create instances of MemInfoVariable based on the type of memory information.
+
+        Returns:
+            dict: A dictionary mapping MemInfo types to their factory methods.
+        """
+        return {
+            MemInfo.Keygen: self.keygens,
+            MemInfo.Input: self.inputs,
+            MemInfo.Output: self.outputs,
+            MemInfo.Metadata.KeygenSeed: self.metadata.keygen_seeds,
+            MemInfo.Metadata.Ones: self.metadata.ones,
+            MemInfo.Metadata.NTTAuxTable: self.metadata.ntt_auxiliary_table,
+            MemInfo.Metadata.NTTRoutingTable: self.metadata.ntt_routing_table,
+            MemInfo.Metadata.iNTTAuxTable: self.metadata.intt_auxiliary_table,
+            MemInfo.Metadata.iNTTRoutingTable: self.metadata.intt_routing_table,
+            MemInfo.Metadata.Twiddle: self.metadata.twiddle,
+        }
+
+    @classproperty
+    def mem_info_types(cls):
+        """Retrieves the list of MemInfo variable types."""
+        dummy = cls()
+        return dummy.factory_dict.keys()
+
     @classmethod
-    def from_iter(cls, line_iter):
+    def get_meminfo_var_from_tokens(
+        cls, tokens
+    ) -> tuple[Optional[MemInfoVariable], Optional[type]]:
+        """
+        Parses a MemInfo variable from a list of tokens.
+
+        Args:
+            tokens (list[str]): List of tokens to parse.
+
+        Returns:
+            tuple[MemInfoVariable,type]: The parsed MemInfo variable and its type, or None if no variable could be parsed.
+        """
+        miv: Optional[MemInfoVariable] = None
+        mem_info_type: Optional[type] = None
+        for mem_info_type in cls.mem_info_types:
+            miv: MemInfoVariable = mem_info_type.parse_from_mem_tokens(tokens)
+            if miv is not None:
+                break
+
+        return miv, mem_info_type
+
+    def add_meminfo_var_from_tokens(self, tokens):
+        """
+        Parses a MemInfo variable from a list of tokens and adds it to the appropriate list.
+
+        Args:
+            tokens (list[str]): List of tokens to parse.
+
+        Raises:
+            RuntimeError: If the line could not be parsed.
+        """
+        miv: MemInfoVariable = None
+        miv, mem_info_type = MemInfo.get_meminfo_var_from_tokens(tokens)
+        if miv is not None and mem_info_type is not None:
+            self.factory_dict[mem_info_type].append(miv)
+        else:
+            raise RuntimeError(f"Could not parse line")
+
+    @classmethod
+    def from_file_iter(cls, line_iter):
         """
         Creates a new MemInfo object from an iterator of strings, where each string is a line of text to parse.
 
@@ -487,34 +561,42 @@ class MemInfo:
 
         retval = cls()
 
-        factory_dict = {
-            MemInfo.Keygen: retval.keygens,
-            MemInfo.Input: retval.inputs,
-            MemInfo.Output: retval.outputs,
-            MemInfo.Metadata.KeygenSeed: retval.metadata.keygen_seeds,
-            MemInfo.Metadata.Ones: retval.metadata.ones,
-            MemInfo.Metadata.NTTAuxTable: retval.metadata.ntt_auxiliary_table,
-            MemInfo.Metadata.NTTRoutingTable: retval.metadata.ntt_routing_table,
-            MemInfo.Metadata.iNTTAuxTable: retval.metadata.intt_auxiliary_table,
-            MemInfo.Metadata.iNTTRoutingTable: retval.metadata.intt_routing_table,
-            MemInfo.Metadata.Twiddle: retval.metadata.twiddle,
-        }
         for line_no, s_line in enumerate(line_iter, 1):
             s_line = s_line.strip()
             if s_line:  # skip empty lines
                 tokens, _ = tokenize_from_line(s_line)
                 if tokens and len(tokens) > 0:
-                    b_parsed = False
-                    for mem_info_type in factory_dict:
-                        miv: MemInfoVariable = mem_info_type.parseFromMemLine(tokens)
-                        if miv is not None:
-                            factory_dict[mem_info_type].append(miv)
-                            b_parsed = True
-                            break  # next line
-                    if not b_parsed:
-                        raise RuntimeError(
-                            f'Could not parse line {line_no}: "{s_line}"'
-                        )
+                    try:
+                        retval.add_meminfo_var_from_tokens(tokens)
+                    except RuntimeError as e:
+                        raise RuntimeError(f"{e} {line_no}: {s_line}") from e
+        retval.validate()
+        return retval
+
+    @classmethod
+    def from_dinstrs(cls, dinstrs):
+        """
+        Creates a new MemInfo object from an list of DInstructions.
+
+        Args:
+            dinstrs (list[DInstruction]): List of DInstructions.
+
+        Raises:
+            RuntimeError: If there is an error parsing the instruction tokens.
+
+        Returns:
+            MemInfo: The constructed MemInfo object.
+        """
+
+        retval = cls()
+        for ints_no, dinstr in enumerate(dinstrs, 1):
+            tokens = dinstr.tokens
+            if tokens and len(tokens) > 0:
+                try:
+                    retval.add_meminfo_var_from_tokens(tokens)
+                except RuntimeError as e:
+                    raise RuntimeError(f"{e} {ints_no}: {tokens}") from e
+
         retval.validate()
         return retval
 
@@ -526,7 +608,7 @@ class MemInfo:
         Returns:
             list: Keygen variables.
         """
-        return self.__keygens
+        return self._keygens
 
     @property
     def inputs(self) -> list:
@@ -536,7 +618,7 @@ class MemInfo:
         Returns:
             list: Input variables.
         """
-        return self.__inputs
+        return self._inputs
 
     @property
     def outputs(self) -> list:
@@ -546,7 +628,7 @@ class MemInfo:
         Returns:
             list: Output variables.
         """
-        return self.__outputs
+        return self._outputs
 
     @property
     def metadata(self) -> Metadata:
@@ -556,7 +638,7 @@ class MemInfo:
         Returns:
             Metadata: MemInfo's metadata.
         """
-        return self.__metadata
+        return self._metadata
 
     def as_dict(self):
         """
@@ -624,7 +706,7 @@ class MemInfo:
                 )
 
 
-def __allocateMemInfoVariable(mem_model: MemoryModel, v_info: MemInfoVariable):
+def _allocateMemInfoVariable(mem_model: MemoryModel, v_info: MemInfoVariable):
     """
     Allocates a memory information variable in the memory model.
 
@@ -680,11 +762,11 @@ def updateMemoryModelWithMemInfo(mem_model: MemoryModel, mem_info: MemInfo):
 
     # Inputs
     for v_info in mem_info.inputs:
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
 
     # Outputs
     for v_info in mem_info.outputs:
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.output_variables.push(v_info.var_name, None)
 
     # Metadata
@@ -692,7 +774,7 @@ def updateMemoryModelWithMemInfo(mem_model: MemoryModel, mem_info: MemInfo):
     # Ones
     for v_info in mem_info.metadata.ones:
         mem_model.retrieveVarAdd(v_info.var_name)
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.add_meta_ones_var(v_info.var_name)
 
     # Shuffle meta vars
@@ -700,40 +782,40 @@ def updateMemoryModelWithMemInfo(mem_model: MemoryModel, mem_info: MemInfo):
         assert len(mem_info.metadata.ntt_auxiliary_table) == 1
         v_info = mem_info.metadata.ntt_auxiliary_table[0]
         mem_model.retrieveVarAdd(v_info.var_name)
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.meta_ntt_aux_table = v_info.var_name
 
     if mem_info.metadata.ntt_routing_table:
         assert len(mem_info.metadata.ntt_routing_table) == 1
         v_info = mem_info.metadata.ntt_routing_table[0]
         mem_model.retrieveVarAdd(v_info.var_name)
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.meta_ntt_routing_table = v_info.var_name
 
     if mem_info.metadata.intt_auxiliary_table:
         assert len(mem_info.metadata.intt_auxiliary_table) == 1
         v_info = mem_info.metadata.intt_auxiliary_table[0]
         mem_model.retrieveVarAdd(v_info.var_name)
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.meta_intt_aux_table = v_info.var_name
 
     if mem_info.metadata.intt_routing_table:
         assert len(mem_info.metadata.intt_routing_table) == 1
         v_info = mem_info.metadata.intt_routing_table[0]
         mem_model.retrieveVarAdd(v_info.var_name)
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.meta_intt_routing_table = v_info.var_name
 
     # Twiddle
     for v_info in mem_info.metadata.twiddle:
         mem_model.retrieveVarAdd(v_info.var_name)
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.add_meta_twiddle_var(v_info.var_name)
 
     # Keygen seeds
     for v_info in mem_info.metadata.keygen_seeds:
         mem_model.retrieveVarAdd(v_info.var_name)
-        __allocateMemInfoVariable(mem_model, v_info)
+        _allocateMemInfoVariable(mem_model, v_info)
         mem_model.add_meta_keygen_seed_var(v_info.var_name)
 
     # End metadata

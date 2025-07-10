@@ -61,8 +61,6 @@ repos:
             *assembler_tools/hec-assembler-tools/debug_tools/main\.py|
             *assembler_tools/hec-assembler-tools/debug_tools/xinst_timing_check/|
             *assembler_tools/hec-assembler-tools/he_as\.py|
-            *assembler_tools/hec-assembler-tools/linker/__init__\.py|
-            *assembler_tools/hec-assembler-tools/linker/instructions/__init__\.py|
             *assembler_tools/hec-assembler-tools/assembler/spec_config/isa_spec.py)
           args: ["--follow-imports=skip", "--install-types", "--non-interactive"]
     - repo: local
@@ -81,8 +79,6 @@ repos:
             *assembler_tools/hec-assembler-tools/debug_tools/main\.py|
             *assembler_tools/hec-assembler-tools/debug_tools/xinst_timing_check/|
             *assembler_tools/hec-assembler-tools/he_as\.py|
-            *assembler_tools/hec-assembler-tools/linker/__init__\.py|
-            *assembler_tools/hec-assembler-tools/linker/instructions/__init__\.py|
             *assembler_tools/hec-assembler-tools/assembler/spec_config/isa_spec.py)
           args:
           - -rn # Only display messages
