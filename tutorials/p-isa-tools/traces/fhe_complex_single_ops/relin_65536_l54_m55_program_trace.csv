@@ -1,2 +1,2 @@
-instruction,scheme,poly_modulus_degree,rns_terms,cipher_degree,arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+instruction,scheme,poly_modulus_degree,rns_terms,arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
 relin,BGV,65536,55,ct1-2-54,ct0-3-54
