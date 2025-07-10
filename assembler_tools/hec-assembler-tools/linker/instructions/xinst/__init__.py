@@ -1,6 +1,27 @@
-﻿from . import add, sub, mul, muli, mac, maci, ntt, intt, twntt, twintt, rshuffle, move, xstore, nop
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""@brief This module provides all the supported X-instructions for the linker toolchain."""
+
+from . import (
+    add,
+    sub,
+    mul,
+    muli,
+    mac,
+    maci,
+    ntt,
+    intt,
+    twntt,
+    twintt,
+    rshuffle,
+    move,
+    xstore,
+    nop,
+)
 from . import exit as exit_mod
-#from . import copy as copy_mod
+
+# from . import copy as copy_mod
 
 # XInst aliases
 
@@ -12,35 +33,37 @@ Muli = muli.Instruction
 Mac = mac.Instruction
 Maci = maci.Instruction
 NTT = ntt.Instruction
-iNTT = intt.Instruction
-twNTT = twntt.Instruction
-twiNTT = twintt.Instruction
-rShuffle = rshuffle.Instruction
+INTT = intt.Instruction
+TwNTT = twntt.Instruction
+TwiNTT = twintt.Instruction
+RShuffle = rshuffle.Instruction
 # All other XInsts
 Move = move.Instruction
 XStore = xstore.Instruction
 Exit = exit_mod.Instruction
 Nop = nop.Instruction
 
+
 def factory() -> set:
     """
-    Creates a set of all instruction classes.
+    @brief Creates a set of all instruction classes.
 
-    Returns:
-        set: A set containing all instruction classes.
+    @return A set containing all instruction classes.
     """
-    return { Add,
-             Sub,
-             Mul,
-             Muli,
-             Mac,
-             Maci,
-             NTT,
-             iNTT,
-             twNTT,
-             twiNTT,
-             rShuffle,
-             Move,
-             XStore,
-             Exit,
-             Nop }
+    return {
+        Add,
+        Sub,
+        Mul,
+        Muli,
+        Mac,
+        Maci,
+        NTT,
+        INTT,
+        TwNTT,
+        TwiNTT,
+        RShuffle,
+        Move,
+        XStore,
+        Exit,
+        Nop,
+    }

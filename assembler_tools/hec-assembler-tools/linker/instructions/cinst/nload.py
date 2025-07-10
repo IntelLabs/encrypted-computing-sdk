@@ -1,8 +1,14 @@
-﻿from .cinstruction import CInstruction
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""@brief This module implements the nload C-instruction which loads NTT tables from SPAD."""
+
+from .cinstruction import CInstruction
+
 
 class Instruction(CInstruction):
     """
-    Encapsulates a `nload` CInstruction.
+    @brief Encapsulates an `nload` CInstruction.
 
     This instruction loads metadata (for NTT/iNTT routing mapping) from
     scratchpad into a special routing table register.
@@ -12,15 +18,14 @@ class Instruction(CInstruction):
     """
 
     @classmethod
-    def _get_num_tokens(cls)->int:
+    def _get_num_tokens(cls) -> int:
         """
-        Gets the number of tokens required for the instruction.
+        @brief Gets the number of tokens required for the instruction.
 
         The `nload` instruction requires 4 tokens:
         <line: uint>, nload, <table_idx_dst: uint>, <spad_src: uint>
 
-        Returns:
-            int: The number of tokens, which is 4.
+        @return The number of tokens, which is 4.
         """
         # 4 tokens:
         # <line: uint>, nload, <table_idx_dst: uint>, <spad_src: uint>
@@ -31,30 +36,26 @@ class Instruction(CInstruction):
     @classmethod
     def _get_name(cls) -> str:
         """
-        Gets the name of the instruction.
+        @brief Gets the name of the instruction.
 
-        Returns:
-            str: The name of the instruction, which is "nload".
+        @return The name of the instruction, which is "nload".
         """
         return "nload"
 
     def __init__(self, tokens: list, comment: str = ""):
         """
-        Constructs a new `nload` CInstruction.
+        @brief Constructs a new `nload` CInstruction.
 
-        Args:
-            tokens (list): A list of tokens representing the instruction.
-            comment (str, optional): An optional comment for the instruction. Defaults to an empty string.
-
-        Raises:
-            ValueError: If the number of tokens is invalid or the instruction name is incorrect.
+        @param tokens A list of tokens representing the instruction.
+        @param comment An optional comment for the instruction.
+        @throws ValueError If the number of tokens is invalid or the instruction name is incorrect.
         """
         super().__init__(tokens, comment=comment)
 
     @property
     def source(self) -> str:
         """
-        Name of the source.
+        @brief Name of the source.
         This is a Variable name when loaded. Should be set to HBM address to write back.
         """
         return self.tokens[3]

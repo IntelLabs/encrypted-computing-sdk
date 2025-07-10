@@ -1,8 +1,14 @@
-﻿from .cinstruction import CInstruction
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""@brief This module implements the ifetch C-instruction which fetches an instruction from memory."""
+
+from .cinstruction import CInstruction
+
 
 class Instruction(CInstruction):
     """
-    Encapsulates an `ifetch` CInstruction.
+    @brief Encapsulates an `ifetch` CInstruction.
 
     This instruction fetches a bundle of instructions from the XINST queue and sends it to the CE for execution.
 
@@ -16,60 +22,53 @@ class Instruction(CInstruction):
     @classmethod
     def _get_num_tokens(cls) -> int:
         """
-        Gets the number of tokens required for the instruction.
+        @brief Gets the number of tokens required for the instruction.
 
         The `ifetch` instruction requires 3 tokens:
         <line: uint>, ifetch, <bundle_idx: uint>
 
-        Returns:
-            int: The number of tokens, which is 3.
+        @return The number of tokens, which is 3.
         """
         return 3
 
     @classmethod
     def _get_name(cls) -> str:
         """
-        Gets the name of the instruction.
+        @brief Gets the name of the instruction.
 
-        Returns:
-            str: The name of the instruction, which is "ifetch".
+        @return The name of the instruction, which is "ifetch".
         """
         return "ifetch"
 
     def __init__(self, tokens: list, comment: str = ""):
         """
-        Constructs a new `ifetch` CInstruction.
+        @brief Constructs a new `ifetch` CInstruction.
 
-        Args:
-            tokens (list): A list of tokens representing the instruction.
-            comment (str, optional): An optional comment for the instruction. Defaults to an empty string.
-
-        Raises:
-            ValueError: If the number of tokens is invalid or the instruction name is incorrect.
+        @param tokens A list of tokens representing the instruction.
+        @param comment An optional comment for the instruction.
+        @throws ValueError If the number of tokens is invalid or the instruction name is incorrect.
         """
         super().__init__(tokens, comment=comment)
 
     @property
     def bundle(self) -> int:
         """
-        Gets the target bundle index.
+        @brief Gets the target bundle index.
 
-        Returns:
-            int: The target bundle index.
+        @return The target bundle index.
         """
         return int(self.tokens[2])
 
     @bundle.setter
     def bundle(self, value: int):
         """
-        Sets the target bundle index.
+        @brief Sets the target bundle index.
 
-        Args:
-            value (int): The target bundle index to set.
-
-        Raises:
-            ValueError: If the value is negative.
+        @param value The target bundle index to set.
+        @throws ValueError If the value is negative.
         """
         if value < 0:
-            raise ValueError(f'`value`: expected non-negative bundle index, but {value} received.')
+            raise ValueError(
+                f"`value`: expected non-negative bundle index, but {value} received."
+            )
         self.tokens[2] = str(value)

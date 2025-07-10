@@ -1,11 +1,17 @@
-﻿from .xinstruction import XInstruction
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""@brief This module implements the xstore X-instruction which transfers data from a register to the intermediate data buffer."""
+
+from .xinstruction import XInstruction
+
 
 class Instruction(XInstruction):
     """
-    Encapsulates an `xstore` XInstruction.
+    @brief Encapsulates an `xstore` XInstruction.
 
     This instruction transfers data from a register into the intermediate data buffer for subsequent transfer into SPAD.
-    
+
     For more information, check the specification:
         https://github.com/IntelLabs/hec-assembler-tools/blob/master/docsrc/inst_spec/xinst/xinst_xstore.md
     """
@@ -13,35 +19,30 @@ class Instruction(XInstruction):
     @classmethod
     def _get_num_tokens(cls) -> int:
         """
-        Gets the number of tokens required for the instruction.
+        @brief Gets the number of tokens required for the instruction.
 
         The `xstore` instruction requires 4 tokens:
         F<bundle_idx: uint>, <info: str>, xstore, <src: str>
 
-        Returns:
-            int: The number of tokens, which is 4.
+        @return The number of tokens, which is 4.
         """
         return 4
 
     @classmethod
     def _get_name(cls) -> str:
         """
-        Gets the name of the instruction.
+        @brief Gets the name of the instruction.
 
-        Returns:
-            str: The name of the instruction, which is "xstore".
+        @return The name of the instruction, which is "xstore".
         """
         return "xstore"
 
     def __init__(self, tokens: list, comment: str = ""):
         """
-        Constructs a new `xstore` XInstruction.
+        @brief Constructs a new `xstore` XInstruction.
 
-        Args:
-            tokens (list): A list of tokens representing the instruction.
-            comment (str, optional): An optional comment for the instruction. Defaults to an empty string.
-
-        Raises:
-            ValueError: If the number of tokens is invalid or the instruction name is incorrect.
+        @param tokens A list of tokens representing the instruction.
+        @param comment An optional comment for the instruction.
+        @throws ValueError If the number of tokens is invalid or the instruction name is incorrect.
         """
         super().__init__(tokens, comment=comment)
