@@ -139,6 +139,14 @@ def parse_args():
         help="Output file name. Defaults to <input_file_name_no_ext>.tw.<input_file_name_ext>",
     )
     parser.add_argument(
+        "--ref_trace",
+        default="",
+        dest="ref_trace_file",
+        help=(
+            "Reference trace file. Used to catch interdependencies among multiple kernels."
+        ),
+    )
+    parser.add_argument(
         "--isa_spec",
         default="",
         dest="isa_spec_file",
@@ -182,10 +190,11 @@ if __name__ == "__main__":
     if args.verbose > 0:
         print(module_name)
         print()
-        print(f"Input: {args.input_file_name}")
-        print(f"Output: {args.output_file_name}")
-        print(f"ISA Spec: {args.isa_spec_file}")
-        print(f"Mem Spec: {args.mem_spec_file}")
+        print(f"Input:      {args.input_file_name}")
+        print(f"Output:     {args.output_file_name}")
+        print(f"ISA Spec:   {args.isa_spec_file}")
+        print(f"Mem Spec:   {args.mem_spec_file}")
+        print(f"Trace file: {args.ref_trace_file}")
 
     main(
         output_file_name=args.output_file_name,
