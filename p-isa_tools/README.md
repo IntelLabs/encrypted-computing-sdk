@@ -93,7 +93,6 @@ program_trace
 kerngen_loc
  Location of the kerngen.py file
 
-
 OPTIONS:
 --cache_dir, --cache, -c <name of the kernel cache directory>
  Sets the name of the kernel cache directory [Default: ./kernel_cache]
@@ -133,11 +132,10 @@ OPTIONS:
 
 The ***functional_modeler*** is used to functionally test p-isa kernels
 against a data trace (currently only obtained by tracing the excution of
-the MS-SEAL library) and debug kernel execution. In addition, the 
+the MS-SEAL library) and debug kernel execution. In addition, the
 ***functional_modeler*** can also generate a graph of the p-isa kernels,
 render such graphs into a visible graph, and estimates the perfomance of
 such kernels based con configurable HW models.
-
 
 The program accepts a number of commandline options to control its usage.
 
