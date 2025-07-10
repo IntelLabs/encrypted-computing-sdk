@@ -135,7 +135,7 @@ against a data trace (currently only obtained by tracing the excution of
 the MS-SEAL library) and debug kernel execution. In addition, the
 ***functional_modeler*** can also generate a graph of the p-isa kernels,
 render such graphs into a visible graph, and estimates the perfomance of
-such kernels based con configurable HW models.
+such kernels based on configurable HW models.
 
 The program accepts a number of commandline options to control its usage.
 
