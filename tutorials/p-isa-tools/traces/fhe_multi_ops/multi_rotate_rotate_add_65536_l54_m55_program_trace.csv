@@ -1,0 +1,4 @@
+instruction,scheme,poly_modulus_degree,rns_terms,cipher_degree,arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+rotate,BGV,65536,55,ct1-2-54,ct0-2-54,5
+rotate,BGV,65536,55,ct3-2-54,ct1-2-54,5
+add,BGV,65536,55,ct4-2-54,ct2-2-54,ct3-2-54
