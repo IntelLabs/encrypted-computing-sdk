@@ -1,8 +1,26 @@
-﻿
-from . import bload, bones, cexit, cload, cnop, cstore, csyncm, ifetch, kgload, kgseed, kgstart, nload, xinstfetch
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
 
-# MInst aliases
+"""@brief This module provides all the supported C-instructions for the linker toolchain."""
 
+from . import (
+    # Import all instruction modules
+    bload,
+    bones,
+    cexit,
+    cload,
+    cnop,
+    cstore,
+    csyncm,
+    ifetch,
+    kgload,
+    kgseed,
+    kgstart,
+    nload,
+    xinstfetch,
+)
+
+# CInst aliases
 BLoad = bload.Instruction
 BOnes = bones.Instruction
 CExit = cexit.Instruction
@@ -17,24 +35,25 @@ KGStart = kgstart.Instruction
 NLoad = nload.Instruction
 XInstFetch = xinstfetch.Instruction
 
+
 def factory() -> set:
     """
-    Creates a set of all instruction classes.
+    @brief Creates a set of all instruction classes.
 
-    Returns:
-        set: A set containing all instruction classes.
+    @return A set containing all instruction classes.
     """
-
-    return { BLoad,
-             BOnes,
-             CExit,
-             CLoad,
-             CNop,
-             CStore,
-             CSyncm,
-             IFetch,
-             KGLoad,
-             KGSeed,
-             KGStart,
-             NLoad,
-             XInstFetch }
+    return {
+        BLoad,
+        BOnes,
+        CExit,
+        CLoad,
+        CNop,
+        CStore,
+        CSyncm,
+        IFetch,
+        KGLoad,
+        KGSeed,
+        KGStart,
+        NLoad,
+        XInstFetch,
+    }
