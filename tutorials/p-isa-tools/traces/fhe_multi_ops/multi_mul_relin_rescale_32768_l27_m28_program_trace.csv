@@ -1,0 +1,4 @@
+instruction,scheme,poly_modulus_degree,rns_terms,cipher_degree,arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+mul,CKKS,32768,28,ct2-3-27,ct0-2-27,ct1-2-27
+relin,CKKS,32768,28,ct3-2-27,ct2-3-27
+rescale,CKKS,32768,28,ct4-2-26,ct3-2-27
