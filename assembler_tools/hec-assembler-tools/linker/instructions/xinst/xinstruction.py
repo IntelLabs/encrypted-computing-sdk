@@ -1,10 +1,26 @@
-﻿
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""This module implements the XInstruction"""
+
 from linker.instructions.instruction import BaseInstruction
+
 
 class XInstruction(BaseInstruction):
     """
     Represents an XInstruction, inheriting from BaseInstruction.
     """
+
+    @classmethod
+    def _get_name(cls) -> str:
+        """
+        Derived classes should implement this method and return correct
+        name for the instruction.
+
+        Raises:
+            NotImplementedError: Abstract method. This base method should not be called.
+        """
+        raise NotImplementedError()
 
     @classmethod
     def _get_name_token_index(cls) -> int:
@@ -16,6 +32,17 @@ class XInstruction(BaseInstruction):
         """
         # Name at index 2.
         return 2
+
+    @classmethod
+    def _get_num_tokens(cls) -> int:
+        """
+        Derived classes should implement this method and return correct
+        required number of tokens for the instruction.
+
+        Raises:
+            NotImplementedError: Abstract method. This base method should not be called.
+        """
+        raise NotImplementedError()
 
     # Constructor
     # -----------
@@ -44,7 +71,7 @@ class XInstruction(BaseInstruction):
         Raises:
             RuntimeError: If the bundle format is invalid.
         """
-        if len(self.tokens[0]) < 2 or self.tokens[0][0] != 'F':
+        if len(self.tokens[0]) < 2 or self.tokens[0][0] != "F":
             raise RuntimeError(f'Invalid bundle format detected: "{self.tokens[0]}".')
         return int(self.tokens[0][1:])
 
@@ -60,5 +87,7 @@ class XInstruction(BaseInstruction):
             ValueError: If the value is negative.
         """
         if value < 0:
-            raise ValueError(f'`value`: expected non-negative bundle index, but {value} received.')
-        self.tokens[0] = f'F{value}'
+            raise ValueError(
+                f"`value`: expected non-negative bundle index, but {value} received."
+            )
+        self.tokens[0] = f"F{value}"
