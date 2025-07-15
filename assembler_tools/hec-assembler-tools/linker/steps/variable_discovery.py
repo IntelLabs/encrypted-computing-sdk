@@ -4,10 +4,15 @@
 """
 @brief This module provides functionality to discover variable names in MInstructions and CInstructions.
 """
+from typing import Optional, TextIO, List, Dict
 from assembler.memory_model.variable import Variable
+from assembler.memory_model import MemoryModel
+from assembler.common.config import GlobalConfig
 from linker.instructions import minst, cinst
 from linker.instructions.minst.minstruction import MInstruction
 from linker.instructions.cinst.cinstruction import CInstruction
+from linker.kern_trace import KernelFiles, remap_m_c_instrs_vars
+from linker import loader
 
 
 def discover_variables_spad(cinstrs: list):
@@ -23,7 +28,7 @@ def discover_variables_spad(cinstrs: list):
     for idx, cinstr in enumerate(cinstrs):
         if not isinstance(cinstr, CInstruction):
             raise TypeError(
-                f"Item {idx} in list of MInstructions is not a valid MInstruction."
+                f"Item {idx} in list of CInstructions is not a valid CInstruction."
             )
         retval = None
         # TODO: Implement variable counting for CInst
@@ -69,3 +74,66 @@ def discover_variables(minstrs: list):
                     f'Invalid Variable name "{retval}" detected in instruction "{idx}, {minstr.to_line()}"'
                 )
             yield retval
+
+
+def scan_variables(
+    input_files: List[KernelFiles],
+    mem_model: MemoryModel,
+    verbose_stream: Optional[TextIO] = None,
+    remap_dicts: Optional[Dict[str, Dict[str, str]]] = None,
+):
+    """
+    @brief Scans input files for variables and adds them to the memory model.
+
+    @param input_files List of KernelFiles for input.
+    @param mem_model Memory model to update.
+    @param verbose_stream Stream for verbose output.
+    @param remap_dicts Optional dictionary of variable remapping dictionaries.
+    """
+    for idx, kernel_files in enumerate(input_files):
+
+        remap_dict: dict[str, str] = {}
+        if remap_dicts and kernel_files.prefix in remap_dicts:
+            print(
+                f"ROCHA Using remap dict for kernel: {kernel_files.prefix}",
+                file=verbose_stream,
+            )
+            remap_dict = remap_dicts[kernel_files.prefix]
+
+        if not GlobalConfig.hasHBM:
+            if verbose_stream:
+                print(
+                    f"    {idx + 1}/{len(input_files)}",
+                    kernel_files.cinst,
+                    file=verbose_stream,
+                )
+            kernel_cinstrs = loader.load_cinst_kernel_from_file(kernel_files.cinst)
+            remap_m_c_instrs_vars(kernel_cinstrs, remap_dict)
+            for var_name in discover_variables_spad(kernel_cinstrs):
+                mem_model.add_variable(var_name)
+        else:
+            if verbose_stream:
+                print(
+                    f"    {idx + 1}/{len(input_files)}",
+                    kernel_files.minst,
+                    file=verbose_stream,
+                )
+            kernel_minstrs = loader.load_minst_kernel_from_file(kernel_files.minst)
+            remap_m_c_instrs_vars(kernel_minstrs, remap_dict)
+            for var_name in discover_variables(kernel_minstrs):
+                mem_model.add_variable(var_name)
+
+
+def check_unused_variables(mem_model):
+    """
+    @brief Checks for unused variables in the memory model and raises an error if found.
+
+    @param mem_model Memory model to check.
+    @exception RuntimeError If an unused variable is found.
+    """
+    for var_name in mem_model.mem_info_vars:
+        if var_name not in mem_model.variables:
+            if GlobalConfig.hasHBM or var_name not in mem_model.mem_info_meta:
+                raise RuntimeError(
+                    f'Unused variable from input mem file: "{var_name}" not in memory model.'
+                )

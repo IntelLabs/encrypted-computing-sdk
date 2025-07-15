@@ -27,7 +27,7 @@ import os
 import pathlib
 import sys
 import warnings
-from typing import NamedTuple, Any, Optional
+from typing import Any
 
 import linker
 from assembler.common import constants
@@ -39,9 +39,10 @@ from assembler.memory_model import mem_info
 from assembler.spec_config.mem_spec import MemSpecConfig
 from assembler.spec_config.isa_spec import ISASpecConfig
 from linker import loader
-from linker.steps import variable_discovery
+from linker.steps.variable_discovery import scan_variables, check_unused_variables
 from linker.steps import program_linker
 from linker.instructions import BaseInstruction
+from linker.kern_trace import TraceInfo, KernelFiles, remap_dinstrs_vars
 
 
 class NullIO:
@@ -75,7 +76,9 @@ class LinkerRunConfig(RunConfig):
     # Type annotations for class attributes
     input_prefixes: list[str]
     input_mem_file: str
-    multi_mem_files: bool
+    using_trace_file: bool
+    trace_file: str
+    input_dir: str
     output_dir: str
     output_prefix: str
 
@@ -124,12 +127,16 @@ class LinkerRunConfig(RunConfig):
                             f"Expected value for configuration `{config_name}`, but `None` received."
                         )
 
-        # fix file names
-        self.output_dir = makeUniquePath(self.output_dir)
+        # Fix file paths
         # E0203: Access to member 'input_mem_file' before its definition.
         # But it was defined in previous loop.
         if self.input_mem_file != "":  # pylint: disable=E0203
             self.input_mem_file = makeUniquePath(self.input_mem_file)
+        if self.trace_file != "":
+            self.trace_file = makeUniquePath(self.trace_file)
+
+        self.output_dir = makeUniquePath(self.output_dir)
+        self.input_dir = makeUniquePath(self.input_dir)
 
     @classmethod
     def init_default_config(cls):
@@ -137,10 +144,12 @@ class LinkerRunConfig(RunConfig):
         @brief Initializes static members of the class.
         """
         if not cls.__initialized:
-            cls.__default_config["input_prefixes"] = None
+            cls.__default_config["input_prefixes"] = ""
             cls.__default_config["input_mem_file"] = ""
-            cls.__default_config["multi_mem_files"] = False
+            cls.__default_config["using_trace_file"] = False
+            cls.__default_config["trace_file"] = ""
             cls.__default_config["output_dir"] = os.getcwd()
+            cls.__default_config["input_dir"] = os.getcwd()
             cls.__default_config["output_prefix"] = None
 
             cls.__initialized = True
@@ -175,68 +184,6 @@ class LinkerRunConfig(RunConfig):
         return retval
 
 
-class KernelFiles(NamedTuple):
-    """
-    @class KernelFiles
-    @brief Structure for kernel files.
-
-    @var prefix
-        Index = 0
-    @var minst
-        Index = 1. Name for file containing MInstructions for represented kernel.
-    @var cinst
-        Index = 2. Name for file containing CInstructions for represented kernel.
-    @var xinst
-        Index = 3. Name for file containing XInstructions for represented kernel.
-    @var mem
-        Index = 4. Name for file containing memory information for represented kernel.
-        This is used only when multi_mem_files is set.
-    """
-
-    prefix: str
-    minst: str
-    cinst: str
-    xinst: str
-    mem: Optional[str] = None
-
-
-def link_kernels(input_files, output_files, mem_model, verbose_stream):
-    """
-    @brief Links input kernels and writes the output to the specified files.
-
-    @param input_files List of KernelFiles for input kernels.
-    @param output_files KernelFiles for output.
-    @param mem_model Memory model to use.
-    @param run_config LinkerRunConfig object.
-    @param verbose_stream Stream for verbose output.
-    """
-    with open(output_files.minst, "w", encoding="utf-8") as fnum_output_minst, open(
-        output_files.cinst, "w", encoding="utf-8"
-    ) as fnum_output_cinst, open(
-        output_files.xinst, "w", encoding="utf-8"
-    ) as fnum_output_xinst:
-
-        result_program = program_linker.LinkedProgram(
-            fnum_output_minst, fnum_output_cinst, fnum_output_xinst, mem_model
-        )
-        for idx, kernel in enumerate(input_files):
-            if verbose_stream:
-                print(
-                    f"[ {idx * 100 // len(input_files): >3}% ]",
-                    kernel.prefix,
-                    file=verbose_stream,
-                )
-            kernel_minstrs = loader.load_minst_kernel_from_file(kernel.minst)
-            kernel_cinstrs = loader.load_cinst_kernel_from_file(kernel.cinst)
-            kernel_xinstrs = loader.load_xinst_kernel_from_file(kernel.xinst)
-            result_program.link_kernel(kernel_minstrs, kernel_cinstrs, kernel_xinstrs)
-        if verbose_stream:
-            print(
-                "[ 100% ] Finalizing output", output_files.prefix, file=verbose_stream
-            )
-        result_program.close()
-
-
 def prepare_output_files(run_config) -> KernelFiles:
     """
     @brief Prepares output file names and directories.
@@ -244,17 +191,17 @@ def prepare_output_files(run_config) -> KernelFiles:
     @param run_config LinkerRunConfig object.
     @return KernelFiles Output file paths.
     """
-    output_prefix = os.path.join(run_config.output_dir, run_config.output_prefix)
-    output_dir = os.path.dirname(output_prefix)
-    pathlib.Path(output_dir).mkdir(exist_ok=True, parents=True)
+    path_prefix = os.path.join(run_config.output_dir, run_config.output_prefix)
+    pathlib.Path(run_config.output_dir).mkdir(exist_ok=True, parents=True)
     out_mem_file = (
-        makeUniquePath(output_prefix + ".mem") if run_config.multi_mem_files else None
+        makeUniquePath(path_prefix + ".mem") if run_config.using_trace_file else None
     )
     return KernelFiles(
-        prefix=makeUniquePath(output_prefix),
-        minst=makeUniquePath(output_prefix + ".minst"),
-        cinst=makeUniquePath(output_prefix + ".cinst"),
-        xinst=makeUniquePath(output_prefix + ".xinst"),
+        directory=run_config.output_dir,
+        prefix=run_config.output_prefix,
+        minst=makeUniquePath(path_prefix + ".minst"),
+        cinst=makeUniquePath(path_prefix + ".cinst"),
+        xinst=makeUniquePath(path_prefix + ".xinst"),
         mem=out_mem_file,
     )
 
@@ -271,18 +218,23 @@ def prepare_input_files(run_config, output_files) -> list:
     """
     input_files = []
     for file_prefix in run_config.input_prefixes:
+        print(f"ROCHA Processing input prefix: {file_prefix} on {run_config.input_dir}")
+        path_prefix = os.path.join(run_config.input_dir, file_prefix)
         mem_file = (
-            makeUniquePath(file_prefix + ".mem") if run_config.multi_mem_files else None
+            makeUniquePath(path_prefix + ".mem")
+            if run_config.using_trace_file
+            else None
         )
         kernel_files = KernelFiles(
-            prefix=makeUniquePath(file_prefix),
-            minst=makeUniquePath(file_prefix + ".minst"),
-            cinst=makeUniquePath(file_prefix + ".cinst"),
-            xinst=makeUniquePath(file_prefix + ".xinst"),
+            directory=run_config.input_dir,
+            prefix=file_prefix,
+            minst=makeUniquePath(path_prefix + ".minst"),
+            cinst=makeUniquePath(path_prefix + ".cinst"),
+            xinst=makeUniquePath(path_prefix + ".xinst"),
             mem=mem_file,
         )
         input_files.append(kernel_files)
-        for input_filename in kernel_files[1:]:
+        for input_filename in kernel_files[2:]:
             if input_filename:
                 if not os.path.isfile(input_filename):
                     raise FileNotFoundError(input_filename)
@@ -293,50 +245,81 @@ def prepare_input_files(run_config, output_files) -> list:
     return input_files
 
 
-def scan_variables(input_files, mem_model, verbose_stream):
+def process_trace_file(trace_file):
     """
-    @brief Scans input files for variables and adds them to the memory model.
+    @brief Process trace file to extract kernel operations and update input prefixes.
 
-    @param input_files List of KernelFiles for input.
-    @param mem_model Memory model to update.
+    @param run_config The configuration object.
     @param verbose_stream Stream for verbose output.
+    @return dict Dictionary mapping kernel names to kernel operations.
     """
-    for idx, kernel in enumerate(input_files):
-        if not GlobalConfig.hasHBM:
-            if verbose_stream:
-                print(
-                    f"    {idx + 1}/{len(input_files)}",
-                    kernel.cinst,
-                    file=verbose_stream,
-                )
-            kernel_cinstrs = loader.load_cinst_kernel_from_file(kernel.cinst)
-            for var_name in variable_discovery.discover_variables_spad(kernel_cinstrs):
-                mem_model.add_variable(var_name)
-        else:
-            if verbose_stream:
-                print(
-                    f"    {idx + 1}/{len(input_files)}",
-                    kernel.minst,
-                    file=verbose_stream,
-                )
-            kernel_minstrs = loader.load_minst_kernel_from_file(kernel.minst)
-            for var_name in variable_discovery.discover_variables(kernel_minstrs):
-                mem_model.add_variable(var_name)
+    trace_info = TraceInfo(trace_file)
+    kernel_ops = trace_info.parse_kernel_ops()
+
+    # Extract kernel prefixes from trace file
+    kernel_ops_dict = {
+        f"{kernel_op.expected_in_kern_file_name}_pisa.tw": kernel_op
+        for kernel_op in kernel_ops
+    }
+
+    return kernel_ops_dict  # Only return the kernel_ops_dict
 
 
-def check_unused_variables(mem_model):
+def process_kernel_dinstrs(input_files, kernel_ops_dict, verbose_stream):
     """
-    @brief Checks for unused variables in the memory model and raises an error if found.
+    @brief Process kernel DInstructions when using trace file.
 
-    @param mem_model Memory model to check.
-    @exception RuntimeError If an unused variable is found.
+    @param input_files List of input kernel files.
+    @param kernel_ops_dict Dictionary mapping kernel names to kernel operations.
+    @param verbose_stream Stream for verbose output.
+    @return tuple Containing (kernel_dinstrs, remap_dicts) for further processing.
     """
-    for var_name in mem_model.mem_info_vars:
-        if var_name not in mem_model.variables:
-            if GlobalConfig.hasHBM or var_name not in mem_model.mem_info_meta:
-                raise RuntimeError(
-                    f'Unused variable from input mem file: "{var_name}" not in memory model.'
-                )
+    kernels_dinstrs = []
+    remap_dicts = {}
+
+    for kernel_files in input_files:
+        print(f"ROCHA  Processing kernel: {kernel_files.prefix}", file=verbose_stream)
+
+        kernel_dinstrs = loader.load_dinst_kernel_from_file(kernel_files.mem)
+        # Remap dintrs' variables in kernel_dinstrs and return a mapping dict
+        remap_dicts[kernel_files.prefix] = remap_dinstrs_vars(
+            kernel_dinstrs, kernel_ops_dict[kernel_files.prefix]
+        )
+
+        kernels_dinstrs.append(kernel_dinstrs)
+
+    # Concatenate all mem info objects into one
+    kernel_dinstrs = program_linker.LinkedProgram.join_dinst_kernels(kernels_dinstrs)
+
+    return kernel_dinstrs, remap_dicts
+
+
+def initialize_memory_model(run_config, kernel_dinstrs=None, verbose_stream=None):
+    """
+    @brief Initialize the memory model based on configuration.
+
+    @param run_config The configuration object.
+    @param kernel_dinstrs Optional list of kernel DInstructions for trace file mode.
+    @param verbose_stream Stream for verbose output.
+    @return MemoryModel instance.
+    """
+    hbm_capacity_words = constants.convertBytes2Words(
+        run_config.hbm_size * constants.Constants.KILOBYTE
+    )
+
+    # Parse memory information
+    if kernel_dinstrs:
+        mem_meta_info = mem_info.MemInfo.from_dinstrs(kernel_dinstrs)
+    else:
+        with open(run_config.input_mem_file, "r", encoding="utf-8") as mem_ifnum:
+            mem_meta_info = mem_info.MemInfo.from_file_iter(mem_ifnum)
+
+    # Initialize memory model
+    print("Initializing linker memory model", file=verbose_stream)
+    mem_model = linker.MemoryModel(hbm_capacity_words, mem_meta_info)
+    print(f"  HBM capacity: {mem_model.hbm.capacity} words", file=verbose_stream)
+
+    return mem_model
 
 
 def main(run_config: LinkerRunConfig, verbose_stream=NullIO()):
@@ -358,59 +341,68 @@ def main(run_config: LinkerRunConfig, verbose_stream=NullIO()):
     GlobalConfig.hasHBM = run_config.has_hbm
     GlobalConfig.suppress_comments = run_config.suppress_comments
 
-    mem_filename: str = run_config.input_mem_file
-    hbm_capacity_words: int = constants.convertBytes2Words(
-        run_config.hbm_size * constants.Constants.KILOBYTE
-    )
+    # Process trace file if enabled
+    kernel_ops_dict = {}
+    remap_dicts = {}
+    if run_config.using_trace_file:
+        kernel_ops_dict = process_trace_file(run_config.trace_file)
+        run_config.input_prefixes = list(kernel_ops_dict.keys())
+
+        print(
+            f"Found {len(run_config.input_prefixes)} kernels in trace file:",
+            file=verbose_stream,
+        )
+
+        print("", file=verbose_stream)
 
     # Prepare input and output files
-    output_files: KernelFiles = prepare_output_files(run_config)
-    input_files: list[KernelFiles] = prepare_input_files(run_config, output_files)
+    output_files = prepare_output_files(run_config)
+    input_files = prepare_input_files(run_config, output_files)
 
     # Reset counters
     Counter.reset()
 
-    # parse mem file
+    # Parse memory information and setup memory model
     print("Linking...", file=verbose_stream)
     print("", file=verbose_stream)
     print("Interpreting variable meta information...", file=verbose_stream)
 
-    if run_config.multi_mem_files:
-        kernels_dinstrs = []
-        for kernel in input_files:
-            if kernel.mem is None:
-                raise RuntimeError(f"Memory file not found for kernel {kernel.prefix}")
-            kernel_dinstrs = loader.load_dinst_kernel_from_file(kernel.mem)
-            kernels_dinstrs.append(kernel_dinstrs)
-
-        # Concatenate all mem info objects into one
-        kernel_dinstrs = program_linker.LinkedProgram.join_dinst_kernels(
-            kernels_dinstrs
+    kernel_dinstrs = None
+    if run_config.using_trace_file:
+        kernel_dinstrs, remap_dicts = process_kernel_dinstrs(
+            input_files, kernel_ops_dict, verbose_stream
         )
-        mem_meta_info = mem_info.MemInfo.from_dinstrs(kernel_dinstrs)
-    else:
-        with open(mem_filename, "r", encoding="utf-8") as mem_ifnum:
-            mem_meta_info = mem_info.MemInfo.from_file_iter(mem_ifnum)
 
     # Initialize memory model
-    print("Initializing linker memory model", file=verbose_stream)
+    mem_model = initialize_memory_model(run_config, kernel_dinstrs, verbose_stream)
 
-    mem_model = linker.MemoryModel(hbm_capacity_words, mem_meta_info)
-    print(f"  HBM capacity: {mem_model.hbm.capacity} words", file=verbose_stream)
-
+    # Discover variables
     print("  Finding all program variables...", file=verbose_stream)
     print("  Scanning", file=verbose_stream)
 
-    scan_variables(input_files, mem_model, verbose_stream)
+    scan_variables(
+        input_files=input_files,
+        mem_model=mem_model,
+        verbose_stream=verbose_stream,
+        remap_dicts=remap_dicts,
+    )
+
     check_unused_variables(mem_model)
 
     print(f"    Variables found: {len(mem_model.variables)}", file=verbose_stream)
     print("Linking started", file=verbose_stream)
 
-    link_kernels(input_files, output_files, mem_model, verbose_stream)
+    # Link kernels and generate outputs
+    program_linker.LinkedProgram.link_kernels_to_files(
+        input_files,
+        output_files,
+        mem_model,
+        verbose_stream=verbose_stream,
+        remap_dicts=remap_dicts,
+    )
 
     # Write the memory model to the output file
-    if run_config.multi_mem_files:
+    if run_config.using_trace_file:
         if output_files.mem is None:
             raise RuntimeError("Output memory file path is None")
         BaseInstruction.dump_instructions_to_file(kernel_dinstrs, output_files.mem)
@@ -419,7 +411,7 @@ def main(run_config: LinkerRunConfig, verbose_stream=NullIO()):
     print("  ", output_files.minst, file=verbose_stream)
     print("  ", output_files.cinst, file=verbose_stream)
     print("  ", output_files.xinst, file=verbose_stream)
-    if run_config.multi_mem_files:
+    if run_config.using_trace_file:
         print("  ", output_files.mem, file=verbose_stream)
 
 
@@ -445,12 +437,14 @@ def parse_args():
         )
     )
     parser.add_argument(
-        "input_prefixes",
+        "-ip",
+        "--input_prefixes",
+        dest="input_prefixes",
         nargs="+",
         help=(
-            "List of input prefixes, including full path. For an input prefix, linker will "
-            "assume three files exist named `input_prefixes[i] + '.minst'`, "
-            "`input_prefixes[i] + '.cinst'`, and `input_prefixes[i] + '.xinst'`."
+            "List of input prefixes. For an input prefix, linker will "
+            "assume three files exist named `<prefix[i]>.minst`, "
+            "`<prefix[i]>.cinst`, and `<prefix[i]>.xinst`."
         ),
     )
     parser.add_argument(
@@ -466,13 +460,25 @@ def parse_args():
         help=("Input ISA specification (.json) file."),
     )
     parser.add_argument(
-        "--multi_mem_files",
-        action="store_true",
-        dest="multi_mem_files",
+        "--use_trace_file",
+        default="",
+        dest="trace_file",
         help=(
-            "Tells the linker to find a memory file (*.tw.mem) for each input prefix given."
-            "This can be used to link multiple kernels together. "
-            "If this flag is not set, the linker will use the input_mem_file argument instead"
+            "Instructs the linker to use a trace file to determine the required input files for each kernel line. "
+            "The linker will look for the following files: *.minst, *.cinst, *.xinst, and *.mem. "
+            "When this flag is set, the 'input_mem_file' and 'input_prefixes' flags are ignored."
+        ),
+    )
+    parser.add_argument(
+        "-id",
+        "--input_dir",
+        dest="input_dir",
+        default="",
+        help=(
+            "Directory where input files are located. "
+            "If not provided and use_trace_file is set, the directory of the trace file will be used. "
+            "This is useful when input files are in a different location than the trace file. "
+            "If not provided and use_trace_file is not set, the current working directory will be used."
         ),
     )
     parser.add_argument(
@@ -538,11 +544,23 @@ def parse_args():
     )
     p_args = parser.parse_args()
 
-    # Enforce input_mem_file only if multi_mem_files is not set
-    if not p_args.multi_mem_files and p_args.input_mem_file == "":
-        parser.error(
-            "the following arguments are required: -im/--input_mem_file (unless --multi_mem_files is set)"
-        )
+    # Determine if using trace file based on trace_file argument
+    p_args.using_trace_file = p_args.trace_file != ""
+
+    # Set input_dir to trace_file directory if not provided and trace_file is set
+    if p_args.input_dir == "" and p_args.trace_file:
+        p_args.input_dir = os.path.dirname(p_args.trace_file)
+
+    # Enforce only if use_trace_file is not set
+    if not p_args.using_trace_file:
+        if p_args.input_mem_file == "":
+            parser.error(
+                "the following arguments are required: -im/--input_mem_file (unless --use_trace_file is set)"
+            )
+        if not p_args.input_prefixes:
+            parser.error(
+                "the following arguments are required: -ip/--input_prefixes (unless --use_trace_file is set)"
+            )
 
     return p_args
 

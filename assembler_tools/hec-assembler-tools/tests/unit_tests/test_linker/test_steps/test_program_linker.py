@@ -10,7 +10,8 @@
 
 import io
 import unittest
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock, call, mock_open
+from collections import namedtuple
 
 from assembler.common.config import GlobalConfig
 from linker import MemoryModel
@@ -114,73 +115,6 @@ class TestLinkedProgram(unittest.TestCase):
 
         # Should not contain "terminating MInstQ" comment
         self.assertNotIn("terminating MInstQ", self.streams["minst"].getvalue())
-
-    def test_validate_hbm_address(self):
-        """@brief Test validating a HBM address.
-
-        @test Verifies that valid addresses are accepted and invalid ones raise exceptions
-        """
-
-        # Test validating a valid HBM address
-        self.mem_model.mem_info_vars = {}
-        self.program._validate_hbm_address("test_var", 10)
-        # No exception should be raised
-
-        # Test validating a negative HBM address
-        with self.assertRaises(RuntimeError):
-            self.program._validate_hbm_address("test_var", -1)
-
-    def test_validate_hbm_address_mismatch(self):
-        """@brief Test validating an HBM address that doesn't match the declared address.
-
-        @test Verifies that a RuntimeError is raised when address doesn't match
-        """
-        mock_var = MagicMock()
-        mock_var.hbm_address = 5
-        self.mem_model.mem_info_vars = {"test_var": mock_var}
-
-        with self.assertRaises(RuntimeError):
-            self.program._validate_hbm_address("test_var", 10)
-
-    def test_validate_spad_address_valid(self):
-        """@brief Test validating a valid SPAD address with HBM disabled.
-
-        @test Verifies that valid SPAD addresses are accepted when HBM is disabled
-        """
-        with patch.object(GlobalConfig, "hasHBM", False):
-            self.mem_model.mem_info_vars = {}
-            self.program._validate_spad_address("test_var", 10)
-            # No exception should be raised
-
-    def test_validate_spad_address_with_hbm_enabled(self):
-        """@brief Test validating a SPAD address with HBM enabled.
-
-        @test Verifies that an AssertionError is raised when HBM is enabled
-        """
-        with self.assertRaises(AssertionError):
-            self.program._validate_spad_address("test_var", 10)
-
-    def test_validate_spad_address_negative(self):
-        """@brief Test validating a negative SPAD address.
-
-        @test Verifies that a RuntimeError is raised for negative addresses
-        """
-        with patch.object(GlobalConfig, "hasHBM", False):
-            with self.assertRaises(RuntimeError):
-                self.program._validate_spad_address("test_var", -1)
-
-    def test_validate_spad_address_mismatch(self):
-        """@brief Test validating a SPAD address that doesn't match the declared address.
-
-        @test Verifies that a RuntimeError is raised when address doesn't match
-        """
-        with patch.object(GlobalConfig, "hasHBM", False):
-            mock_var = MagicMock()
-            mock_var.hbm_address = 5
-            self.mem_model.mem_info_vars = {"test_var": mock_var}
-
-            with self.assertRaises(RuntimeError):
-                self.program._validate_spad_address("test_var", 10)
 
     def test_update_minsts(self):
         """@brief Test updating MInsts.
@@ -572,6 +506,164 @@ class TestLinkedProgram(unittest.TestCase):
                 self.assertNotIn("xinst_comment", xinst_output)
                 self.assertNotIn("cinst_comment", cinst_output)
                 self.assertNotIn("minst_comment", minst_output)
+
+    def test_link_kernels_to_files(self):
+        """
+        @brief Test the link_kernels_to_files static method.
+
+        @test Verifies that kernels are correctly linked and written to output files
+        """
+        # Create a namedtuple similar to KernelFiles for testing
+        KernelFiles = namedtuple(
+            "KernelFiles", ["prefix", "minst", "cinst", "xinst", "mem"]
+        )
+
+        # Arrange
+        input_files = [
+            KernelFiles(
+                prefix="/tmp/input1",
+                minst="/tmp/input1.minst",
+                cinst="/tmp/input1.cinst",
+                xinst="/tmp/input1.xinst",
+                mem=None,
+            )
+        ]
+
+        output_files = KernelFiles(
+            prefix="/tmp/output",
+            minst="/tmp/output.minst",
+            cinst="/tmp/output.cinst",
+            xinst="/tmp/output.xinst",
+            mem=None,
+        )
+
+        mock_mem_model = MagicMock()
+        mock_verbose = MagicMock()
+
+        # Act
+        with patch("builtins.open", mock_open()), patch(
+            "linker.loader.load_minst_kernel_from_file", return_value=[]
+        ), patch("linker.loader.load_cinst_kernel_from_file", return_value=[]), patch(
+            "linker.loader.load_xinst_kernel_from_file", return_value=[]
+        ), patch.object(
+            LinkedProgram, "__init__", return_value=None
+        ) as mock_init, patch.object(
+            LinkedProgram, "link_kernel"
+        ) as mock_link_kernel, patch.object(
+            LinkedProgram, "close"
+        ) as mock_close:
+
+            LinkedProgram.link_kernels_to_files(
+                input_files, output_files, mock_mem_model, mock_verbose
+            )
+
+        # Assert
+        mock_init.assert_called_once()
+        mock_link_kernel.assert_called_once_with([], [], [])
+        mock_close.assert_called_once()
+
+
+class TestLinkedProgramValidation(unittest.TestCase):
+    """@brief Tests for the validation methods of the LinkedProgram class."""
+
+    def setUp(self):
+        """@brief Set up test fixtures."""
+        # Group related stream objects into a dictionary
+        self.streams = {
+            "minst": io.StringIO(),
+            "cinst": io.StringIO(),
+            "xinst": io.StringIO(),
+        }
+        self.mem_model = MagicMock(spec=MemoryModel)
+
+        # Mock the hasHBM property to return True by default
+        self.has_hbm_patcher = patch.object(GlobalConfig, "hasHBM", True)
+        self.mock_has_hbm = self.has_hbm_patcher.start()
+
+        # Mock the suppress_comments property to return False by default
+        self.suppress_comments_patcher = patch.object(
+            GlobalConfig, "suppress_comments", False
+        )
+        self.mock_suppress_comments = self.suppress_comments_patcher.start()
+
+        self.program = LinkedProgram(
+            self.streams["minst"],
+            self.streams["cinst"],
+            self.streams["xinst"],
+            self.mem_model,
+        )
+
+    def tearDown(self):
+        """@brief Tear down test fixtures."""
+        self.has_hbm_patcher.stop()
+        self.suppress_comments_patcher.stop()
+
+    def test_validate_hbm_address(self):
+        """@brief Test validating a HBM address.
+
+        @test Verifies that valid addresses are accepted and invalid ones raise exceptions
+        """
+
+        # Test validating a valid HBM address
+        self.mem_model.mem_info_vars = {}
+        self.program._validate_hbm_address("test_var", 10)
+        # No exception should be raised
+
+        # Test validating a negative HBM address
+        with self.assertRaises(RuntimeError):
+            self.program._validate_hbm_address("test_var", -1)
+
+    def test_validate_hbm_address_mismatch(self):
+        """@brief Test validating an HBM address that doesn't match the declared address.
+
+        @test Verifies that a RuntimeError is raised when address doesn't match
+        """
+        mock_var = MagicMock()
+        mock_var.hbm_address = 5
+        self.mem_model.mem_info_vars = {"test_var": mock_var}
+
+        with self.assertRaises(RuntimeError):
+            self.program._validate_hbm_address("test_var", 10)
+
+    def test_validate_spad_address_valid(self):
+        """@brief Test validating a valid SPAD address with HBM disabled.
+
+        @test Verifies that valid SPAD addresses are accepted when HBM is disabled
+        """
+        with patch.object(GlobalConfig, "hasHBM", False):
+            self.mem_model.mem_info_vars = {}
+            self.program._validate_spad_address("test_var", 10)
+            # No exception should be raised
+
+    def test_validate_spad_address_with_hbm_enabled(self):
+        """@brief Test validating a SPAD address with HBM enabled.
+
+        @test Verifies that an AssertionError is raised when HBM is enabled
+        """
+        with self.assertRaises(AssertionError):
+            self.program._validate_spad_address("test_var", 10)
+
+    def test_validate_spad_address_negative(self):
+        """@brief Test validating a negative SPAD address.
+
+        @test Verifies that a RuntimeError is raised for negative addresses
+        """
+        with patch.object(GlobalConfig, "hasHBM", False):
+            with self.assertRaises(RuntimeError):
+                self.program._validate_spad_address("test_var", -1)
+
+    def test_validate_spad_address_mismatch(self):
+        """@brief Test validating a SPAD address that doesn't match the declared address.
+
+        @test Verifies that a RuntimeError is raised when address doesn't match
+        """
+        with patch.object(GlobalConfig, "hasHBM", False):
+            mock_var = MagicMock()
+            mock_var.hbm_address = 5
+            self.mem_model.mem_info_vars = {"test_var": mock_var}
+
+            with self.assertRaises(RuntimeError):
+                self.program._validate_spad_address("test_var", 10)
 
 
 class TestJoinDinstKernels(unittest.TestCase):

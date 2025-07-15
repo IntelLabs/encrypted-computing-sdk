@@ -7,9 +7,10 @@
 """@brief This module provides functionality to link kernels into a program."""
 
 from typing import Dict, Any, cast
-from linker import MemoryModel
+from linker import MemoryModel, loader
 from linker.instructions import minst, cinst, dinst
 from linker.instructions.dinst.dinstruction import DInstruction
+from linker.kern_trace.kern_remap import remap_m_c_instrs_vars
 from assembler.common.config import GlobalConfig
 from assembler.instructions import cinst as ISACInst
 
@@ -463,10 +464,14 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         mem_address: int = 0
         new_kernels_instrs: list[DInstruction] = []
         for kernel_instrs in kernels_instrs:
+            print(
+                f"\nROCHA Debug: Processing kernel with {len(kernel_instrs)} instructions."
+            )
             for cur_dinst in kernel_instrs:
 
                 # Save the current output instruction to add at the end
                 if isinstance(cur_dinst, dinst.DStore):
+                    print(f"ROCHA Debug: Carrying over output variable {cur_dinst.var}")
                     key = cur_dinst.var
                     carry_over_vars[key] = cur_dinst
                     continue
@@ -475,6 +480,9 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                     key = cur_dinst.var
                     # Skip if the input is already in carry-over from previous outputs
                     if key in carry_over_vars:
+                        print(
+                            f"ROCHA Debug: Carrying over input variable {key} from previous output."
+                        )
                         carry_over_vars.pop(
                             key
                         )  # Remove from (output) carry-overs since it's now an input
@@ -490,9 +498,60 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                         continue
 
         # Add remaining carry-over variables to the new instructions
-        for _, var in carry_over_vars.items():
-            var.address = mem_address
-            new_kernels_instrs.append(var)
+        for _, dintr in carry_over_vars.items():
+            print(
+                f"ROCHA Debug: Adding carry-over variable {dintr.var} at address {mem_address}."
+            )
+            dintr.address = mem_address
+            new_kernels_instrs.append(dintr)
             mem_address = mem_address + 1
 
         return new_kernels_instrs
+
+    @staticmethod
+    def link_kernels_to_files(
+        input_files, output_files, mem_model, verbose_stream=None, remap_dicts=None
+    ):
+        """
+        @brief Links input kernels and writes the output to the specified files.
+
+        @param input_files List of KernelFiles for input kernels.
+        @param output_files KernelFiles for output.
+        @param mem_model Memory model to use.
+        @param verbose_stream Stream for verbose output.
+        """
+        with open(output_files.minst, "w", encoding="utf-8") as fnum_output_minst, open(
+            output_files.cinst, "w", encoding="utf-8"
+        ) as fnum_output_cinst, open(
+            output_files.xinst, "w", encoding="utf-8"
+        ) as fnum_output_xinst:
+
+            result_program = LinkedProgram(
+                fnum_output_minst, fnum_output_cinst, fnum_output_xinst, mem_model
+            )
+            for idx, kernel in enumerate(input_files):
+                if verbose_stream:
+                    print(
+                        f"[ {idx * 100 // len(input_files): >3}% ]",
+                        kernel.prefix,
+                        file=verbose_stream,
+                    )
+                kernel_minstrs = loader.load_minst_kernel_from_file(kernel.minst)
+                kernel_cinstrs = loader.load_cinst_kernel_from_file(kernel.cinst)
+                kernel_xinstrs = loader.load_xinst_kernel_from_file(kernel.xinst)
+
+                if remap_dicts and kernel.prefix in remap_dicts:
+                    remap_dict = remap_dicts[kernel.prefix]
+                    remap_m_c_instrs_vars(kernel_minstrs, remap_dict)
+                    remap_m_c_instrs_vars(kernel_cinstrs, remap_dict)
+
+                result_program.link_kernel(
+                    kernel_minstrs, kernel_cinstrs, kernel_xinstrs
+                )
+            if verbose_stream:
+                print(
+                    "[ 100% ] Finalizing output",
+                    output_files.prefix,
+                    file=verbose_stream,
+                )
+            result_program.close()

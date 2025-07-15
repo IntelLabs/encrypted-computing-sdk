@@ -45,4 +45,8 @@ class Instruction(DInstruction):
 
         @return The list of tokens.
         """
-        return [self.name, self._tokens[1], str(self.address)] + self._tokens[3:]
+        extra_tokens = []
+        if len(self._tokens) > 4:
+            extra_tokens = self._tokens[4:]
+
+        return [self.name, self._tokens[1], str(self.address), self.var] + extra_tokens

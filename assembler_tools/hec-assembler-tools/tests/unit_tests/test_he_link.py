@@ -38,7 +38,7 @@ class TestLinkerRunConfig:
             "hbm_size": 1024,
             "suppress_comments": False,
             "use_xinstfetch": False,
-            "multi_mem_files": False,
+            "using_trace_file": False,
         }
 
         # Act
@@ -54,7 +54,7 @@ class TestLinkerRunConfig:
         assert config.hbm_size == 1024
         assert config.suppress_comments is False
         assert config.use_xinstfetch is False
-        assert config.multi_mem_files is False
+        assert config.using_trace_file is False
 
     def test_init_with_missing_required_param(self):
         """
@@ -62,9 +62,10 @@ class TestLinkerRunConfig:
         """
         # Arrange
         kwargs = {
-            "output_prefix": "output_prefix",
+            "input_prefixes": ["prefix1"],
             "input_mem_file": "input.mem",
-            # Missing input_prefixes
+            "output_dir": "/tmp",
+            # Missing output_prefixes
         }
 
         # Act & Assert
@@ -166,53 +167,7 @@ class TestLinkerRunConfig:
         assert config.hbm_size == 1024
         assert config.suppress_comments is False
         assert config.use_xinstfetch is False
-        assert config.multi_mem_files is False
-
-
-class TestKernelFiles:
-    """
-    @class TestKernelFiles
-    @brief Test cases for the KernelFiles class
-    """
-
-    def test_kernel_files_creation(self):
-        """
-        @brief Test KernelFiles creation and attribute access
-        """
-        # Act
-        kernel_files = he_link.KernelFiles(
-            prefix="prefix",
-            minst="prefix.minst",
-            cinst="prefix.cinst",
-            xinst="prefix.xinst",
-            mem="prefix.mem",
-        )
-
-        # Assert
-        assert kernel_files.prefix == "prefix"
-        assert kernel_files.minst == "prefix.minst"
-        assert kernel_files.cinst == "prefix.cinst"
-        assert kernel_files.xinst == "prefix.xinst"
-        assert kernel_files.mem == "prefix.mem"
-
-    def test_kernel_files_without_mem(self):
-        """
-        @brief Test KernelFiles creation without mem file
-        """
-        # Act
-        kernel_files = he_link.KernelFiles(
-            prefix="prefix",
-            minst="prefix.minst",
-            cinst="prefix.cinst",
-            xinst="prefix.xinst",
-        )
-
-        # Assert
-        assert kernel_files.prefix == "prefix"
-        assert kernel_files.minst == "prefix.minst"
-        assert kernel_files.cinst == "prefix.cinst"
-        assert kernel_files.xinst == "prefix.xinst"
-        assert kernel_files.mem is None
+        assert config.using_trace_file is False
 
 
 class TestHelperFunctions:
@@ -229,7 +184,7 @@ class TestHelperFunctions:
         mock_config = MagicMock()
         mock_config.output_dir = "/tmp"
         mock_config.output_prefix = "output"
-        mock_config.multi_mem_files = False
+        mock_config.using_trace_file = False
 
         # Act
         with patch("os.path.dirname", return_value="/tmp"), patch(
@@ -238,7 +193,8 @@ class TestHelperFunctions:
             result = he_link.prepare_output_files(mock_config)
 
         # Assert
-        assert result.prefix == "/tmp/output"
+        assert result.directory == "/tmp"
+        assert result.prefix == "output"
         assert result.minst == "/tmp/output.minst"
         assert result.cinst == "/tmp/output.cinst"
         assert result.xinst == "/tmp/output.xinst"
@@ -246,13 +202,13 @@ class TestHelperFunctions:
 
     def test_prepare_output_files_with_mem(self):
         """
-        @brief Test prepare_output_files with multi_mem_files=True
+        @brief Test prepare_output_files with using_trace_file=True
         """
         # Arrange
         mock_config = MagicMock()
         mock_config.output_dir = "/tmp"
         mock_config.output_prefix = "output"
-        mock_config.multi_mem_files = True
+        mock_config.using_trace_file = True
 
         # Act
         with patch("os.path.dirname", return_value="/tmp"), patch(
@@ -261,7 +217,8 @@ class TestHelperFunctions:
             result = he_link.prepare_output_files(mock_config)
 
         # Assert
-        assert result.prefix == "/tmp/output"
+        assert result.directory == "/tmp"
+        assert result.prefix == "output"
         assert result.minst == "/tmp/output.minst"
         assert result.cinst == "/tmp/output.cinst"
         assert result.xinst == "/tmp/output.xinst"
@@ -273,11 +230,13 @@ class TestHelperFunctions:
         """
         # Arrange
         mock_config = MagicMock()
-        mock_config.input_prefixes = ["/tmp/input1", "/tmp/input2"]
-        mock_config.multi_mem_files = False
+        mock_config.input_dir = "/tmp"
+        mock_config.input_prefixes = ["input1", "input2"]
+        mock_config.using_trace_file = False
 
         mock_output_files = he_link.KernelFiles(
-            prefix="/tmp/output",
+            directory="/tmp",
+            prefix="output",
             minst="/tmp/output.minst",
             cinst="/tmp/output.cinst",
             xinst="/tmp/output.xinst",
@@ -291,12 +250,13 @@ class TestHelperFunctions:
 
         # Assert
         assert len(result) == 2
-        assert result[0].prefix == "/tmp/input1"
+        assert result[0].directory == "/tmp"
+        assert result[0].prefix == "input1"
         assert result[0].minst == "/tmp/input1.minst"
         assert result[0].cinst == "/tmp/input1.cinst"
         assert result[0].xinst == "/tmp/input1.xinst"
         assert result[0].mem is None
-        assert result[1].prefix == "/tmp/input2"
+        assert result[1].prefix == "input2"
 
     def test_prepare_input_files_file_not_found(self):
         """
@@ -304,11 +264,13 @@ class TestHelperFunctions:
         """
         # Arrange
         mock_config = MagicMock()
-        mock_config.input_prefixes = ["/tmp/input1"]
-        mock_config.multi_mem_files = False
+        mock_config.input_dir = "/tmp"
+        mock_config.input_prefixes = ["input1"]
+        mock_config.using_trace_file = False
 
         mock_output_files = he_link.KernelFiles(
-            prefix="/tmp/output",
+            directory="/tmp",
+            prefix="output",
             minst="/tmp/output.minst",
             cinst="/tmp/output.cinst",
             xinst="/tmp/output.xinst",
@@ -327,12 +289,14 @@ class TestHelperFunctions:
         """
         # Arrange
         mock_config = MagicMock()
-        mock_config.input_prefixes = ["/tmp/input1"]
-        mock_config.multi_mem_files = False
+        mock_config.input_dir = "/tmp"
+        mock_config.input_prefixes = ["input1"]
+        mock_config.using_trace_file = False
 
         # Output file matching an input file
         mock_output_files = he_link.KernelFiles(
-            prefix="/tmp/output",
+            directory="/tmp",
+            prefix="output",
             minst="/tmp/input1.minst",  # Conflict
             cinst="/tmp/output.cinst",
             xinst="/tmp/output.xinst",
@@ -345,101 +309,6 @@ class TestHelperFunctions:
             with pytest.raises(RuntimeError):
                 he_link.prepare_input_files(mock_config, mock_output_files)
 
-    @pytest.mark.parametrize("has_hbm", [True, False])
-    def test_scan_variables(self, has_hbm):
-        """
-        @brief Test scan_variables function with and without HBM
-        @param has_hbm Boolean indicating whether HBM is enabled
-        """
-        # Arrange
-        GlobalConfig.hasHBM = has_hbm
-        mock_mem_model = MagicMock()
-        mock_verbose = MagicMock()
-
-        input_files = [
-            he_link.KernelFiles(
-                prefix="/tmp/input1",
-                minst="/tmp/input1.minst",
-                cinst="/tmp/input1.cinst",
-                xinst="/tmp/input1.xinst",
-            )
-        ]
-
-        # Act
-        with patch("linker.loader.load_minst_kernel_from_file", return_value=[]), patch(
-            "linker.loader.load_cinst_kernel_from_file", return_value=[]
-        ), patch(
-            "linker.steps.variable_discovery.discover_variables",
-            return_value=["var1", "var2"],
-        ), patch(
-            "linker.steps.variable_discovery.discover_variables_spad",
-            return_value=["var1", "var2"],
-        ):
-            he_link.scan_variables(input_files, mock_mem_model, mock_verbose)
-
-        # Assert
-        if has_hbm:
-            assert mock_mem_model.add_variable.call_count == 2
-        else:
-            assert mock_mem_model.add_variable.call_count == 2
-
-    def test_check_unused_variables(self):
-        """
-        @brief Test check_unused_variables function
-        """
-        # Arrange
-        GlobalConfig.hasHBM = True
-        mock_mem_model = MagicMock()
-        mock_mem_model.mem_info_vars = {"var1": MagicMock(), "var2": MagicMock()}
-        mock_mem_model.variables = {"var1"}
-        mock_mem_model.mem_info_meta = {}
-
-        # Act & Assert
-        with pytest.raises(RuntimeError):
-            he_link.check_unused_variables(mock_mem_model)
-
-    def test_link_kernels(self):
-        """
-        @brief Test link_kernels function
-        """
-        # Arrange
-        input_files = [
-            he_link.KernelFiles(
-                prefix="/tmp/input1",
-                minst="/tmp/input1.minst",
-                cinst="/tmp/input1.cinst",
-                xinst="/tmp/input1.xinst",
-            )
-        ]
-
-        output_files = he_link.KernelFiles(
-            prefix="/tmp/output",
-            minst="/tmp/output.minst",
-            cinst="/tmp/output.cinst",
-            xinst="/tmp/output.xinst",
-        )
-
-        mock_mem_model = MagicMock()
-        mock_verbose = MagicMock()
-
-        # Act
-        with patch("builtins.open", mock_open()), patch(
-            "linker.loader.load_minst_kernel_from_file", return_value=[]
-        ), patch("linker.loader.load_cinst_kernel_from_file", return_value=[]), patch(
-            "linker.loader.load_xinst_kernel_from_file", return_value=[]
-        ), patch(
-            "linker.steps.program_linker.LinkedProgram"
-        ) as mock_linked_program:
-            he_link.link_kernels(
-                input_files, output_files, mock_mem_model, mock_verbose
-            )
-
-        # Assert
-        mock_linked_program.assert_called_once()
-        instance = mock_linked_program.return_value
-        assert instance.link_kernel.call_count == 1
-        assert instance.close.call_count == 1
-
 
 class TestMainFunction:
     """
@@ -447,36 +316,39 @@ class TestMainFunction:
     @brief Test cases for the main function
     """
 
-    @pytest.mark.parametrize("multi_mem_files", [True, False])
-    def test_main(self, multi_mem_files):
+    @pytest.mark.parametrize("using_trace_file", [True, False])
+    def test_main(self, using_trace_file):
         """
-        @brief Test main function with and without multi_mem_files
+        @brief Test main function with and without using_trace_file
         """
         # Arrange
         mock_config = MagicMock()
-        mock_config.multi_mem_files = multi_mem_files
+        mock_config.using_trace_file = using_trace_file
         mock_config.has_hbm = True
         mock_config.hbm_size = 1024
         mock_config.suppress_comments = False
         mock_config.use_xinstfetch = False
 
-        # Setup input files with conditional mem files
+        # The expected kernel name pattern from parse_kernel_ops
+        expected_kernel_name = "kernel1_pisa.tw"
+
+        # Setup input files with conditional mem files - ensure prefix matches expected pattern
         input_files = [
             he_link.KernelFiles(
-                prefix="prefix1",
-                minst="prefix1.minst",
-                cinst="prefix1.cinst",
-                xinst="prefix1.xinst",
-                mem="prefix1.mem" if multi_mem_files else None,
-            ),
-            he_link.KernelFiles(
-                prefix="prefix2",
-                minst="prefix2.minst",
-                cinst="prefix2.cinst",
-                xinst="prefix2.xinst",
-                mem="prefix2.mem" if multi_mem_files else None,
+                directory="/tmp",
+                prefix=expected_kernel_name,  # Match the expected name pattern
+                minst=f"{expected_kernel_name}.minst",
+                cinst=f"{expected_kernel_name}.cinst",
+                xinst=f"{expected_kernel_name}.xinst",
+                mem=f"{expected_kernel_name}.mem" if using_trace_file else None,
             ),
         ]
+
+        # Create mock DInstructions with proper .var attributes
+        mock_dinstr1 = MagicMock()
+        mock_dinstr1.var = "ct0_data"
+        mock_dinstr2 = MagicMock()
+        mock_dinstr2.var = "pt1_result"
 
         # Create a dictionary of mocks to reduce the number of local variables
         mocks = {
@@ -487,10 +359,35 @@ class TestMainFunction:
             "link_kernels": MagicMock(),
             "from_dinstrs": MagicMock(),
             "from_file_iter": MagicMock(),
-            "load_dinst": MagicMock(return_value=["1", "2"]),
+            "load_dinst": MagicMock(
+                return_value=[mock_dinstr1, mock_dinstr2]
+            ),  # Return mock DInstructions
             "join_dinst": MagicMock(return_value=[]),
             "dump_instructions": MagicMock(),
+            "remap_dinstrs_vars": MagicMock(return_value={"old_var": "new_var"}),
+            "process_trace_file": MagicMock(
+                return_value={"kernel1_pisa.tw": MagicMock()}
+            ),
+            "process_kernel_dinstrs": MagicMock(
+                return_value=([mock_dinstr1, mock_dinstr2], {"key": "value"})
+            ),
+            "initialize_memory_model": MagicMock(),
+            # Return a kernel_op with expected_in_kern_file_name that will match our input file prefix
+            "parse_kernel_ops": MagicMock(
+                return_value=[
+                    MagicMock(
+                        expected_in_kern_file_name="kernel1",
+                        kern_vars=[
+                            MagicMock(label="input"),
+                            MagicMock(label="output"),
+                        ],  # Add mock kern_vars
+                    )
+                ]
+            ),
         }
+
+        # Add trace_file property to mock_config
+        mock_config.trace_file = "mock_trace.txt" if using_trace_file else ""
 
         # Act
         with patch(
@@ -520,12 +417,24 @@ class TestMainFunction:
         ), patch(
             "he_link.check_unused_variables", mocks["check_unused_variables"]
         ), patch(
-            "he_link.link_kernels", mocks["link_kernels"]
+            "linker.kern_trace.TraceInfo.parse_kernel_ops", mocks["parse_kernel_ops"]
         ), patch(
-            "he_link.BaseInstruction.dump_instructions_to_file",
-            mocks["dump_instructions"],
+            "os.path.isfile",
+            return_value=True,  # Make all file existence checks return True
+        ), patch(
+            "linker.steps.program_linker.LinkedProgram.link_kernels_to_files",
+            mocks["link_kernels"],
+        ), patch(
+            "he_link.remap_dinstrs_vars", mocks["remap_dinstrs_vars"]
+        ), patch(
+            "he_link.process_trace_file", mocks["process_trace_file"]
+        ), patch(
+            "he_link.process_kernel_dinstrs", mocks["process_kernel_dinstrs"]
+        ), patch(
+            "he_link.initialize_memory_model", mocks["initialize_memory_model"]
         ):
 
+            # Run the main function with all patches in place
             he_link.main(mock_config, MagicMock())
 
         # Assert pipeline is run as expected
@@ -535,18 +444,28 @@ class TestMainFunction:
         mocks["check_unused_variables"].assert_called_once()
         mocks["link_kernels"].assert_called_once()
 
-        if multi_mem_files:
-            # Should use from_dinstrs, not from_file_iter
-            assert mocks["from_dinstrs"].called
-            assert mocks["load_dinst"].called
-            assert mocks["join_dinst"].called
-            assert mocks["dump_instructions"].called
+        if using_trace_file:
+            # Assert that the trace processing flow was used
+            mocks["process_trace_file"].assert_called_once()
+            mocks["process_kernel_dinstrs"].assert_called_once()
+            mocks["initialize_memory_model"].assert_called_once()
+
+            # With the new refactoring, from_dinstrs would be called inside initialize_memory_model
+            # which we're now mocking entirely, so we should check that initialize_memory_model
+            # was called with the expected arguments instead
+            assert mocks["initialize_memory_model"].call_args[0][0] == mock_config
+            assert mocks["initialize_memory_model"].call_args[0][1] is not None
 
             assert not mocks["from_file_iter"].called
         else:
-            # Should use from_file_iter, not from_dinstrs
-            assert mocks["from_file_iter"].called
-            assert not mocks["from_dinstrs"].called
+            # Assert that the normal flow was used
+            assert not mocks["process_trace_file"].called
+            assert not mocks["process_kernel_dinstrs"].called
+            mocks["initialize_memory_model"].assert_called_once()
+
+            # Check that initialize_memory_model was called with None for kernel_dinstrs
+            assert mocks["initialize_memory_model"].call_args[0][0] == mock_config
+            assert mocks["initialize_memory_model"].call_args[0][1] is None
 
     def test_warning_on_use_xinstfetch(self):
         """
@@ -554,7 +473,7 @@ class TestMainFunction:
         """
         # Arrange
         mock_config = MagicMock()
-        mock_config.multi_mem_files = False
+        mock_config.using_trace_file = False
         mock_config.has_hbm = True
         mock_config.hbm_size = 1024
         mock_config.suppress_comments = False
@@ -579,7 +498,7 @@ class TestMainFunction:
         ), patch(
             "he_link.check_unused_variables"
         ), patch(
-            "he_link.link_kernels"
+            "linker.steps.program_linker.LinkedProgram.link_kernels_to_files"
         ):
             he_link.main(mock_config, None)
             mock_warn.assert_called_once()
@@ -595,25 +514,17 @@ class TestParseArgs:
         """
         @brief Test parse_args with minimal arguments
         """
-        # Arrange
-        test_args = [
-            "program",
-            "input_prefix",
-            "-o",
-            "output_prefix",
-            "-im",
-            "input.mem",
-        ]
-
-        # Act
-        with patch("sys.argv", test_args), patch(
+        # Act - Mock the return value of parse_args directly
+        with patch(
             "argparse.ArgumentParser.parse_args",
             return_value=argparse.Namespace(
                 input_prefixes=["input_prefix"],
                 output_prefix="output_prefix",
                 input_mem_file="input.mem",
+                trace_file="",
+                input_dir="",
                 output_dir="",
-                multi_mem_files=False,
+                using_trace_file=False,
                 mem_spec_file="",
                 isa_spec_file="",
                 has_hbm=True,
@@ -628,30 +539,23 @@ class TestParseArgs:
         assert args.input_prefixes == ["input_prefix"]
         assert args.output_prefix == "output_prefix"
         assert args.input_mem_file == "input.mem"
-        assert args.multi_mem_files is False
+        assert args.using_trace_file is False
 
-    def test_parse_args_multi_mem_files(self):
+    def test_parse_args_using_trace_file(self):
         """
-        @brief Test parse_args with multi_mem_files flag
+        @brief Test parse_args with using_trace_file flag
         """
-        # Arrange
-        test_args = [
-            "program",
-            "input_prefix",
-            "-o",
-            "output_prefix",
-            "--multi_mem_files",
-        ]
-
-        # Act
-        with patch("sys.argv", test_args), patch(
+        # Act - Mock the return value of parse_args directly
+        with patch(
             "argparse.ArgumentParser.parse_args",
             return_value=argparse.Namespace(
-                input_prefixes=["input_prefix"],
+                input_prefixes=None,
                 output_prefix="output_prefix",
                 input_mem_file="",
+                input_dir="",
+                trace_file="trace_file_path",
                 output_dir="",
-                multi_mem_files=True,
+                using_trace_file=None,  # This should be computed by parse_args function
                 mem_spec_file="",
                 isa_spec_file="",
                 has_hbm=True,
@@ -663,27 +567,25 @@ class TestParseArgs:
             args = he_link.parse_args()
 
         # Assert
-        assert args.input_prefixes == ["input_prefix"]
         assert args.output_prefix == "output_prefix"
-        assert args.input_mem_file == ""
-        assert args.multi_mem_files is True
+        assert args.trace_file == "trace_file_path"
+        assert args.using_trace_file is True  # Should be computed from trace_file
 
     def test_missing_input_mem_file(self):
         """
-        @brief Test parse_args with missing input_mem_file when multi_mem_files is False
+        @brief Test parse_args with missing input_mem_file when using_trace_file is False
         """
-        # Arrange
-        test_args = ["program", "input_prefix", "-o", "output_prefix"]
-
-        # Act & Assert
-        with patch("sys.argv", test_args), patch(
+        # Act & Assert - Mock the return value and test error handling
+        with patch(
             "argparse.ArgumentParser.parse_args",
             return_value=argparse.Namespace(
                 input_prefixes=["input_prefix"],
                 output_prefix="output_prefix",
                 input_mem_file="",
+                input_dir="",
                 output_dir="",
-                multi_mem_files=False,
+                trace_file="",
+                using_trace_file=False,
                 mem_spec_file="",
                 isa_spec_file="",
                 has_hbm=True,
