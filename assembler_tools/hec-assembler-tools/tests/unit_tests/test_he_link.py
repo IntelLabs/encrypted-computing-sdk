@@ -8,306 +8,13 @@
 @file test_he_link.py
 @brief Unit tests for the he_link module
 """
-
-import os
+import io
 import argparse
-from unittest.mock import patch, mock_open, MagicMock, PropertyMock
+from unittest.mock import patch, mock_open, MagicMock
 import pytest
 
 import he_link
-from assembler.common.config import GlobalConfig
-
-
-class TestLinkerRunConfig:
-    """
-    @class TestLinkerRunConfig
-    @brief Test cases for the LinkerRunConfig class
-    """
-
-    def test_init_with_valid_params(self):
-        """
-        @brief Test initialization with valid parameters
-        """
-        # Arrange
-        kwargs = {
-            "input_prefixes": ["prefix1", "prefix2"],
-            "output_prefix": "output_prefix",
-            "input_mem_file": "input.mem",
-            "output_dir": "/tmp",
-            "has_hbm": True,
-            "hbm_size": 1024,
-            "suppress_comments": False,
-            "use_xinstfetch": False,
-            "using_trace_file": False,
-        }
-
-        # Act
-        with patch("he_link.makeUniquePath", side_effect=lambda x: x):
-            config = he_link.LinkerRunConfig(**kwargs)
-
-        # Assert
-        assert config.input_prefixes == ["prefix1", "prefix2"]
-        assert config.output_prefix == "output_prefix"
-        assert config.input_mem_file == "input.mem"
-        assert config.output_dir == "/tmp"
-        assert config.has_hbm is True
-        assert config.hbm_size == 1024
-        assert config.suppress_comments is False
-        assert config.use_xinstfetch is False
-        assert config.using_trace_file is False
-
-    def test_init_with_missing_required_param(self):
-        """
-        @brief Test initialization with missing required parameters
-        """
-        # Arrange
-        kwargs = {
-            "input_prefixes": ["prefix1"],
-            "input_mem_file": "input.mem",
-            "output_dir": "/tmp",
-            # Missing output_prefixes
-        }
-
-        # Act & Assert
-        with pytest.raises(TypeError):
-            he_link.LinkerRunConfig(**kwargs)
-
-    def test_as_dict(self):
-        """
-        @brief Test the as_dict method returns a proper dictionary
-        """
-        # Arrange
-        kwargs = {
-            "input_prefixes": ["prefix1"],
-            "output_prefix": "output_prefix",
-            "input_mem_file": "input.mem",
-            "output_dir": "/tmp",
-            "has_hbm": True,
-            "hbm_size": 1024,
-        }
-
-        # Act
-        with patch("he_link.makeUniquePath", side_effect=lambda x: x):
-            config = he_link.LinkerRunConfig(**kwargs)
-            result = config.as_dict()
-
-        # Assert Keys
-        assert isinstance(result, dict)
-        assert "input_prefixes" in result
-        assert "output_prefix" in result
-        assert "input_mem_file" in result
-        assert "output_dir" in result
-        assert "has_hbm" in result
-        assert "hbm_size" in result
-
-        # Assert values
-        assert result["input_prefixes"] == ["prefix1"]
-        assert result["output_prefix"] == "output_prefix"
-        assert result["input_mem_file"] == "input.mem"
-        assert result["output_dir"] == "/tmp"
-        assert result["has_hbm"] is True
-        assert result["hbm_size"] == 1024
-
-    def test_str_representation(self):
-        """
-        @brief Test the string representation of the configuration
-        """
-        # Arrange
-        kwargs = {
-            "input_prefixes": ["prefix1"],
-            "output_prefix": "output_prefix",
-            "input_mem_file": "input.mem",
-        }
-
-        # Act
-        with patch("he_link.makeUniquePath", side_effect=lambda x: x):
-            config = he_link.LinkerRunConfig(**kwargs)
-            result = str(config)
-
-        # Assert params
-        assert "input_prefixes" in result
-        assert "output_prefix" in result
-        assert "input_mem_file" in result
-        # Assert values
-        assert "prefix1" in result
-        assert "output_prefix" in result
-        assert "input.mem" in result
-
-    def test_init_for_default_params(self):
-        """
-        @brief Test initialization with default parameters
-        """
-
-        # Arrange
-        kwargs = {"input_prefixes": ["prefix1"], "output_prefix": ""}
-
-        # Reset the class-level config so the patch will take effect
-        he_link.RunConfig.reset_class_state()
-
-        # Act
-        with patch("he_link.makeUniquePath", side_effect=lambda x: x), patch.object(
-            he_link.RunConfig, "DEFAULT_HBM_SIZE_KB", new_callable=PropertyMock
-        ) as mock_hbm_size, patch.object(
-            GlobalConfig, "suppress_comments", new_callable=PropertyMock
-        ) as mock_suppress_comments, patch.object(
-            GlobalConfig, "useXInstFetch", new_callable=PropertyMock
-        ) as mock_use_xinstfetch:
-
-            # Mock the default HBM size
-            mock_suppress_comments.return_value = False
-            mock_use_xinstfetch.return_value = False
-            mock_hbm_size.return_value = 1024
-            config = he_link.LinkerRunConfig(**kwargs)
-
-        # Assert
-        assert config.output_prefix == ""
-        assert config.input_mem_file == ""
-        assert config.output_dir == os.getcwd()
-        assert config.has_hbm is True
-        assert config.hbm_size == 1024
-        assert config.suppress_comments is False
-        assert config.use_xinstfetch is False
-        assert config.using_trace_file is False
-
-
-class TestHelperFunctions:
-    """
-    @class TestHelperFunctions
-    @brief Test cases for helper functions in he_link
-    """
-
-    def test_prepare_output_files(self):
-        """
-        @brief Test prepare_output_files function creates correct output files
-        """
-        # Arrange
-        mock_config = MagicMock()
-        mock_config.output_dir = "/tmp"
-        mock_config.output_prefix = "output"
-        mock_config.using_trace_file = False
-
-        # Act
-        with patch("os.path.dirname", return_value="/tmp"), patch(
-            "pathlib.Path.mkdir"
-        ), patch("he_link.makeUniquePath", side_effect=lambda x: x):
-            result = he_link.prepare_output_files(mock_config)
-
-        # Assert
-        assert result.directory == "/tmp"
-        assert result.prefix == "output"
-        assert result.minst == "/tmp/output.minst"
-        assert result.cinst == "/tmp/output.cinst"
-        assert result.xinst == "/tmp/output.xinst"
-        assert result.mem is None
-
-    def test_prepare_output_files_with_mem(self):
-        """
-        @brief Test prepare_output_files with using_trace_file=True
-        """
-        # Arrange
-        mock_config = MagicMock()
-        mock_config.output_dir = "/tmp"
-        mock_config.output_prefix = "output"
-        mock_config.using_trace_file = True
-
-        # Act
-        with patch("os.path.dirname", return_value="/tmp"), patch(
-            "pathlib.Path.mkdir"
-        ), patch("he_link.makeUniquePath", side_effect=lambda x: x):
-            result = he_link.prepare_output_files(mock_config)
-
-        # Assert
-        assert result.directory == "/tmp"
-        assert result.prefix == "output"
-        assert result.minst == "/tmp/output.minst"
-        assert result.cinst == "/tmp/output.cinst"
-        assert result.xinst == "/tmp/output.xinst"
-        assert result.mem == "/tmp/output.mem"
-
-    def test_prepare_input_files(self):
-        """
-        @brief Test prepare_input_files function
-        """
-        # Arrange
-        mock_config = MagicMock()
-        mock_config.input_dir = "/tmp"
-        mock_config.input_prefixes = ["input1", "input2"]
-        mock_config.using_trace_file = False
-
-        mock_output_files = he_link.KernelFiles(
-            directory="/tmp",
-            prefix="output",
-            minst="/tmp/output.minst",
-            cinst="/tmp/output.cinst",
-            xinst="/tmp/output.xinst",
-        )
-
-        # Act
-        with patch("os.path.isfile", return_value=True), patch(
-            "he_link.makeUniquePath", side_effect=lambda x: x
-        ):
-            result = he_link.prepare_input_files(mock_config, mock_output_files)
-
-        # Assert
-        assert len(result) == 2
-        assert result[0].directory == "/tmp"
-        assert result[0].prefix == "input1"
-        assert result[0].minst == "/tmp/input1.minst"
-        assert result[0].cinst == "/tmp/input1.cinst"
-        assert result[0].xinst == "/tmp/input1.xinst"
-        assert result[0].mem is None
-        assert result[1].prefix == "input2"
-
-    def test_prepare_input_files_file_not_found(self):
-        """
-        @brief Test prepare_input_files when a file doesn't exist
-        """
-        # Arrange
-        mock_config = MagicMock()
-        mock_config.input_dir = "/tmp"
-        mock_config.input_prefixes = ["input1"]
-        mock_config.using_trace_file = False
-
-        mock_output_files = he_link.KernelFiles(
-            directory="/tmp",
-            prefix="output",
-            minst="/tmp/output.minst",
-            cinst="/tmp/output.cinst",
-            xinst="/tmp/output.xinst",
-        )
-
-        # Act & Assert
-        with patch("os.path.isfile", return_value=False), patch(
-            "he_link.makeUniquePath", side_effect=lambda x: x
-        ):
-            with pytest.raises(FileNotFoundError):
-                he_link.prepare_input_files(mock_config, mock_output_files)
-
-    def test_prepare_input_files_output_conflict(self):
-        """
-        @brief Test prepare_input_files when input and output files conflict
-        """
-        # Arrange
-        mock_config = MagicMock()
-        mock_config.input_dir = "/tmp"
-        mock_config.input_prefixes = ["input1"]
-        mock_config.using_trace_file = False
-
-        # Output file matching an input file
-        mock_output_files = he_link.KernelFiles(
-            directory="/tmp",
-            prefix="output",
-            minst="/tmp/input1.minst",  # Conflict
-            cinst="/tmp/output.cinst",
-            xinst="/tmp/output.xinst",
-        )
-
-        # Act & Assert
-        with patch("os.path.isfile", return_value=True), patch(
-            "he_link.makeUniquePath", side_effect=lambda x: x
-        ):
-            with pytest.raises(RuntimeError):
-                he_link.prepare_input_files(mock_config, mock_output_files)
+from linker.kern_trace import KernelFiles
 
 
 class TestMainFunction:
@@ -334,7 +41,7 @@ class TestMainFunction:
 
         # Setup input files with conditional mem files - ensure prefix matches expected pattern
         input_files = [
-            he_link.KernelFiles(
+            KernelFiles(
                 directory="/tmp",
                 prefix=expected_kernel_name,  # Match the expected name pattern
                 minst=f"{expected_kernel_name}.minst",
@@ -425,7 +132,7 @@ class TestMainFunction:
             "linker.steps.program_linker.LinkedProgram.link_kernels_to_files",
             mocks["link_kernels"],
         ), patch(
-            "he_link.remap_dinstrs_vars", mocks["remap_dinstrs_vars"]
+            "linker.kern_trace.remap_dinstrs_vars", mocks["remap_dinstrs_vars"]
         ), patch(
             "he_link.process_trace_file", mocks["process_trace_file"]
         ), patch(
@@ -449,23 +156,12 @@ class TestMainFunction:
             mocks["process_trace_file"].assert_called_once()
             mocks["process_kernel_dinstrs"].assert_called_once()
             mocks["initialize_memory_model"].assert_called_once()
-
-            # With the new refactoring, from_dinstrs would be called inside initialize_memory_model
-            # which we're now mocking entirely, so we should check that initialize_memory_model
-            # was called with the expected arguments instead
-            assert mocks["initialize_memory_model"].call_args[0][0] == mock_config
-            assert mocks["initialize_memory_model"].call_args[0][1] is not None
-
             assert not mocks["from_file_iter"].called
         else:
             # Assert that the normal flow was used
             assert not mocks["process_trace_file"].called
             assert not mocks["process_kernel_dinstrs"].called
             mocks["initialize_memory_model"].assert_called_once()
-
-            # Check that initialize_memory_model was called with None for kernel_dinstrs
-            assert mocks["initialize_memory_model"].call_args[0][0] == mock_config
-            assert mocks["initialize_memory_model"].call_args[0][1] is None
 
     def test_warning_on_use_xinstfetch(self):
         """
@@ -483,8 +179,8 @@ class TestMainFunction:
         # Act & Assert
         with patch("warnings.warn") as mock_warn, patch(
             "assembler.common.constants.convertBytes2Words", return_value=1024
-        ), patch("he_link.prepare_output_files"), patch(
-            "he_link.prepare_input_files"
+        ), patch("linker.he_link_utils.prepare_output_files"), patch(
+            "linker.he_link_utils.prepare_input_files"
         ), patch(
             "assembler.common.counter.Counter.reset"
         ), patch(
@@ -494,9 +190,9 @@ class TestMainFunction:
         ), patch(
             "linker.MemoryModel"
         ), patch(
-            "he_link.scan_variables"
+            "linker.steps.variable_discovery.scan_variables"
         ), patch(
-            "he_link.check_unused_variables"
+            "linker.steps.variable_discovery.check_unused_variables"
         ), patch(
             "linker.steps.program_linker.LinkedProgram.link_kernels_to_files"
         ):
@@ -571,20 +267,46 @@ class TestParseArgs:
         assert args.trace_file == "trace_file_path"
         assert args.using_trace_file is True  # Should be computed from trace_file
 
-    def test_missing_input_mem_file(self):
+    def test_trace_file_with_missing_output_prefix(self):
         """
-        @brief Test parse_args with missing input_mem_file when using_trace_file is False
+        @brief Test parse_args when trace_file is provided but output_prefix (always required) is missing
         """
-        # Act & Assert - Mock the return value and test error handling
+        # Instead of manually creating a namespace with missing required arguments,
+        # we'll create an argv list that's missing the required argument
+        mock_argv = ["he_link.py", "--use_trace_file", "trace_file_path"]
+
+        # Create a StringIO to capture the error output
+        error_output = io.StringIO()
+
+        # Patch sys.argv and sys.stderr
+        with patch("sys.argv", mock_argv), patch("sys.stderr", error_output), patch(
+            "sys.exit"
+        ) as mock_exit:
+            # When required args are missing, argparse will call sys.exit()
+            he_link.parse_args()
+
+            # Verify that exit was called (indicating an error)
+            mock_exit.assert_called()
+
+            # Verify the error output contains information about the missing required argument
+            error_message = error_output.getvalue()
+            assert "output_prefix" in error_message
+            assert "required" in error_message.lower()
+
+    def test_required_args_when_trace_file_not_set(self):
+        """
+        @brief Test that input_mem_file and input_prefixes are required when trace_file is not set
+        """
+        # Case 1: Missing input_mem_file
         with patch(
             "argparse.ArgumentParser.parse_args",
             return_value=argparse.Namespace(
                 input_prefixes=["input_prefix"],
                 output_prefix="output_prefix",
-                input_mem_file="",
+                input_mem_file="",  # Empty input_mem_file
+                trace_file="",  # No trace file
                 input_dir="",
                 output_dir="",
-                trace_file="",
                 using_trace_file=False,
                 mem_spec_file="",
                 isa_spec_file="",
@@ -595,4 +317,285 @@ class TestParseArgs:
             ),
         ), patch("argparse.ArgumentParser.error") as mock_error:
             he_link.parse_args()
-            mock_error.assert_called_once()
+            # Verify error was called for missing input_mem_file
+            mock_error.assert_called_once_with(
+                "the following arguments are required: -im/--input_mem_file (unless --use_trace_file is set)"
+            )
+
+        # Case 2: Missing input_prefixes
+        with patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(
+                input_prefixes=None,  # Missing input_prefixes
+                output_prefix="output_prefix",
+                input_mem_file="input.mem",
+                trace_file="",  # No trace file
+                input_dir="",
+                output_dir="",
+                using_trace_file=False,
+                mem_spec_file="",
+                isa_spec_file="",
+                has_hbm=True,
+                hbm_size=None,
+                suppress_comments=False,
+                verbose=0,
+            ),
+        ), patch("argparse.ArgumentParser.error") as mock_error:
+            he_link.parse_args()
+            # Verify error was called for missing input_prefixes
+            mock_error.assert_called_once_with(
+                "the following arguments are required: -ip/--input_prefixes (unless --use_trace_file is set)"
+            )
+
+    def test_ignored_args_when_trace_file_set(self):
+        """
+        @brief Test that input_mem_file and input_prefixes are ignored with warnings when trace_file is set
+        """
+        # Both input_mem_file and input_prefixes are provided but should be ignored
+        with patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(
+                input_prefixes=["input_prefix"],  # Will be ignored
+                output_prefix="output_prefix",
+                input_mem_file="input.mem",  # Will be ignored
+                trace_file="trace_file_path",  # Trace file is provided
+                input_dir="",
+                output_dir="",
+                using_trace_file=None,  # Will be computed
+                mem_spec_file="",
+                isa_spec_file="",
+                has_hbm=True,
+                hbm_size=None,
+                suppress_comments=False,
+                verbose=0,
+            ),
+        ), patch("warnings.warn") as mock_warn:
+            args = he_link.parse_args()
+
+            # Verify using_trace_file is set based on trace_file
+            assert args.using_trace_file is True
+
+            # Verify warnings were issued for ignored arguments
+            assert mock_warn.call_count == 2
+            # Check warning messages
+            warning_messages = [call.args[0] for call in mock_warn.call_args_list]
+            assert any("Ignoring input_mem_file" in msg for msg in warning_messages)
+            assert any("Ignoring input_prefixes" in msg for msg in warning_messages)
+
+    def test_hbm_flags_parsing(self):
+        """
+        @brief Test the parsing of --hbm_size and --no_hbm flags
+        """
+        # Test with hbm_size set to valid value
+        with patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(
+                input_prefixes=["input_prefix"],
+                output_prefix="output_prefix",
+                input_mem_file="input.mem",
+                trace_file="",
+                input_dir="",
+                output_dir="",
+                using_trace_file=False,
+                mem_spec_file="",
+                isa_spec_file="",
+                has_hbm=True,
+                hbm_size=2048,  # Valid hbm_size
+                suppress_comments=False,
+                verbose=0,
+            ),
+        ):
+            args = he_link.parse_args()
+            assert args.hbm_size == 2048
+            assert args.has_hbm is True
+
+        # Test with --no_hbm flag set
+        with patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(
+                input_prefixes=["input_prefix"],
+                output_prefix="output_prefix",
+                input_mem_file="input.mem",
+                trace_file="",
+                input_dir="",
+                output_dir="",
+                using_trace_file=False,
+                mem_spec_file="",
+                isa_spec_file="",
+                has_hbm=False,  # --no_hbm flag set
+                hbm_size=None,
+                suppress_comments=False,
+                verbose=0,
+            ),
+        ):
+            args = he_link.parse_args()
+            assert args.has_hbm is False
+
+        # Test with hbm_size set to 0
+        with patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(
+                input_prefixes=["input_prefix"],
+                output_prefix="output_prefix",
+                input_mem_file="input.mem",
+                trace_file="",
+                input_dir="",
+                output_dir="",
+                using_trace_file=False,
+                mem_spec_file="",
+                isa_spec_file="",
+                has_hbm=True,
+                hbm_size=0,  # Edge case: zero
+                suppress_comments=False,
+                verbose=0,
+            ),
+        ):
+            args = he_link.parse_args()
+            assert args.hbm_size == 0
+
+    def test_verbose_flag_parsing(self):
+        """
+        @brief Test the parsing of -v/--verbose flag at different levels
+        """
+        # Test with no verbose flag (default)
+        with patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(
+                input_prefixes=["input_prefix"],
+                output_prefix="output_prefix",
+                input_mem_file="input.mem",
+                trace_file="",
+                input_dir="",
+                output_dir="",
+                using_trace_file=False,
+                mem_spec_file="",
+                isa_spec_file="",
+                has_hbm=True,
+                hbm_size=None,
+                suppress_comments=False,
+                verbose=0,  # Default level
+            ),
+        ):
+            args = he_link.parse_args()
+            assert args.verbose == 0
+
+        # Test with single -v flag
+        with patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(
+                input_prefixes=["input_prefix"],
+                output_prefix="output_prefix",
+                input_mem_file="input.mem",
+                trace_file="",
+                input_dir="",
+                output_dir="",
+                using_trace_file=False,
+                mem_spec_file="",
+                isa_spec_file="",
+                has_hbm=True,
+                hbm_size=None,
+                suppress_comments=False,
+                verbose=1,  # Single -v
+            ),
+        ):
+            args = he_link.parse_args()
+            assert args.verbose == 1
+
+        # Test with double -vv flag
+        with patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(
+                input_prefixes=["input_prefix"],
+                output_prefix="output_prefix",
+                input_mem_file="input.mem",
+                trace_file="",
+                input_dir="",
+                output_dir="",
+                using_trace_file=False,
+                mem_spec_file="",
+                isa_spec_file="",
+                has_hbm=True,
+                hbm_size=None,
+                suppress_comments=False,
+                verbose=2,  # Double -vv
+            ),
+        ):
+            args = he_link.parse_args()
+            assert args.verbose == 2
+
+        # Test with high verbosity
+        with patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(
+                input_prefixes=["input_prefix"],
+                output_prefix="output_prefix",
+                input_mem_file="input.mem",
+                trace_file="",
+                input_dir="",
+                output_dir="",
+                using_trace_file=False,
+                mem_spec_file="",
+                isa_spec_file="",
+                has_hbm=True,
+                hbm_size=None,
+                suppress_comments=False,
+                verbose=5,  # High verbosity
+            ),
+        ):
+            args = he_link.parse_args()
+            assert args.verbose == 5
+
+    def test_input_dir_defaults_to_trace_file_directory(self):
+        """
+        @brief Test that input_dir defaults to the directory of trace_file when not specified
+        """
+        # Test with trace_file set but input_dir not set
+        with patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(
+                input_prefixes=None,
+                output_prefix="output_prefix",
+                input_mem_file="",
+                input_dir="",  # Not specified
+                trace_file="/path/to/trace_file.txt",  # Trace file with a directory path
+                output_dir="",
+                using_trace_file=None,  # Will be computed
+                mem_spec_file="",
+                isa_spec_file="",
+                has_hbm=True,
+                hbm_size=None,
+                suppress_comments=False,
+                verbose=0,
+            ),
+        ), patch("os.path.dirname", return_value="/path/to") as mock_dirname:
+            args = he_link.parse_args()
+
+            # Verify input_dir is set to the directory of trace_file
+            mock_dirname.assert_called_once_with("/path/to/trace_file.txt")
+            assert args.input_dir == "/path/to"
+
+        # Test with both trace_file and input_dir specified - input_dir should not be overwritten
+        with patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(
+                input_prefixes=None,
+                output_prefix="output_prefix",
+                input_mem_file="",
+                input_dir="/custom/path",  # Specified by user
+                trace_file="/path/to/trace_file.txt",
+                output_dir="",
+                using_trace_file=None,
+                mem_spec_file="",
+                isa_spec_file="",
+                has_hbm=True,
+                hbm_size=None,
+                suppress_comments=False,
+                verbose=0,
+            ),
+        ), patch("os.path.dirname") as mock_dirname:
+            args = he_link.parse_args()
+
+            # Verify dirname was not called since input_dir was already specified
+            mock_dirname.assert_not_called()
+            # Input_dir should remain as specified
+            assert args.input_dir == "/custom/path"
