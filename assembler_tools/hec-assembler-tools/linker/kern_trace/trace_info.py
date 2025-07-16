@@ -59,7 +59,15 @@ class TraceInfo:
     def __str__(self):
         return f"TraceFile(trace_file={self._trace_file})"
 
-    def _get_param_index_dict(self, tokens: list[str]) -> dict:
+    def get_trace_file(self) -> str:
+        """
+        @brief Returns the trace file name.
+
+        @return str: The name of the trace file.
+        """
+        return self._trace_file
+
+    def get_param_index_dict(self, tokens: list[str]) -> dict:
         """
         @brief Returns a dictionary mapping property names to their indices in the trace file.
 
@@ -70,7 +78,7 @@ class TraceInfo:
             param_idxs[token] = i
         return param_idxs
 
-    def _extract_context_and_args(self, tokens, param_idxs, line_num):
+    def extract_context_and_args(self, tokens, param_idxs, line_num):
         """
         @brief Extract context configuration and arguments from tokens.
 
@@ -101,7 +109,9 @@ class TraceInfo:
             return name, context_config, kern_args
 
         except KeyError as e:
-            raise KeyError(f"Missing required parameter in line {line_num}: {e}") from e
+            raise KeyError(
+                f"Missing required parameter in line {line_num} with tokens: {tokens}: {e}"
+            ) from e
         except IndexError as e:
             raise ValueError(
                 f"Invalid number of parameters in line {line_num}: {e}"
@@ -129,16 +139,16 @@ class TraceInfo:
 
             # Process header line to get parameter indices
             header_tokens, _ = tokenize_from_line(lines[0])
-            param_idxs = self._get_param_index_dict(header_tokens)
+            param_idxs = self.get_param_index_dict(header_tokens)
 
             # Process the rest of the lines to get kernel operations
             for line_num, line in enumerate(lines[1:], 2):  # Start at line 2 (index+1)
-                tokens, _ = tokenize_from_line(line)
+                tokens, _ = tokenize_from_line(line.strip())
 
                 if not tokens or not tokens[0]:  # Skip empty lines
                     continue
 
-                name, context_config, kern_args = self._extract_context_and_args(
+                name, context_config, kern_args = self.extract_context_and_args(
                     tokens, param_idxs, line_num
                 )
 

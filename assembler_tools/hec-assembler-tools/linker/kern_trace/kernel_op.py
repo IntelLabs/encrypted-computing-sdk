@@ -35,7 +35,7 @@ class KernelOp:
     ]
 
     # List of valid encryption schemes.
-    valid_schemes = ["bgv", "ckks"]
+    valid_schemes = ["bgv", "ckks", "bfv"]
 
     def _get_expected_in_kern_file_name(
         self,
@@ -61,7 +61,7 @@ class KernelOp:
             f"m{context_config.keyrns_terms}"
         )
 
-    def _get_kern_var_objs(self, kern_var_strs: list[str]) -> list[KernVar]:
+    def get_kern_var_objs(self, kern_var_strs: list[str]) -> list[KernVar]:
         """
         @brief Converts a list of kernel variable strings to KernVar objects.
 
@@ -71,7 +71,7 @@ class KernelOp:
         """
         return [KernVar.from_string(var_str) for var_str in kern_var_strs]
 
-    def _get_level(self, kern_vars: list[KernVar]) -> int:
+    def get_level(self, kern_vars: list[KernVar]) -> int:
         """
         @brief Sets the level of the kernel operation based on input's current RNS level.
 
@@ -117,8 +117,8 @@ class KernelOp:
         self._scheme = context_config.scheme
         self._poly_modulus_degree = context_config.poly_mod_degree
         self._keyrns_terms = context_config.keyrns_terms
-        self._vars = self._get_kern_var_objs(kern_args)
-        self._level = self._get_level(self._vars)
+        self._vars = self.get_kern_var_objs(kern_args)
+        self._level = self.get_level(self._vars)
         self._expected_in_kern_file_name = self._get_expected_in_kern_file_name(
             name,
             context_config,
