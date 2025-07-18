@@ -213,6 +213,7 @@ class TestRemapMCInstrsVars:
         # Arrange
         mock_instr = MagicMock(spec=MLoad)
         mock_instr.source = "old_source"
+        mock_instr.comment = ""
 
         kernel_instrs = [mock_instr]
         remap_dict = self._create_remap_dict()
@@ -230,6 +231,7 @@ class TestRemapMCInstrsVars:
         # Arrange
         mock_instr = MagicMock(spec=MStore)
         mock_instr.dest = "old_dest"
+        mock_instr.comment = "Store old_dest"
 
         kernel_instrs = [mock_instr]
         remap_dict = self._create_remap_dict()
@@ -251,6 +253,7 @@ class TestRemapMCInstrsVars:
         for instr_class in [CLoad, BLoad, BOnes, NLoad]:
             mock_instr = MagicMock(spec=instr_class)
             mock_instr.source = "old_source"
+            mock_instr.comment = ""
             c_instrs.append(mock_instr)
 
         remap_dict = self._create_remap_dict()
@@ -269,6 +272,7 @@ class TestRemapMCInstrsVars:
         # Arrange
         mock_instr = MagicMock(spec=CStore)
         mock_instr.dest = "old_dest"
+        mock_instr.comment = "Store old_dest"
 
         kernel_instrs = [mock_instr]
         remap_dict = self._create_remap_dict()
