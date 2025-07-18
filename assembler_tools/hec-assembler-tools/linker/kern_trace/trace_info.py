@@ -39,7 +39,7 @@ class KernelInfo:
     cinst: str
     xinst: str
     mem: Optional[str] = None
-    remap_dict: dict[str, str]
+    remap_dict: dict[str, str] = {}
 
     def __init__(self, config: dict):
         """

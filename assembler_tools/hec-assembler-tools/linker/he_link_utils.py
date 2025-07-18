@@ -71,7 +71,6 @@ def prepare_input_files(run_config, output_files) -> list:
     """
     input_files = []
     for file_prefix in run_config.input_prefixes:
-        print(f"ROCHA Processing input prefix: {file_prefix} on {run_config.input_dir}")
         path_prefix = os.path.join(run_config.input_dir, file_prefix)
         mem_file = (
             makeUniquePath(path_prefix + ".mem")
@@ -138,7 +137,7 @@ def remap_vars(
     for kernel_info, kernel_op, kernel_dinstrs in zip(
         kernels_info, kernel_ops, kernels_dinstrs
     ):
-        print(f"ROCHA  Processing kernel: {kernel_info.prefix}", file=verbose_stream)
+        print(f"\tProcessing kernel: {kernel_info.prefix}", file=verbose_stream)
 
         expected_prefix = f"{kernel_op.expected_in_kern_file_name}_pisa.tw"
         assert expected_prefix in kernel_info.prefix, (
@@ -148,7 +147,6 @@ def remap_vars(
 
         # Remap dintrs' variables in kernel_dinstrs and return a mapping dict
         var_map = remap_dinstrs_vars(kernel_dinstrs, kernel_op)
-        print(f"ROCHA    Remapped variables: {var_map}", file=verbose_stream)
         kernel_info.remap_dict = var_map
 
 

@@ -465,14 +465,10 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         mem_address: int = 0
         new_kernels_instrs: list[DInstruction] = []
         for kernel_instrs in kernels_instrs:
-            print(
-                f"\nROCHA Debug: Processing kernel with {len(kernel_instrs)} instructions."
-            )
             for cur_dinst in kernel_instrs:
 
                 # Save the current output instruction to add at the end
                 if isinstance(cur_dinst, dinst.DStore):
-                    print(f"ROCHA Debug: Carrying over output variable {cur_dinst.var}")
                     key = cur_dinst.var
                     carry_over_vars[key] = cur_dinst
                     continue
@@ -481,9 +477,6 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                     key = cur_dinst.var
                     # Skip if the input is already in carry-over from previous outputs
                     if key in carry_over_vars:
-                        print(
-                            f"ROCHA Debug: Carrying over input variable {key} from previous output."
-                        )
                         carry_over_vars.pop(
                             key
                         )  # Remove from (output) carry-overs since it's now an input
@@ -500,9 +493,6 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
 
         # Add remaining carry-over variables to the new instructions
         for _, dintr in carry_over_vars.items():
-            print(
-                f"ROCHA Debug: Adding carry-over variable {dintr.var} at address {mem_address}."
-            )
             dintr.address = mem_address
             new_kernels_instrs.append(dintr)
             mem_address = mem_address + 1
@@ -541,12 +531,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 kernel_minstrs = Loader.load_minst_kernel_from_file(kernel.minst)
                 kernel_cinstrs = Loader.load_cinst_kernel_from_file(kernel.cinst)
                 kernel_xinstrs = Loader.load_xinst_kernel_from_file(kernel.xinst)
-                print(
-                    f"ROCHA   LINKING: Loaded kernel {kernel.prefix} with {len(kernel_minstrs)} MInsts, "
-                    f"{len(kernel_cinstrs)} CInsts, and {len(kernel_xinstrs)} XInsts.",
-                    f"Map used for remapping: {kernel.remap_dict}",
-                    file=verbose_stream,
-                )
+
                 remap_m_c_instrs_vars(kernel_minstrs, kernel.remap_dict)
                 remap_m_c_instrs_vars(kernel_cinstrs, kernel.remap_dict)
 

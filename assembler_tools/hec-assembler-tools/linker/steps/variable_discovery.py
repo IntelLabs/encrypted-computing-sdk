@@ -98,10 +98,6 @@ def scan_variables(
                     file=verbose_stream,
                 )
             kernel_cinstrs = Loader.load_cinst_kernel_from_file(kernel_info.cinst)
-            print(
-                f"ROCHA   SCANNING: Loaded {len(kernel_cinstrs)} CInstructions from {kernel_info.cinst}.",
-                file=verbose_stream,
-            )
             remap_m_c_instrs_vars(kernel_cinstrs, kernel_info.remap_dict)
             for var_name in discover_variables_spad(kernel_cinstrs):
                 mem_model.add_variable(var_name)
@@ -113,11 +109,6 @@ def scan_variables(
                     file=verbose_stream,
                 )
             kernel_minstrs = Loader.load_minst_kernel_from_file(kernel_info.minst)
-            print(
-                f"ROCHA   SCANNING: Loaded {len(kernel_minstrs)} MInstructions from {kernel_info.minst}.",
-                f"Map used for remapping: {kernel_info.remap_dict}",
-                file=verbose_stream,
-            )
             remap_m_c_instrs_vars(kernel_minstrs, kernel_info.remap_dict)
             for var_name in discover_variables(kernel_minstrs):
                 mem_model.add_variable(var_name)
