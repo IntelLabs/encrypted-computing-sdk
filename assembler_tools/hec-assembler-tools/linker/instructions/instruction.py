@@ -111,19 +111,21 @@ class BaseInstruction:
     # Constructor
     # -----------
 
-    def __init__(self, tokens: list, comment: str = ""):
+    def __init__(self, tokens: list, comment: str = "", count: bool = True):
         """
         @brief Creates a new BaseInstruction object.
 
         @param tokens List of tokens for the instruction.
         @param comment Optional comment for the instruction.
+        @param count If True, increments the global instruction count and sets a unique ID.
         @throws ValueError If the number of tokens is invalid or the instruction name is incorrect.
         """
         assert self.name_token_index < self.num_tokens
 
         self._validate_tokens(tokens)
 
-        self._id = next(BaseInstruction.__id_count)
+        if count:
+            self._id = next(BaseInstruction.__id_count)
 
         self._tokens = list(tokens)
         self.comment = comment

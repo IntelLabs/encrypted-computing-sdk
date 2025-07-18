@@ -8,8 +8,10 @@
 
 from typing import Dict, Any, cast
 from linker import MemoryModel
+from linker.loader import Loader
 from linker.instructions import minst, cinst, dinst
 from linker.instructions.dinst.dinstruction import DInstruction
+from linker.kern_trace.kern_remap import remap_m_c_instrs_vars
 from assembler.common.config import GlobalConfig
 from assembler.instructions import cinst as ISACInst
 
@@ -490,9 +492,56 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                         continue
 
         # Add remaining carry-over variables to the new instructions
-        for _, var in carry_over_vars.items():
-            var.address = mem_address
-            new_kernels_instrs.append(var)
+        for _, dintr in carry_over_vars.items():
+            dintr.address = mem_address
+            new_kernels_instrs.append(dintr)
             mem_address = mem_address + 1
 
         return new_kernels_instrs
+
+    @staticmethod
+    def link_kernels_to_files(
+        input_files, output_files, mem_model, verbose_stream=None
+    ):
+        """
+        @brief Links input kernels and writes the output to the specified files.
+
+        @param input_files List of KernelInfo for input kernels.
+        @param output_files KernelInfo for output.
+        @param mem_model Memory model to use.
+        @param verbose_stream Stream for verbose output.
+        """
+        with open(output_files.minst, "w", encoding="utf-8") as fnum_output_minst, open(
+            output_files.cinst, "w", encoding="utf-8"
+        ) as fnum_output_cinst, open(
+            output_files.xinst, "w", encoding="utf-8"
+        ) as fnum_output_xinst:
+
+            result_program = LinkedProgram(
+                fnum_output_minst, fnum_output_cinst, fnum_output_xinst, mem_model
+            )
+
+            for idx, kernel in enumerate(input_files):
+                if verbose_stream:
+                    print(
+                        f"[ {idx * 100 // len(input_files): >3}% ]",
+                        kernel.prefix,
+                        file=verbose_stream,
+                    )
+                kernel_minstrs = Loader.load_minst_kernel_from_file(kernel.minst)
+                kernel_cinstrs = Loader.load_cinst_kernel_from_file(kernel.cinst)
+                kernel_xinstrs = Loader.load_xinst_kernel_from_file(kernel.xinst)
+
+                remap_m_c_instrs_vars(kernel_minstrs, kernel.remap_dict)
+                remap_m_c_instrs_vars(kernel_cinstrs, kernel.remap_dict)
+
+                result_program.link_kernel(
+                    kernel_minstrs, kernel_cinstrs, kernel_xinstrs
+                )
+            if verbose_stream:
+                print(
+                    "[ 100% ] Finalizing output",
+                    output_files.prefix,
+                    file=verbose_stream,
+                )
+            result_program.close()

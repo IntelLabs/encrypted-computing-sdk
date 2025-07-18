@@ -10,8 +10,16 @@
 
 import unittest
 from unittest.mock import patch, MagicMock
+from collections import namedtuple
+import pytest
 
-from linker.steps.variable_discovery import discover_variables, discover_variables_spad
+from assembler.common.config import GlobalConfig
+from linker.steps.variable_discovery import (
+    discover_variables,
+    discover_variables_spad,
+    scan_variables,
+    check_unused_variables,
+)
 
 
 class TestVariableDiscovery(unittest.TestCase):
@@ -232,7 +240,7 @@ class TestVariableDiscovery(unittest.TestCase):
                 list(discover_variables_spad([invalid_obj]))
 
             # Verify the error message
-            self.assertIn("not a valid MInstruction", str(context.exception))
+            self.assertIn("not a valid CInstruction", str(context.exception))
 
     @patch("linker.steps.variable_discovery.cinst")
     @patch("linker.steps.variable_discovery.CInstruction")
@@ -269,6 +277,72 @@ class TestVariableDiscovery(unittest.TestCase):
 
             # Verify the error message
             self.assertIn("Invalid Variable name", str(context.exception))
+
+    def test_scan_variables(self):
+        """
+        @brief Test scan_variables function with and without HBM
+
+        @test Verifies that scan_variables correctly processes input files and updates the memory model
+              in both HBM and non-HBM modes
+        """
+        # Create a namedtuple similar to KernelInfo for testing
+        KernelInfo = namedtuple(
+            "KernelInfo",
+            ["directory", "prefix", "minst", "cinst", "xinst", "mem", "remap_dict"],
+        )
+        input_files = [
+            KernelInfo(
+                directory="/tmp",
+                prefix="input1",
+                minst="/tmp/input1.minst",
+                cinst="/tmp/input1.cinst",
+                xinst="/tmp/input1.xinst",
+                mem=None,
+                remap_dict=None,
+            )
+        ]
+
+        # Test with both True and False for hasHBM
+        for has_hbm in [True, False]:
+            with self.subTest(has_hbm=has_hbm):
+                # Arrange
+                GlobalConfig.hasHBM = has_hbm
+                mock_mem_model = MagicMock()
+                mock_verbose = MagicMock()
+
+                # Act
+                with patch(
+                    "linker.steps.variable_discovery.Loader.load_minst_kernel_from_file",
+                    return_value=[],
+                ), patch(
+                    "linker.steps.variable_discovery.Loader.load_cinst_kernel_from_file",
+                    return_value=[],
+                ), patch(
+                    "linker.steps.variable_discovery.discover_variables",
+                    return_value=["var1", "var2"],
+                ), patch(
+                    "linker.steps.variable_discovery.discover_variables_spad",
+                    return_value=["var1", "var2"],
+                ):
+                    scan_variables(input_files, mock_mem_model, mock_verbose)
+
+                # Assert
+                self.assertEqual(mock_mem_model.add_variable.call_count, 2)
+
+    def test_check_unused_variables(self):
+        """
+        @brief Test check_unused_variables function
+        """
+        # Arrange
+        GlobalConfig.hasHBM = True
+        mock_mem_model = MagicMock()
+        mock_mem_model.mem_info_vars = {"var1": MagicMock(), "var2": MagicMock()}
+        mock_mem_model.variables = {"var1"}
+        mock_mem_model.mem_info_meta = {}
+
+        # Act & Assert
+        with pytest.raises(RuntimeError):
+            check_unused_variables(mock_mem_model)
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ assembly process, providing common functionality and interfaces.
 from linker.instructions.instruction import BaseInstruction
 from assembler.common.counter import Counter
 from assembler.common.decorators import classproperty
+from assembler.memory_model.mem_info import MemInfo
 
 
 class DInstruction(BaseInstruction):
@@ -91,12 +92,23 @@ class DInstruction(BaseInstruction):
         @param comment Optional comment for the instruction.
         """
         # Do not increment the global instruction count; skip BaseInstruction's __init__ logic for __id
-        # Call BaseInstruction constructor but perform our own initialization
-        super().__init__(tokens, comment=comment)
+        # Perform our own initialization
+        super().__init__(tokens, comment=comment, count=False)
 
         self.comment = comment
         self._tokens = list(tokens)
         self._local_id = next(DInstruction._local_id_count)
+
+        try:
+            miv, _ = MemInfo.get_meminfo_var_from_tokens(tokens)
+            miv_dict = miv.as_dict()
+            self.var = miv_dict["var_name"]
+            if self.name in [MemInfo.Const.Keyword.LOAD, MemInfo.Const.Keyword.STORE]:
+                self.address = miv_dict["hbm_address"]
+        except RuntimeError as e:
+            raise ValueError(
+                f"Failed to parse memory info from tokens: {tokens}. Error: {str(e)}"
+            ) from e
 
     @property
     def id(self):

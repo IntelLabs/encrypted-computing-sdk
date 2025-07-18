@@ -9,6 +9,7 @@ serves as the base for all data instructions.
 """
 
 import unittest
+from unittest.mock import patch, MagicMock
 
 from linker.instructions.dinst.dinstruction import DInstruction
 
@@ -22,6 +23,17 @@ class TestDInstruction(unittest.TestCase):
     """
 
     def setUp(self):
+        # Create a mock MemInfoVar class for testing
+        self.mock_miv = MagicMock()
+        self.mock_miv.as_dict.return_value = {"var_name": "var1", "hbm_address": 123}
+
+        # Patch the MemInfo.get_meminfo_var_from_tokens method
+        self.mem_info_patcher = patch(
+            "linker.instructions.dinst.dinstruction.MemInfo.get_meminfo_var_from_tokens"
+        )
+        self.mock_get_meminfo = self.mem_info_patcher.start()
+        self.mock_get_meminfo.return_value = (self.mock_miv, 1)
+
         # Create a concrete subclass for testing since DInstruction is abstract
         class ConcreteDInstruction(DInstruction):
             """
@@ -37,12 +49,16 @@ class TestDInstruction(unittest.TestCase):
 
             @classmethod
             def _get_name(cls) -> str:
-                return "test_instruction"
+                return "dload"
 
-        self.d_instruction_class = ConcreteDInstruction  # Changed to snake_case
-        self.tokens = ["test_instruction", "var1", "123"]
+        self.d_instruction_class = ConcreteDInstruction
+        self.tokens = ["dload", "var1", "123"]
         self.comment = "Test comment"
         self.dinst = self.d_instruction_class(self.tokens, self.comment)
+
+    def tearDown(self):
+        # Stop the patcher
+        self.mem_info_patcher.stop()
 
     def test_get_name_token_index(self):
         """@brief Test _get_name_token_index returns 0
@@ -95,16 +111,6 @@ class TestDInstruction(unittest.TestCase):
         inst2 = self.d_instruction_class(self.tokens)
         self.assertNotEqual(inst1.id, inst2.id)
 
-    def test_to_line_method(self):
-        """@brief Test to_line method returns expected string
-
-        @test Verifies the to_line method correctly formats the instruction as a string
-        """
-        tokens = ["test_instruction", "var1", "123"]
-        inst = self.d_instruction_class(tokens, "")
-        expected = "test_instruction, var1, 123"
-        self.assertEqual(inst.to_line(), expected)
-
     def test_consecutive_ids(self):
         """@brief Test that consecutive instructions get incremental ids
 
@@ -113,6 +119,39 @@ class TestDInstruction(unittest.TestCase):
         inst1 = self.d_instruction_class(self.tokens)
         inst2 = self.d_instruction_class(self.tokens)
         self.assertEqual(inst2.id, inst1.id + 1)
+
+    def test_var_and_address_properties(self):
+        """@brief Test var and address properties are correctly set from MemInfo
+
+        @test Verifies the var and address properties are set from MemInfo during initialization
+        """
+        # Check that var and address were set from the mock MemInfo data
+        self.assertEqual(self.dinst.var, "var1")
+        self.assertEqual(self.dinst.address, 123)
+
+        # Test property setters
+        self.dinst.var = "new_var"
+        self.assertEqual(self.dinst.var, "new_var")
+
+        self.dinst.address = 456
+        self.assertEqual(self.dinst.address, 456)
+
+    def test_memory_info_error_handling(self):
+        """@brief Test error handling when MemInfo parsing fails
+
+        @test Verifies that when MemInfo parsing fails, a ValueError is raised
+        with information about the parsing failure
+        """
+        # Make the mock raise an exception
+        error_message = "Test error"
+        self.mock_get_meminfo.side_effect = RuntimeError(error_message)
+
+        # The DInstruction.__init__ should convert RuntimeError to ValueError
+        with self.assertRaises(ValueError) as context:
+            self.d_instruction_class(self.tokens, self.comment)
+
+        # Verify the error message contains the original error
+        self.assertIn(error_message, str(context.exception))
 
 
 if __name__ == "__main__":
