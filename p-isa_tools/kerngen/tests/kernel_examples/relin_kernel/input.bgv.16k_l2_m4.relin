@@ -1,0 +1,4 @@
+CONTEXT BGV 16384 4 2
+DATA input0 3
+DATA output0 2
+RELIN output0 input0
