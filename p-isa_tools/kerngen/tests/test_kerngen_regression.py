@@ -1,6 +1,7 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
-
+# These contents may have been developed with support from one or more Intel-operated
+# generative artificial intelligence solutions.
 """Test the expected behaviour of the kerngen script"""
 
 import subprocess
