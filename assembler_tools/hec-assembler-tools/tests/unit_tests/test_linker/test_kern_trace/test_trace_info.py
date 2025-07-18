@@ -11,29 +11,31 @@
 from unittest.mock import patch, mock_open
 import pytest
 
-from linker.kern_trace.trace_info import KernelFiles, TraceInfo
+from linker.kern_trace.trace_info import KernelInfo, TraceInfo
 from linker.kern_trace.context_config import ContextConfig
 from linker.kern_trace.kernel_op import KernelOp
 
 
-class TestKernelFiles:
+class TestKernelInfo:
     """
-    @class TestKernelFiles
-    @brief Test cases for the KernelFiles class
+    @class TestKernelInfo
+    @brief Test cases for the KernelInfo class
     """
 
     def test_kernel_files_creation(self):
         """
-        @brief Test KernelFiles creation and attribute access
+        @brief Test KernelInfo creation and attribute access
         """
         # Act
-        kernel_files = KernelFiles(
-            directory="/tmp/dir",
-            prefix="prefix",
-            minst="prefix.minst",
-            cinst="prefix.cinst",
-            xinst="prefix.xinst",
-            mem="prefix.mem",
+        kernel_files = KernelInfo(
+            {
+                "directory": "/tmp/dir",
+                "prefix": "prefix",
+                "minst": "prefix.minst",
+                "cinst": "prefix.cinst",
+                "xinst": "prefix.xinst",
+                "mem": "prefix.mem",
+            }
         )
 
         # Assert
@@ -46,15 +48,17 @@ class TestKernelFiles:
 
     def test_kernel_files_without_mem(self):
         """
-        @brief Test KernelFiles creation without mem file
+        @brief Test KernelInfo creation without mem file
         """
         # Act
-        kernel_files = KernelFiles(
-            directory="/tmp/dir",
-            prefix="prefix",
-            minst="prefix.minst",
-            cinst="prefix.cinst",
-            xinst="prefix.xinst",
+        kernel_files = KernelInfo(
+            {
+                "directory": "/tmp/dir",
+                "prefix": "prefix",
+                "minst": "prefix.minst",
+                "cinst": "prefix.cinst",
+                "xinst": "prefix.xinst",
+            }
         )
 
         # Assert

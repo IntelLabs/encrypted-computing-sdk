@@ -12,7 +12,7 @@ from linker.kern_trace.context_config import ContextConfig
 from linker.kern_trace.kernel_op import KernelOp
 from linker.kern_trace.trace_info import TraceInfo
 from linker.kern_trace.kern_remap import remap_dinstrs_vars, remap_m_c_instrs_vars
-from linker.kern_trace.trace_info import KernelFiles
+from linker.kern_trace.trace_info import KernelInfo
 
 __all__ = [
     "KernVar",
@@ -21,5 +21,5 @@ __all__ = [
     "TraceInfo",
     "remap_dinstrs_vars",
     "remap_m_c_instrs_vars",
-    "KernelFiles",
+    "KernelInfo",
 ]

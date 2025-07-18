@@ -7,7 +7,8 @@
 """@brief This module provides functionality to link kernels into a program."""
 
 from typing import Dict, Any, cast
-from linker import MemoryModel, loader
+from linker import MemoryModel
+from linker.loader import Loader
 from linker.instructions import minst, cinst, dinst
 from linker.instructions.dinst.dinstruction import DInstruction
 from linker.kern_trace.kern_remap import remap_m_c_instrs_vars
@@ -510,13 +511,13 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
 
     @staticmethod
     def link_kernels_to_files(
-        input_files, output_files, mem_model, verbose_stream=None, remap_dicts=None
+        input_files, output_files, mem_model, verbose_stream=None
     ):
         """
         @brief Links input kernels and writes the output to the specified files.
 
-        @param input_files List of KernelFiles for input kernels.
-        @param output_files KernelFiles for output.
+        @param input_files List of KernelInfo for input kernels.
+        @param output_files KernelInfo for output.
         @param mem_model Memory model to use.
         @param verbose_stream Stream for verbose output.
         """
@@ -529,6 +530,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             result_program = LinkedProgram(
                 fnum_output_minst, fnum_output_cinst, fnum_output_xinst, mem_model
             )
+
             for idx, kernel in enumerate(input_files):
                 if verbose_stream:
                     print(
@@ -536,14 +538,17 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                         kernel.prefix,
                         file=verbose_stream,
                     )
-                kernel_minstrs = loader.load_minst_kernel_from_file(kernel.minst)
-                kernel_cinstrs = loader.load_cinst_kernel_from_file(kernel.cinst)
-                kernel_xinstrs = loader.load_xinst_kernel_from_file(kernel.xinst)
-
-                if remap_dicts and kernel.prefix in remap_dicts:
-                    remap_dict = remap_dicts[kernel.prefix]
-                    remap_m_c_instrs_vars(kernel_minstrs, remap_dict)
-                    remap_m_c_instrs_vars(kernel_cinstrs, remap_dict)
+                kernel_minstrs = Loader.load_minst_kernel_from_file(kernel.minst)
+                kernel_cinstrs = Loader.load_cinst_kernel_from_file(kernel.cinst)
+                kernel_xinstrs = Loader.load_xinst_kernel_from_file(kernel.xinst)
+                print(
+                    f"ROCHA   LINKING: Loaded kernel {kernel.prefix} with {len(kernel_minstrs)} MInsts, "
+                    f"{len(kernel_cinstrs)} CInsts, and {len(kernel_xinstrs)} XInsts.",
+                    f"Map used for remapping: {kernel.remap_dict}",
+                    file=verbose_stream,
+                )
+                remap_m_c_instrs_vars(kernel_minstrs, kernel.remap_dict)
+                remap_m_c_instrs_vars(kernel_cinstrs, kernel.remap_dict)
 
                 result_program.link_kernel(
                     kernel_minstrs, kernel_cinstrs, kernel_xinstrs

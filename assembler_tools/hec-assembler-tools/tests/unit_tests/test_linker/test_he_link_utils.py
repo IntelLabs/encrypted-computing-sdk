@@ -14,11 +14,11 @@ import pytest
 from linker.he_link_utils import (
     prepare_output_files,
     prepare_input_files,
-    process_trace_file,
-    process_kernel_dinstrs,
+    update_input_prefixes,
+    remap_vars,
     initialize_memory_model,
-    KernelFiles,
 )
+from linker.kern_trace.trace_info import KernelInfo
 from assembler.common import constants
 
 
@@ -86,12 +86,14 @@ class TestHelperFunctions:
         mock_config.input_prefixes = ["input1", "input2"]
         mock_config.using_trace_file = False
 
-        mock_output_files = KernelFiles(
-            directory="/tmp",
-            prefix="output",
-            minst="/tmp/output.minst",
-            cinst="/tmp/output.cinst",
-            xinst="/tmp/output.xinst",
+        mock_output_files = KernelInfo(
+            {
+                "directory": "/tmp",
+                "prefix": "output",
+                "minst": "/tmp/output.minst",
+                "cinst": "/tmp/output.cinst",
+                "xinst": "/tmp/output.xinst",
+            }
         )
 
         # Act
@@ -120,12 +122,15 @@ class TestHelperFunctions:
         mock_config.input_prefixes = ["input1"]
         mock_config.using_trace_file = False
 
-        mock_output_files = KernelFiles(
-            directory="/tmp",
-            prefix="output",
-            minst="/tmp/output.minst",
-            cinst="/tmp/output.cinst",
-            xinst="/tmp/output.xinst",
+        mock_output_files = KernelInfo(
+            {
+                "directory": "/tmp",
+                "prefix": "output",
+                "minst": "/tmp/output.minst",
+                "cinst": "/tmp/output.cinst",
+                "xinst": "/tmp/output.xinst",
+                "mem": None,
+            }
         )
 
         # Act & Assert
@@ -146,12 +151,15 @@ class TestHelperFunctions:
         mock_config.using_trace_file = False
 
         # Output file matching an input file
-        mock_output_files = KernelFiles(
-            directory="/tmp",
-            prefix="output",
-            minst="/tmp/input1.minst",  # Conflict
-            cinst="/tmp/output.cinst",
-            xinst="/tmp/output.xinst",
+        output_files = KernelInfo(
+            {
+                "directory": "/tmp",
+                "prefix": "output",
+                "minst": "/tmp/input1.minst",  # Conflict
+                "cinst": "/tmp/output.cinst",
+                "xinst": "/tmp/output.xinst",
+                "mem": None,
+            }
         )
 
         # Act & Assert
@@ -159,14 +167,15 @@ class TestHelperFunctions:
             "assembler.common.makeUniquePath", side_effect=lambda x: x
         ):
             with pytest.raises(RuntimeError):
-                prepare_input_files(mock_config, mock_output_files)
+                prepare_input_files(mock_config, output_files)
 
-    def test_process_trace_file(self):
+    def test_update_input_prefixes(self):
         """
-        @brief Test process_trace_file correctly processes a trace file and returns kernel operations dictionary
+        @brief Test update_input_prefixes correctly processes a trace file and returns kernel operations dictionary
         """
         # Arrange
-        mock_trace_file = "/path/to/trace_file.txt"
+        mock_config = MagicMock()
+        mock_config.input_prefixes = []
 
         # Create mock kernel ops with expected_in_kern_file_name attribute
         mock_kernel_op1 = MagicMock()
@@ -178,75 +187,54 @@ class TestHelperFunctions:
         mock_kernel_ops = [mock_kernel_op1, mock_kernel_op2]
 
         # Act
-        with patch("linker.he_link_utils.TraceInfo") as mock_trace_info_class:
-            # Configure the mock TraceInfo instance
-            mock_trace_info = mock_trace_info_class.return_value
-            mock_trace_info.parse_kernel_ops.return_value = mock_kernel_ops
+        # with patch("linker.he_link_utils.TraceInfo") as mock_trace_info_class:
+        # Configure the mock TraceInfo instance
+        #    mock_trace_info = mock_trace_info_class.return_value
+        #    mock_trace_info.parse_kernel_ops.return_value = mock_kernel_ops
 
-            # Call the function under test
-            result = process_trace_file(mock_trace_file)
+        # Call the function under test
+        update_input_prefixes(mock_kernel_ops, mock_config)
 
         # Assert
-        # Verify TraceInfo was constructed with the trace file
-        mock_trace_info_class.assert_called_once_with(mock_trace_file)
+        # Verify the input_prefixes were updated in the run_config
+        assert mock_config.input_prefixes == ["kernel1_pisa.tw", "kernel2_pisa.tw"]
 
-        # Verify parse_kernel_ops was called
-        mock_trace_info.parse_kernel_ops.assert_called_once()
-
-        # Verify the result is a dictionary with the expected keys
-        assert len(result) == 2
-        assert "kernel1_pisa.tw" in result
-        assert "kernel2_pisa.tw" in result
-
-        # Verify the dictionary values are the kernel ops
-        assert result["kernel1_pisa.tw"] is mock_kernel_op1
-        assert result["kernel2_pisa.tw"] is mock_kernel_op2
-
-    def test_process_trace_file_with_empty_kernel_ops(self):
+    def test_update_input_prefixes_with_empty_kernel_ops(self):
         """
-        @brief Test process_trace_file correctly handles empty kernel operations
+        @brief Test update_input_prefixes correctly handles empty kernel operations
         """
         # Arrange
-        mock_trace_file = "/path/to/trace_file.txt"
+        mock_config = MagicMock()
+        mock_config.input_prefixes = ["should_be_cleared"]
         mock_kernel_ops = []  # Empty list of kernel ops
 
         # Act
-        with patch("linker.he_link_utils.TraceInfo") as mock_trace_info_class:
-            # Configure the mock TraceInfo instance
-            mock_trace_info = mock_trace_info_class.return_value
-            mock_trace_info.parse_kernel_ops.return_value = mock_kernel_ops
-
-            # Call the function under test
-            result = process_trace_file(mock_trace_file)
+        # Call the function under test with empty kernel_ops list
+        update_input_prefixes(mock_kernel_ops, mock_config)
 
         # Assert
-        # Verify the result is an empty dictionary
-        assert isinstance(result, dict)
-        assert len(result) == 0
-
-        # Verify TraceInfo was constructed with the trace file
-        mock_trace_info_class.assert_called_once_with(mock_trace_file)
-
-        # Verify parse_kernel_ops was called
-        mock_trace_info.parse_kernel_ops.assert_called_once()
+        # Verify the input_prefixes were updated (cleared) in the run_config
+        assert not mock_config.input_prefixes
 
     def _create_kernel_test_data(self):
         """
-        @brief Helper method to create test data for process_kernel_dinstrs tests
-        @return Tuple containing test data: (kernels_files, kernel_ops_dict, test_dinstrs, expected_dicts)
+        @brief Helper method to create test data for remap_vars tests
+        @return Tuple containing test data: (kernels_files, kernels_dinstrs, kernel_ops, expected_dicts)
         """
         # Create mock kernel files
         mock_files = []
         for i in range(1, 3):
-            kernel_file = MagicMock(spec=KernelFiles)
+            kernel_file = MagicMock(spec=KernelInfo)
             kernel_file.prefix = f"kernel{i}_pisa.tw"
             kernel_file.mem = f"/path/to/kernel{i}.mem"
             mock_files.append(kernel_file)
 
         # Create mock kernel operations
-        kernel_ops = {}
+        kernel_ops = []
         for i in range(1, 3):
-            kernel_ops[f"kernel{i}_pisa.tw"] = MagicMock()
+            kernel_op = MagicMock()
+            kernel_op.expected_in_kern_file_name = f"kernel{i}"
+            kernel_ops.append(kernel_op)
 
         # Create test dinstructions data
         dinstrs = []
@@ -263,14 +251,15 @@ class TestHelperFunctions:
 
         # Expected remap dictionaries
         expected_dicts = {
-            "kernel1_pisa.tw": {"var1": "mapped_var1"},
-            "kernel2_pisa.tw": {"var2": "mapped_var2", "var3": "mapped_var3"},
+            "var1": "mapped_var1",
+            "var2": "mapped_var2",
+            "var3": "mapped_var3",
         }
 
         # Pack test data
         test_data = {
             "files": mock_files,
-            "ops_dict": kernel_ops,
+            "kernel_ops": kernel_ops,
             "dinstrs": dinstrs,
             "kernel_dinstrs": kernel_dinstrs,
             "expected_dicts": expected_dicts,
@@ -279,116 +268,103 @@ class TestHelperFunctions:
 
         return test_data
 
-    def test_process_kernel_dinstrs_with_multiple_kernels(self):
+    def test_remap_vars_with_multiple_kernels(self):
         """
-        @brief Test process_kernel_dinstrs with multiple input kernel files
+        @brief Test remap_vars with multiple input kernel files
         """
         # Arrange - Get test data from helper method
         test_data = self._create_kernel_test_data()
 
         # Act
-        with patch(
-            "linker.loader.load_dinst_kernel_from_file"
-        ) as mock_load_dinst, patch(
-            "linker.he_link_utils.remap_dinstrs_vars"
-        ) as mock_remap_vars, patch(
-            "linker.steps.program_linker.LinkedProgram.join_dinst_kernels"
-        ) as mock_join_kernels:
+        with patch("linker.he_link_utils.remap_dinstrs_vars") as mock_remap_vars:
 
             # Configure mocks
-            mock_load_dinst.side_effect = test_data["kernel_dinstrs"]
-            mock_remap_vars.side_effect = list(test_data["expected_dicts"].values())
-            mock_join_kernels.return_value = test_data["joined_dinstrs"]
+            mock_remap_vars.side_effect = [
+                test_data["expected_dicts"],
+                test_data["expected_dicts"],
+            ]
 
             # Call function under test
-            result = process_kernel_dinstrs(
-                test_data["files"], test_data["ops_dict"], MagicMock()
+            remap_vars(
+                test_data["files"],
+                test_data["kernel_dinstrs"],
+                test_data["kernel_ops"],
+                MagicMock(),
             )
 
         # Assert
-        # Verify load_dinst_kernel_from_file was called for each input file
-        assert mock_load_dinst.call_count == 2
-        mock_load_dinst.assert_any_call(test_data["files"][0].mem)
-        mock_load_dinst.assert_any_call(test_data["files"][1].mem)
-
-        # Verify remap_dinstrs_vars was called for each kernel
+        # Verify remap_dinstrs_vars was called for each kernel with the correct arguments
         assert mock_remap_vars.call_count == 2
+
+        # First call
         mock_remap_vars.assert_any_call(
-            test_data["kernel_dinstrs"][0],
-            test_data["ops_dict"][test_data["files"][0].prefix],
-        )
-        mock_remap_vars.assert_any_call(
-            test_data["kernel_dinstrs"][1],
-            test_data["ops_dict"][test_data["files"][1].prefix],
+            test_data["kernel_dinstrs"][0], test_data["kernel_ops"][0]
         )
 
-        # Verify join_dinst_kernels was called once with all kernel dinstrs
-        mock_join_kernels.assert_called_once()
+        # Second call
+        mock_remap_vars.assert_any_call(
+            test_data["kernel_dinstrs"][1], test_data["kernel_ops"][1]
+        )
 
-        # Unpack and verify results
-        result_dinstrs, result_remap_dicts = result
-        assert result_dinstrs == test_data["joined_dinstrs"]
-        assert result_remap_dicts == test_data["expected_dicts"]
+        # Verify the remap_dict was set on each kernel file
+        assert test_data["files"][0].remap_dict == test_data["expected_dicts"]
+        assert test_data["files"][1].remap_dict == test_data["expected_dicts"]
 
-    def test_process_kernel_dinstrs_with_empty_input(self):
+    def test_remap_vars_with_mismatched_prefixes(self):
         """
-        @brief Test process_kernel_dinstrs with an empty list of input files
-        """
-        # Arrange
-        input_files = []
-        kernel_ops_dict = {}
-
-        # Act
-        with patch(
-            "linker.steps.program_linker.LinkedProgram.join_dinst_kernels"
-        ) as mock_join_kernels:
-            mock_join_kernels.return_value = []
-
-            # Call function under test
-            result_dinstrs, result_remap_dicts = process_kernel_dinstrs(
-                input_files, kernel_ops_dict, MagicMock()
-            )
-
-        # Assert
-        # Verify join_dinst_kernels was called once with an empty list
-        mock_join_kernels.assert_called_once_with([])
-
-        # Verify the returned values
-        assert not result_dinstrs
-        assert not result_remap_dicts
-
-    def test_process_kernel_dinstrs_handles_exceptions(self):
-        """
-        @brief Test process_kernel_dinstrs correctly propagates exceptions
+        @brief Test remap_vars correctly handles mismatched prefixes
         """
         # Arrange
-        mock_kernel_file = MagicMock(spec=KernelFiles)
-        mock_kernel_file.prefix = "kernel1_pisa.tw"
-        mock_kernel_file.mem = "/path/to/kernel1.mem"
+        mock_files = [MagicMock(spec=KernelInfo)]
+        mock_files[0].prefix = "kernel1_pisa.tw"
 
-        input_files = [mock_kernel_file]
+        kernel_ops = [MagicMock()]
+        kernel_ops[0].expected_in_kern_file_name = "different_kernel"
 
-        mock_kernel_op = MagicMock()
-        kernel_ops_dict = {"kernel1_pisa.tw": mock_kernel_op}
+        kernel_dinstrs = [[MagicMock()]]
 
         # Act & Assert
-        # Test with load_dinst_kernel_from_file raising exception
-        with patch(
-            "linker.loader.load_dinst_kernel_from_file",
-            side_effect=FileNotFoundError("File not found"),
-        ), pytest.raises(FileNotFoundError, match="File not found"):
-            process_kernel_dinstrs(input_files, kernel_ops_dict, MagicMock())
+        with pytest.raises(AssertionError, match="prefix .* does not match"):
+            remap_vars(mock_files, kernel_dinstrs, kernel_ops, MagicMock())
 
-        # Test with remap_dinstrs_vars raising exception
-        with patch(
-            "linker.loader.load_dinst_kernel_from_file", return_value=[MagicMock()]
-        ), patch(
-            "linker.he_link_utils.remap_dinstrs_vars",
-            side_effect=KeyError("Missing key"),
-        ), pytest.raises(
-            KeyError, match="Missing key"
-        ):
-            process_kernel_dinstrs(input_files, kernel_ops_dict, MagicMock())
+    def test_remap_vars_with_empty_input(self):
+        """
+        @brief Test remap_vars with an empty list of input files
+        """
+        # Arrange
+        kernel_files = []
+        kernel_dinstrs = []
+        kernel_ops = []
+        verbose_stream = MagicMock()
+
+        # Act
+        # No exception should be raised for empty inputs
+        remap_vars(kernel_files, kernel_dinstrs, kernel_ops, verbose_stream)
+
+        # Assert
+        # Just verifying the function completes without error
+
+    def test_remap_vars_length_mismatch(self):
+        """
+        @brief Test remap_vars correctly handles mismatched lengths
+        """
+        # Arrange - mismatched lengths between files and ops
+        kernel_files = [MagicMock(), MagicMock()]
+        kernel_dinstrs = [[MagicMock()]]
+        kernel_ops = [MagicMock()]
+
+        # Act & Assert
+        with pytest.raises(AssertionError, match="Number of kernels_files must match"):
+            remap_vars(kernel_files, kernel_dinstrs, kernel_ops, MagicMock())
+
+        # Arrange - mismatched lengths between dinstrs and ops
+        kernel_files = [MagicMock()]
+        kernel_dinstrs = [[MagicMock()], [MagicMock()]]
+        kernel_ops = [MagicMock()]
+
+        # Act & Assert
+        with pytest.raises(AssertionError, match="Number of kernel_dinstrs must match"):
+            remap_vars(kernel_files, kernel_dinstrs, kernel_ops, MagicMock())
 
     def test_initialize_memory_model_with_kernel_dinstrs(self):
         """
@@ -452,9 +428,7 @@ class TestHelperFunctions:
         mock_config.input_mem_file = "/path/to/input.mem"
 
         # Create mock mem_meta_info
-        mock_mem_info = MagicMock()
-
-        # Create mock verbose stream
+        mock_mem_info = MagicMock()  # Create mock verbose stream
         mock_stream = MagicMock()
 
         # Act

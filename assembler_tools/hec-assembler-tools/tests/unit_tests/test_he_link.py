@@ -14,7 +14,7 @@ from unittest.mock import patch, mock_open, MagicMock
 import pytest
 
 import he_link
-from linker.kern_trace import KernelFiles
+from linker.kern_trace import KernelInfo
 
 
 class TestMainFunction:
@@ -41,13 +41,15 @@ class TestMainFunction:
 
         # Setup input files with conditional mem files - ensure prefix matches expected pattern
         input_files = [
-            KernelFiles(
-                directory="/tmp",
-                prefix=expected_kernel_name,  # Match the expected name pattern
-                minst=f"{expected_kernel_name}.minst",
-                cinst=f"{expected_kernel_name}.cinst",
-                xinst=f"{expected_kernel_name}.xinst",
-                mem=f"{expected_kernel_name}.mem" if using_trace_file else None,
+            KernelInfo(
+                {
+                    "directory": "/tmp",
+                    "prefix": expected_kernel_name,  # Match the expected name pattern
+                    "minst": f"{expected_kernel_name}.minst",
+                    "cinst": f"{expected_kernel_name}.cinst",
+                    "xinst": f"{expected_kernel_name}.xinst",
+                    "mem": f"{expected_kernel_name}.mem" if using_trace_file else None,
+                }
             ),
         ]
 
@@ -72,10 +74,10 @@ class TestMainFunction:
             "join_dinst": MagicMock(return_value=[]),
             "dump_instructions": MagicMock(),
             "remap_dinstrs_vars": MagicMock(return_value={"old_var": "new_var"}),
-            "process_trace_file": MagicMock(
+            "update_input_prefixes": MagicMock(
                 return_value={"kernel1_pisa.tw": MagicMock()}
             ),
-            "process_kernel_dinstrs": MagicMock(
+            "remap_vars": MagicMock(
                 return_value=([mock_dinstr1, mock_dinstr2], {"key": "value"})
             ),
             "initialize_memory_model": MagicMock(),
@@ -104,7 +106,7 @@ class TestMainFunction:
         ), patch(
             "assembler.common.counter.Counter.reset"
         ), patch(
-            "linker.loader.load_dinst_kernel_from_file", mocks["load_dinst"]
+            "he_link.Loader.load_dinst_kernel_from_file", mocks["load_dinst"]
         ), patch(
             "linker.instructions.BaseInstruction.dump_instructions_to_file",
             mocks["dump_instructions"],
@@ -134,9 +136,9 @@ class TestMainFunction:
         ), patch(
             "linker.kern_trace.remap_dinstrs_vars", mocks["remap_dinstrs_vars"]
         ), patch(
-            "he_link.process_trace_file", mocks["process_trace_file"]
+            "he_link.update_input_prefixes", mocks["update_input_prefixes"]
         ), patch(
-            "he_link.process_kernel_dinstrs", mocks["process_kernel_dinstrs"]
+            "he_link.remap_vars", mocks["remap_vars"]
         ), patch(
             "he_link.initialize_memory_model", mocks["initialize_memory_model"]
         ):
@@ -153,14 +155,14 @@ class TestMainFunction:
 
         if using_trace_file:
             # Assert that the trace processing flow was used
-            mocks["process_trace_file"].assert_called_once()
-            mocks["process_kernel_dinstrs"].assert_called_once()
+            mocks["update_input_prefixes"].assert_called_once()
+            mocks["remap_vars"].assert_called_once()
             mocks["initialize_memory_model"].assert_called_once()
             assert not mocks["from_file_iter"].called
         else:
             # Assert that the normal flow was used
-            assert not mocks["process_trace_file"].called
-            assert not mocks["process_kernel_dinstrs"].called
+            assert not mocks["update_input_prefixes"].called
+            assert not mocks["remap_vars"].called
             mocks["initialize_memory_model"].assert_called_once()
 
     def test_warning_on_use_xinstfetch(self):

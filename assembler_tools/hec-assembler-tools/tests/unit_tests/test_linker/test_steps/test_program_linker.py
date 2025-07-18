@@ -513,28 +513,30 @@ class TestLinkedProgram(unittest.TestCase):
 
         @test Verifies that kernels are correctly linked and written to output files
         """
-        # Create a namedtuple similar to KernelFiles for testing
-        KernelFiles = namedtuple(
-            "KernelFiles", ["prefix", "minst", "cinst", "xinst", "mem"]
+        # Create a namedtuple similar to KernelInfo for testing
+        KernelInfo = namedtuple(
+            "KernelInfo", ["prefix", "minst", "cinst", "xinst", "mem", "remap_dict"]
         )
 
         # Arrange
         input_files = [
-            KernelFiles(
+            KernelInfo(
                 prefix="/tmp/input1",
                 minst="/tmp/input1.minst",
                 cinst="/tmp/input1.cinst",
                 xinst="/tmp/input1.xinst",
                 mem=None,
+                remap_dict={},
             )
         ]
 
-        output_files = KernelFiles(
+        output_files = KernelInfo(
             prefix="/tmp/output",
             minst="/tmp/output.minst",
             cinst="/tmp/output.cinst",
             xinst="/tmp/output.xinst",
             mem=None,
+            remap_dict=None,
         )
 
         mock_mem_model = MagicMock()
@@ -542,9 +544,14 @@ class TestLinkedProgram(unittest.TestCase):
 
         # Act
         with patch("builtins.open", mock_open()), patch(
-            "linker.loader.load_minst_kernel_from_file", return_value=[]
-        ), patch("linker.loader.load_cinst_kernel_from_file", return_value=[]), patch(
-            "linker.loader.load_xinst_kernel_from_file", return_value=[]
+            "linker.steps.program_linker.Loader.load_minst_kernel_from_file",
+            return_value=[],
+        ), patch(
+            "linker.steps.program_linker.Loader.load_cinst_kernel_from_file",
+            return_value=[],
+        ), patch(
+            "linker.steps.program_linker.Loader.load_xinst_kernel_from_file",
+            return_value=[],
         ), patch.object(
             LinkedProgram, "__init__", return_value=None
         ) as mock_init, patch.object(

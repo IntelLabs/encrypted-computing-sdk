@@ -7,29 +7,30 @@
 """@brief Module for parsing and analyzing trace files."""
 
 import os
-from typing import NamedTuple, Optional
+from typing import Optional
 
 from assembler.instructions import tokenize_from_line
 from linker.kern_trace.context_config import ContextConfig
 from linker.kern_trace.kernel_op import KernelOp
 
 
-class KernelFiles(NamedTuple):
+class KernelInfo:
     """
-    @class KernelFiles
+    @class KernelInfo
     @brief Structure for kernel files.
 
+    @details This class holds information about the kernel files used in the linker.
+
+    @var directory
     @var prefix
-        Index = 0
     @var minst
-        Index = 1. Name for file containing MInstructions for represented kernel.
     @var cinst
-        Index = 2. Name for file containing CInstructions for represented kernel.
     @var xinst
-        Index = 3. Name for file containing XInstructions for represented kernel.
     @var mem
-        Index = 4. Name for file containing memory information for represented kernel.
-        This is used only when using_trace_file is set.
+
+    @var remap_dict
+    @brief Dictionary for remapping variable names in DInstructions.
+
     """
 
     directory: str
@@ -38,6 +39,27 @@ class KernelFiles(NamedTuple):
     cinst: str
     xinst: str
     mem: Optional[str] = None
+    remap_dict: dict[str, str]
+
+    def __init__(self, config: dict):
+        """
+        @brief Initializes KernelInfo with a configuration dictionary.
+
+        @param config: Dictionary with keys 'directory', 'prefix', 'minst', 'cinst', 'xinst', and optional 'mem'.
+        """
+        self.directory = config["directory"]
+        self.prefix = config["prefix"]
+        self.minst = config["minst"]
+        self.cinst = config["cinst"]
+        self.xinst = config["xinst"]
+        self.mem = config.get("mem")
+
+    @property
+    def files(self) -> list[str]:
+        """
+        @brief Returns a list of file names associated with the kernel.
+        """
+        return [self.minst, self.cinst, self.xinst] + ([self.mem] if self.mem else [])
 
 
 class TraceInfo:
@@ -157,3 +179,14 @@ class TraceInfo:
                 kernel_ops.append(kernel_op)
 
         return kernel_ops
+
+    @classmethod
+    def parse_kernel_ops_from_file(cls, filename: str) -> list[KernelOp]:
+        """
+        @brief Parses kernel operations from a given trace file.
+
+        @param filename: The name of the trace file.
+        @return list: A list of KernelOp instances parsed from the trace file.
+        """
+        trace_info = cls(filename)
+        return trace_info.parse_kernel_ops()

@@ -4,15 +4,15 @@
 """
 @brief This module provides functionality to discover variable names in MInstructions and CInstructions.
 """
-from typing import Optional, TextIO, List, Dict
+from typing import Optional, TextIO, List
 from assembler.memory_model.variable import Variable
 from assembler.memory_model import MemoryModel
 from assembler.common.config import GlobalConfig
 from linker.instructions import minst, cinst
 from linker.instructions.minst.minstruction import MInstruction
 from linker.instructions.cinst.cinstruction import CInstruction
-from linker.kern_trace import KernelFiles, remap_m_c_instrs_vars
-from linker import loader
+from linker.kern_trace import KernelInfo, remap_m_c_instrs_vars
+from linker.loader import Loader
 
 
 def discover_variables_spad(cinstrs: list):
@@ -77,49 +77,48 @@ def discover_variables(minstrs: list):
 
 
 def scan_variables(
-    input_files: List[KernelFiles],
+    kernels_info: List[KernelInfo],
     mem_model: MemoryModel,
     verbose_stream: Optional[TextIO] = None,
-    remap_dicts: Optional[Dict[str, Dict[str, str]]] = None,
 ):
     """
     @brief Scans input files for variables and adds them to the memory model.
 
-    @param input_files List of KernelFiles for input.
+    @param kernels_info List of KernelInfo for input.
     @param mem_model Memory model to update.
     @param verbose_stream Stream for verbose output.
-    @param remap_dicts Optional dictionary of variable remapping dictionaries.
     """
-    for idx, kernel_files in enumerate(input_files):
-
-        remap_dict: dict[str, str] = {}
-        if remap_dicts and kernel_files.prefix in remap_dicts:
-            print(
-                f"ROCHA Using remap dict for kernel: {kernel_files.prefix}",
-                file=verbose_stream,
-            )
-            remap_dict = remap_dicts[kernel_files.prefix]
+    for idx, kernel_info in enumerate(kernels_info):
 
         if not GlobalConfig.hasHBM:
             if verbose_stream:
                 print(
-                    f"    {idx + 1}/{len(input_files)}",
-                    kernel_files.cinst,
+                    f"    {idx + 1}/{len(kernels_info)}",
+                    kernel_info.cinst,
                     file=verbose_stream,
                 )
-            kernel_cinstrs = loader.load_cinst_kernel_from_file(kernel_files.cinst)
-            remap_m_c_instrs_vars(kernel_cinstrs, remap_dict)
+            kernel_cinstrs = Loader.load_cinst_kernel_from_file(kernel_info.cinst)
+            print(
+                f"ROCHA   SCANNING: Loaded {len(kernel_cinstrs)} CInstructions from {kernel_info.cinst}.",
+                file=verbose_stream,
+            )
+            remap_m_c_instrs_vars(kernel_cinstrs, kernel_info.remap_dict)
             for var_name in discover_variables_spad(kernel_cinstrs):
                 mem_model.add_variable(var_name)
         else:
             if verbose_stream:
                 print(
-                    f"    {idx + 1}/{len(input_files)}",
-                    kernel_files.minst,
+                    f"    {idx + 1}/{len(kernels_info)}",
+                    kernel_info.minst,
                     file=verbose_stream,
                 )
-            kernel_minstrs = loader.load_minst_kernel_from_file(kernel_files.minst)
-            remap_m_c_instrs_vars(kernel_minstrs, remap_dict)
+            kernel_minstrs = Loader.load_minst_kernel_from_file(kernel_info.minst)
+            print(
+                f"ROCHA   SCANNING: Loaded {len(kernel_minstrs)} MInstructions from {kernel_info.minst}.",
+                f"Map used for remapping: {kernel_info.remap_dict}",
+                file=verbose_stream,
+            )
+            remap_m_c_instrs_vars(kernel_minstrs, kernel_info.remap_dict)
             for var_name in discover_variables(kernel_minstrs):
                 mem_model.add_variable(var_name)
 

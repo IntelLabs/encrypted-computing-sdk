@@ -91,6 +91,7 @@ def remap_m_c_instrs_vars(kernel_instrs: list, remap_dict: dict[str, str]) -> No
     """
     if remap_dict:
         for instr in kernel_instrs:
+            print(f"ROCHA  Remapping variables in instruction: {instr.to_line()}")
             if not isinstance(instr, (MInstruction, CInstruction)):
                 raise TypeError(f"Item {instr} is not a valid M or C Instruction.")
 
@@ -101,4 +102,7 @@ def remap_m_c_instrs_vars(kernel_instrs: list, remap_dict: dict[str, str]) -> No
                     instr.source = remap_dict[instr.source]
             elif isinstance(instr, (minst.MStore, cinst.CStore)):
                 if instr.dest in remap_dict:
+                    print(
+                        f"ROCHA    Remapping {instr.dest} to {remap_dict[instr.dest]}"
+                    )
                     instr.dest = remap_dict[instr.dest]

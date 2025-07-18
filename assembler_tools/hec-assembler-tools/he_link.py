@@ -11,7 +11,7 @@
 
 @par Classes:
     - LinkerRunConfig: Maintains the configuration data for the run.
-    - KernelFiles: Structure for kernel files.
+    - KernelInfo: Structure for kernel files.
 
 @par Functions:
     - main(run_config: LinkerRunConfig, verbose_stream=None): Executes the linking process using the provided configuration.
@@ -34,12 +34,14 @@ from linker.instructions import BaseInstruction
 from linker.linker_run_config import LinkerRunConfig
 from linker.steps.variable_discovery import scan_variables, check_unused_variables
 from linker.steps import program_linker
+from linker.kern_trace.trace_info import TraceInfo
+from linker.loader import Loader
 from linker.he_link_utils import (
     NullIO,
     prepare_output_files,
     prepare_input_files,
-    process_trace_file,
-    process_kernel_dinstrs,
+    update_input_prefixes,
+    remap_vars,
     initialize_memory_model,
 )
 
@@ -64,22 +66,21 @@ def main(run_config: LinkerRunConfig, verbose_stream=NullIO()):
     GlobalConfig.suppress_comments = run_config.suppress_comments
 
     # Process trace file if enabled
-    kernel_ops_dict = {}
-    remap_dicts = {}
+    kernel_ops = []
     if run_config.using_trace_file:
-        kernel_ops_dict = process_trace_file(run_config.trace_file)
-        run_config.input_prefixes = list(kernel_ops_dict.keys())
+        kernel_ops = TraceInfo.parse_kernel_ops_from_file(run_config.trace_file)
+        update_input_prefixes(kernel_ops, run_config)
 
         print(
-            f"Found {len(run_config.input_prefixes)} kernels in trace file:",
+            f"Found {len(kernel_ops)} kernel ops in trace file:",
             file=verbose_stream,
         )
 
         print("", file=verbose_stream)
 
     # Prepare input and output files
-    output_files = prepare_output_files(run_config)
-    input_files = prepare_input_files(run_config, output_files)
+    program_info = prepare_output_files(run_config)
+    kernels_info = prepare_input_files(run_config, program_info)
 
     # Reset counters
     Counter.reset()
@@ -89,24 +90,35 @@ def main(run_config: LinkerRunConfig, verbose_stream=NullIO()):
     print("", file=verbose_stream)
     print("Interpreting variable meta information...", file=verbose_stream)
 
-    kernel_dinstrs = None
+    # Process kernel DInstructions when using trace file
+    program_dinstrs = []
     if run_config.using_trace_file:
-        kernel_dinstrs, remap_dicts = process_kernel_dinstrs(
-            input_files, kernel_ops_dict, verbose_stream
+        dinstrs_per_kernel = []
+        for kernel_info in kernels_info:
+            kernel_dinstrs = Loader.load_dinst_kernel_from_file(kernel_info.mem)
+            dinstrs_per_kernel.append(kernel_dinstrs)
+
+        remap_vars(kernels_info, dinstrs_per_kernel, kernel_ops, verbose_stream)
+
+        # Concatenate all mem info objects into one
+        program_dinstrs = program_linker.LinkedProgram.join_dinst_kernels(
+            dinstrs_per_kernel
         )
 
+        # Write new program memory model to an output file
+        if program_info.mem is None:
+            raise RuntimeError("Output memory file path is None")
+        BaseInstruction.dump_instructions_to_file(program_dinstrs, program_info.mem)
+
     # Initialize memory model
-    mem_model = initialize_memory_model(run_config, kernel_dinstrs, verbose_stream)
+    mem_model = initialize_memory_model(run_config, program_dinstrs, verbose_stream)
 
     # Discover variables
     print("  Finding all program variables...", file=verbose_stream)
     print("  Scanning", file=verbose_stream)
 
     scan_variables(
-        input_files=input_files,
-        mem_model=mem_model,
-        verbose_stream=verbose_stream,
-        remap_dicts=remap_dicts,
+        kernels_info=kernels_info, mem_model=mem_model, verbose_stream=verbose_stream
     )
 
     check_unused_variables(mem_model)
@@ -116,25 +128,18 @@ def main(run_config: LinkerRunConfig, verbose_stream=NullIO()):
 
     # Link kernels and generate outputs
     program_linker.LinkedProgram.link_kernels_to_files(
-        input_files,
-        output_files,
-        mem_model,
-        verbose_stream=verbose_stream,
-        remap_dicts=remap_dicts,
+        kernels_info, program_info, mem_model, verbose_stream=verbose_stream
     )
 
-    # Write the memory model to the output file
-    if run_config.using_trace_file:
-        if output_files.mem is None:
-            raise RuntimeError("Output memory file path is None")
-        BaseInstruction.dump_instructions_to_file(kernel_dinstrs, output_files.mem)
+    # Flush cached kernels
+    Loader.flush_cache()
 
     print("Output written to files:", file=verbose_stream)
-    print("  ", output_files.minst, file=verbose_stream)
-    print("  ", output_files.cinst, file=verbose_stream)
-    print("  ", output_files.xinst, file=verbose_stream)
+    print("  ", program_info.minst, file=verbose_stream)
+    print("  ", program_info.cinst, file=verbose_stream)
+    print("  ", program_info.xinst, file=verbose_stream)
     if run_config.using_trace_file:
-        print("  ", output_files.mem, file=verbose_stream)
+        print("  ", program_info.mem, file=verbose_stream)
 
 
 def parse_args():

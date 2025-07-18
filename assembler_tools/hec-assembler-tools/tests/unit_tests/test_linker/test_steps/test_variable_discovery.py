@@ -285,18 +285,20 @@ class TestVariableDiscovery(unittest.TestCase):
         @test Verifies that scan_variables correctly processes input files and updates the memory model
               in both HBM and non-HBM modes
         """
-        # Create a namedtuple similar to KernelFiles for testing
-        KernelFiles = namedtuple(
-            "KernelFiles", ["directory", "prefix", "minst", "cinst", "xinst", "mem"]
+        # Create a namedtuple similar to KernelInfo for testing
+        KernelInfo = namedtuple(
+            "KernelInfo",
+            ["directory", "prefix", "minst", "cinst", "xinst", "mem", "remap_dict"],
         )
         input_files = [
-            KernelFiles(
+            KernelInfo(
                 directory="/tmp",
                 prefix="input1",
                 minst="/tmp/input1.minst",
                 cinst="/tmp/input1.cinst",
                 xinst="/tmp/input1.xinst",
                 mem=None,
+                remap_dict=None,
             )
         ]
 
@@ -310,9 +312,11 @@ class TestVariableDiscovery(unittest.TestCase):
 
                 # Act
                 with patch(
-                    "linker.loader.load_minst_kernel_from_file", return_value=[]
+                    "linker.steps.variable_discovery.Loader.load_minst_kernel_from_file",
+                    return_value=[],
                 ), patch(
-                    "linker.loader.load_cinst_kernel_from_file", return_value=[]
+                    "linker.steps.variable_discovery.Loader.load_cinst_kernel_from_file",
+                    return_value=[],
                 ), patch(
                     "linker.steps.variable_discovery.discover_variables",
                     return_value=["var1", "var2"],
