@@ -33,7 +33,11 @@ Example:
 import argparse
 import sys
 from kernel_parser.parser import KernelParser
-from kernel_optimization.loops import loop_interchange, split_by_reorderable
+from kernel_optimization.loops import (
+    loop_interchange,
+    split_by_reorderable,
+    reuse_rns_label,
+)
 from const.options import LoopKey
 from pisa_generators.basic import mixed_to_pisa_ops
 from high_parser.config import Config
@@ -98,13 +102,15 @@ def process_kernel_with_reordering(kernel, args):
     processed_kernel = []
     for group in groups:
         if group.is_reorderable:
-            processed_kernel.append(
-                loop_interchange(
-                    group.pisa_list,
-                    primary_key=args.primary,
-                    secondary_key=args.secondary,
-                )
+            interchanged_pisa = loop_interchange(
+                group.pisa_list, primary_key=args.primary, secondary_key=args.secondary
             )
+
+            if "mod" in args.target or "relin" in args.target:
+                for pisa in mixed_to_pisa_ops(interchanged_pisa):
+                    processed_kernel.append(
+                        reuse_rns_label(pisa, kernel.context.current_rns)
+                    )
         else:
             processed_kernel.append(group.pisa_list)
 
