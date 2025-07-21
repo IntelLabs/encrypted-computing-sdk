@@ -191,7 +191,7 @@ def assign_register_banks_to_vars(mem_model: MemoryModel, insts_list: list, use_
         # Extract the dependency graph for variables
         dep_graph_vars, dest_names, source_names = dependency_graph_for_vars(insts_list)
         only_sources = source_names - dest_names  # Find which variables are ever only used as sources
-        color_dict = nx.greedy_color(dep_graph_vars)  # Do coloring
+        color_dict = nx.greedy_color(dep_graph_vars, strategy="connected_sequential_bfs", interchange=True)  # Do coloring
 
         needs_reduction = False
         for var_name, bank in color_dict.items():
