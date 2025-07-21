@@ -1,0 +1,4 @@
+instruction,scheme,poly_modulus_degree,rns_terms,cipher_degree,arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+mul,BGV,16384,3,ct2-3-2,ct0-2-2,ct1-2-2
+relin,BGV,16384,3,ct3-2-2,ct2-3-2
+mod_switch,BGV,16384,3,ct4-2-1,ct3-2-2
