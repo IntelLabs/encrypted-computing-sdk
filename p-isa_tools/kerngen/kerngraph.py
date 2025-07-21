@@ -35,7 +35,7 @@ from const.options import LoopKey
 from high_parser.config import Config
 from kernel_optimization.loops import loop_interchange, split_by_reorderable, reuse_rns_label
 from kernel_parser.parser import KernelParser
-from pisa_generators.basic import mixed_to_pisa_ops
+from pisa_generators.basic import mixed_to_pisa_ops, reuse_rns_label
 
 
 def parse_args():
