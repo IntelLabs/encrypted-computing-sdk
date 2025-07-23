@@ -78,7 +78,7 @@ python3 he_as.py filename.tw.csv --input_mem_file filename.mem
 ```bash
 # link assembled output (input prefix: filename.tw)
 # outputs filename.minst, filename.cinst, filename.xinst
-python3 he_link.py filename.tw --input_mem_file filename.mem --output_prefix filename
+python3 he_link.py --input_prefixes filename.tw --input_mem_file filename.mem --output_prefix filename
 ```
 
 This will generate the main three output files in the same directory as the input file:
@@ -89,7 +89,7 @@ This will generate the main three output files in the same directory as the inpu
 
 Intermediate files, if any, are kept as well.
 
-The linker program is able to link several assembled kernels into a single HERACLES program, given a correct memory mapping for the resulting program.
+The linker program is able to link several assembled kernels into a single HERACLES program, given a correct memory mapping or trace file for the resulting program.
 
 This version of executing is intended for the assembler to be usable as part of a compilation pipeline.
 
