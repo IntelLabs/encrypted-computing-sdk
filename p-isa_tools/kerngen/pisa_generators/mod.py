@@ -9,6 +9,7 @@ from high_parser.pisa_operations import PIsaOp, Comment
 from high_parser import KernelContext, Immediate, HighOp, Polys
 
 from .basic import (
+    Copy,
     Add,
     Sub,
     Muli,
@@ -52,6 +53,12 @@ class Mod(HighOp):
         input_last_rns, input_remaining_rns = split_last_rns_polys(
             self.input0, self.context.current_rns
         )
+
+        # For CKKS and standalone mod switch down, we can reduce the RNS by one and copy to output, no need to rescale
+        if self.context.scheme == "CKKS" and self.var_suffix == self.MOD_QLAST:
+            return mixed_to_pisa_ops(
+                [Copy(self.context, self.output, input_remaining_rns)]
+            )
 
         # Temp.
         temp_input_last_rns = duplicate_polys(input_last_rns, "y")
