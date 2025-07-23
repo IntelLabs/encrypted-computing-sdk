@@ -27,7 +27,7 @@ class TestDLoadInstruction(unittest.TestCase):
         # Create the instruction
         self.var_name = "test_var"
         self.address = 123
-        self.type = "type1"
+        self.type = "poly"
 
     def test_get_num_tokens(self):
         """@brief Test that _get_num_tokens returns 3
@@ -59,7 +59,8 @@ class TestDLoadInstruction(unittest.TestCase):
 
         @test Verifies the instruction handles metadata loading correctly
         """
-        inst = Instruction([MemInfo.Const.Keyword.LOAD, self.type, str(self.address)])
+        metadata = "ones"
+        inst = Instruction([MemInfo.Const.Keyword.LOAD, metadata, str(self.address)])
 
         self.assertEqual(inst.name, MemInfo.Const.Keyword.LOAD)
 
@@ -86,8 +87,6 @@ class TestDLoadInstruction(unittest.TestCase):
             [Instruction.name, self.type, str(self.address), self.var_name]
         )
 
-        # Manually set properties to match expected behavior
-        inst.address = self.address
         self.assertEqual(inst.tokens, expected_tokens)
 
     def test_tokens_with_additional_data(self):
