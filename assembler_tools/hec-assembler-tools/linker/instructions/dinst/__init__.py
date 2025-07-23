@@ -9,7 +9,6 @@
 from typing import Optional
 
 from assembler.instructions import tokenize_from_line
-from assembler.memory_model.mem_info import MemInfo
 from . import dload, dstore, dkeygen
 from . import dinstruction
 
@@ -48,14 +47,5 @@ def create_from_mem_line(line: str) -> dinstruction.DInstruction:
 
     if not retval:
         raise RuntimeError(f'No valid instruction found for line "{line}"')
-
-    try:
-        miv, _ = MemInfo.get_meminfo_var_from_tokens(tokens)
-    except RuntimeError as e:
-        raise RuntimeError(f'Error parsing memory map line "{line}"') from e
-
-    miv_dict = miv.as_dict()
-    retval.var = miv_dict["var_name"]
-    retval.address = miv_dict["hbm_address"]
 
     return retval
