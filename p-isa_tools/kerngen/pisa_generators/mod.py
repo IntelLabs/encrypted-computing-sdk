@@ -54,7 +54,7 @@ class Mod(HighOp):
             self.input0, self.context.current_rns
         )
 
-        # For CKKS and stand along mod switch down, we can reduce the RNS by one and copy to output
+        # For CKKS and standalone mod switch down, we can reduce the RNS by one and copy to output, no need to rescale
         if self.context.scheme == "CKKS" and self.var_suffix == self.MOD_QLAST:
             return mixed_to_pisa_ops(
                 [Copy(self.context, self.output, input_remaining_rns)]
