@@ -10,6 +10,36 @@ from const.options import LoopKey
 from high_parser.pisa_operations import PIsaOp, Comment
 
 
+class PIsaOpGroup:
+    """A group of PIsaOp instructions with reorderable flag.
+
+    Attributes:
+        pisa_list: List of PIsaOp instructions
+        is_reorderable: Boolean indicating if the instructions can be reordered
+    """
+
+    pisa_list: list[PIsaOp]
+    is_reorderable: bool
+
+    def __init__(self, pisa_list: list[PIsaOp], is_reorderable: bool = False):
+        """Initialize PIsaOpGroup.
+
+        Args:
+            pisa_list: List of PIsaOp instructions
+            is_reorderable: Boolean indicating if instructions can be reordered
+        """
+        self.pisa_list = pisa_list
+        self.is_reorderable = is_reorderable
+
+    def __len__(self) -> int:
+        """Return the number of instructions in the group."""
+        return len(self.pisa_list)
+
+    def __iter__(self):
+        """Allow iteration over the PIsaOp instructions."""
+        return iter(self.pisa_list)
+
+
 def remove_comments(pisa_list: list[PIsaOp]) -> list[PIsaOp]:
     """Remove comments from a list of PIsaOp instructions.
 
@@ -22,40 +52,49 @@ def remove_comments(pisa_list: list[PIsaOp]) -> list[PIsaOp]:
     return [pisa for pisa in pisa_list if not isinstance(pisa, Comment)]
 
 
-def split_by_reorderable(pisa_list: list[PIsaOp]) -> tuple[list[PIsaOp], list[PIsaOp]]:
+def split_by_reorderable(pisa_list: list[PIsaOp]) -> list[PIsaOpGroup]:
     """Split a list of PIsaOp instructions into reorderable and non-reorderable groups.
 
     Args:
         pisa_list: List of PIsaOp instructions
 
     Returns:
-        Tuple containing two lists:
-            - reorderable: Instructions that can be reordered
-            - non_reorderable: Instructions that cannot be reordered
+        List of PIsaOpGroup objects containing grouped instructions with their reorderable status
     """
-
-    reorderable = []
-    non_reorderable = []
-    is_reorderable = False
+    groups = []
+    current_group = PIsaOpGroup([], is_reorderable=False)
+    no_reoderable_group = True
 
     for pisa in pisa_list:
         # if the pisa is a comment and it contains <reorderable> tag, treat the following pisa as reorderable until a </reorderable> tag is found.
         if isinstance(pisa, Comment):
             if "<reorderable>" in pisa.line:
-                is_reorderable = True
+                # If current group has instructions, append it to groups first
+                if current_group.pisa_list:
+                    groups.append(current_group)
+                # Create a new reorderable group
+                current_group = PIsaOpGroup([], is_reorderable=True)
+                no_reoderable_group = False
             elif "</reorderable>" in pisa.line:
-                is_reorderable = False
-
-        if is_reorderable:
-            reorderable.append(pisa)
+                # End reorderable section, append current group to groups
+                if current_group.pisa_list:
+                    groups.append(current_group)
+                # Create a new non-reorderable group
+                current_group = PIsaOpGroup([], is_reorderable=False)
         else:
-            non_reorderable.append(pisa)
+            # Add non-comment instruction to current group
+            current_group.pisa_list.append(pisa)
 
-    # if reoderable is empty, return non_reorderable as reorderable
-    if not reorderable:
-        reorderable = non_reorderable
-        non_reorderable = []
-    return remove_comments(reorderable), remove_comments(non_reorderable)
+    # Add any remaining instructions in current_group
+    if current_group.pisa_list:
+        groups.append(current_group)
+
+    # If there are no reorderable groups, set reorderable to True for the entire groups
+    if no_reoderable_group:
+        for group in groups:
+            group.is_reorderable = True
+
+    return groups
 
 
 def loop_interchange(

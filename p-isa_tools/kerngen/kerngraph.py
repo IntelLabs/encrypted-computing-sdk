@@ -52,7 +52,7 @@ def parse_args():
         nargs="*",
         default=[],
         # Composition high ops such are ntt, mod, and relin are not currently supported
-        choices=["add", "sub", "mul", "muli", "copy", "ntt", "intt", "mod"],
+        choices=["add", "sub", "mul", "muli", "copy", "ntt", "intt", "mod", "relin"],
         help="List of high_op names",
     )
     parser.add_argument(
@@ -78,47 +78,67 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(args):
-    """Main function to read input and parse each line with KernelParser."""
-    input_lines = sys.stdin.read().strip().splitlines()
+def parse_kernels(input_lines, debug=False):
+    """Parse kernel strings from input lines."""
     valid_kernels = []
-    Config.legacy_mode = args.legacy
-
     for line in input_lines:
         try:
             kernel = KernelParser.parse_kernel(line)
             valid_kernels.append(kernel)
         except ValueError as e:
-            if args.debug:
+            if debug:
                 print(f"Error parsing line: {line}\nReason: {e}")
             continue  # Skip invalid lines
+    return valid_kernels
+
+
+def process_kernel_with_reordering(kernel, args):
+    """Process a kernel with reordering optimization."""
+    groups = split_by_reorderable(kernel.to_pisa())
+    processed_kernel = []
+    for group in groups:
+        if group.is_reorderable:
+            processed_kernel.append(
+                loop_interchange(
+                    group.pisa_list,
+                    primary_key=args.primary,
+                    secondary_key=args.secondary,
+                )
+            )
+        else:
+            processed_kernel.append(group.pisa_list)
+
+    for pisa in mixed_to_pisa_ops(processed_kernel):
+        print(pisa)
+
+
+def should_apply_reordering(kernel, targets):
+    """Check if reordering should be applied to this kernel."""
+    return targets and any(target.lower() in str(kernel).lower() for target in targets)
+
+
+def main(args):
+    """Main function to read input and parse each line with KernelParser."""
+    input_lines = sys.stdin.read().strip().splitlines()
+    Config.legacy_mode = args.legacy
+
+    valid_kernels = parse_kernels(input_lines, args.debug)
 
     if not valid_kernels:
         print("No valid kernel strings were parsed.")
-    else:
-        if args.debug:
-            print(
-                f"# Reordered targets {args.target} with primary key {args.primary} and secondary key {args.secondary}"
-            )
-        for kernel in valid_kernels:
-            if args.target and any(
-                target.lower() in str(kernel).lower() for target in args.target
-            ):
-                reorderable, non_reorderable = split_by_reorderable(kernel.to_pisa())
-                kernel = non_reorderable
-                kernel.append(
-                    loop_interchange(
-                        reorderable,
-                        primary_key=args.primary,
-                        secondary_key=args.secondary,
-                    )
-                )
+        return
 
-                for pisa in mixed_to_pisa_ops(kernel):
-                    print(pisa)
-            else:
-                for pisa in kernel.to_pisa():
-                    print(pisa)
+    if args.debug:
+        print(
+            f"# Reordered targets {args.target} with primary key {args.primary} and secondary key {args.secondary}"
+        )
+
+    for kernel in valid_kernels:
+        if should_apply_reordering(kernel, args.target):
+            process_kernel_with_reordering(kernel, args)
+        else:
+            for pisa in kernel.to_pisa():
+                print(pisa)
 
 
 if __name__ == "__main__":
