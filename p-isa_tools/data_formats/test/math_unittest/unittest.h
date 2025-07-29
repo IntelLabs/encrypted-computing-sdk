@@ -8,7 +8,7 @@
 #define ASSERT_EQ(a, b)                                                                 \
     do                                                                                  \
     {                                                                                   \
-        if ((a) != (b))                                                                 \
+        if ((a) != (b)) /* NOLINT(readability/braces) */                                \
         {                                                                               \
             fprintf(stderr, "Test fail: %s - %s:%d", __FUNCTION__, __FILE__, __LINE__); \
             abort();                                                                    \
@@ -19,7 +19,7 @@
 #define ASSERT_NE(a, b)                                                                 \
     do                                                                                  \
     {                                                                                   \
-        if ((a) == (b))                                                                 \
+        if ((a) == (b)) /* NOLINT(readability/braces) */                                \
         {                                                                               \
             fprintf(stderr, "Test fail: %s - %s:%d", __FUNCTION__, __FILE__, __LINE__); \
             abort();                                                                    \
@@ -31,7 +31,7 @@
 #define ASSERT_FALSE(a)                                                                 \
     do                                                                                  \
     {                                                                                   \
-        if (a)                                                                          \
+        if (a) /* NOLINT(readability/braces) */                                         \
         {                                                                               \
             fprintf(stderr, "Test fail: %s - %s:%d", __FUNCTION__, __FILE__, __LINE__); \
             abort();                                                                    \
@@ -43,7 +43,7 @@
 #define ASSERT_TRUE(a)                                                                  \
     do                                                                                  \
     {                                                                                   \
-        if (!(a))                                                                       \
+        if (!(a)) /* NOLINT(readability/braces) */                                      \
         {                                                                               \
             fprintf(stderr, "Test fail: %s - %s:%d", __FUNCTION__, __FILE__, __LINE__); \
             abort();                                                                    \
@@ -76,4 +76,4 @@ bool TEST_add_uint64_base();
 bool TEST_sub_uint64_base();
 bool TEST_montgomery_add();
 bool TEST_montgomery_mul();
-#endif // SRC_DATA_FORMATS_TEST_MATH_UNITTEST_UNITTEST_H_
+#endif // TRACING_DATA_FORMATS_SRC_DATA_FORMATS_TEST_MATH_UNITTEST_UNITTEST_H_

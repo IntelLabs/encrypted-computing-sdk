@@ -297,7 +297,7 @@ std::vector<std::pair<std::string, std::vector<T>>> JSONDataHandler<T>::getAllim
         }
         auto metadata = m_input_json["metadata"];
         auto inputs   = metadata.find("immediate");
-        if (inputs != metadata.end() && !inputs->empty())
+        if (!inputs.operator==(metadata.end()) && !inputs->empty())
         {
             for (const auto &input : inputs->items())
             {

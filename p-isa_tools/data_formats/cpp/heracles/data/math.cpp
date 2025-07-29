@@ -14,10 +14,14 @@ std::uint32_t heracles::math::reverse_bits(std::uint32_t operand, std::uint32_t 
     if (bit_count == 0)
         return 0;
 
-    operand = (((operand & uint32_t(0xaaaaaaaaU)) >> 1) | ((operand & uint32_t(0x55555555U)) << 1));
-    operand = (((operand & uint32_t(0xccccccccU)) >> 2) | ((operand & uint32_t(0x33333333U)) << 2));
-    operand = (((operand & uint32_t(0xf0f0f0f0U)) >> 4) | ((operand & uint32_t(0x0f0f0f0fU)) << 4));
-    operand = (((operand & uint32_t(0xff00ff00U)) >> 8) | ((operand & uint32_t(0x00ff00ffU)) << 8));
+    operand =
+        (((operand & static_cast<uint32_t>(0xaaaaaaaaU)) >> 1) | ((operand & static_cast<uint32_t>(0x55555555U)) << 1));
+    operand =
+        (((operand & static_cast<uint32_t>(0xccccccccU)) >> 2) | ((operand & static_cast<uint32_t>(0x33333333U)) << 2));
+    operand =
+        (((operand & static_cast<uint32_t>(0xf0f0f0f0U)) >> 4) | ((operand & static_cast<uint32_t>(0x0f0f0f0fU)) << 4));
+    operand =
+        (((operand & static_cast<uint32_t>(0xff00ff00U)) >> 8) | ((operand & static_cast<uint32_t>(0x00ff00ffU)) << 8));
     return (static_cast<uint32_t>(operand >> 16) | static_cast<uint32_t>(operand << 16)) >>
            (32 - static_cast<size_t>(bit_count));
 }

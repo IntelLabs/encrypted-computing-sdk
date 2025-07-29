@@ -3,35 +3,33 @@
 
 
 import re
-import regex_spm
-import sys
+
 import heracles.proto.common_pb2 as hpc
 import heracles.proto.data_pb2 as hpd
 import heracles.proto.fhe_trace_pb2 as hpf
 import heracles.util.data as hud
+import regex_spm
 
 # SYMBOL MAPPING
 # =====================
 
 
-def map_mem_sym(
-    context: hpd.FHEContext, instr: hpf.Instruction, sym_obj_name: str
-) -> str:
+def map_mem_sym(context: hpd.FHEContext, instr: hpf.Instruction, sym_obj_name: str) -> str:
     """
-    Map potentially symbols used in kernels as register arguments pointing to (polynomial) memory from non-universal from to a universal one.
-    Note this includes both "normal" source and destination arguments from FHE operation as well as meta-data such as keys or (i)psis for negative wrapped convolution in (i)ntt
-    `sym_obj_name` is string returned from function `sym_get_obj_name` applied to flattened (sub-)object names found in lower-level traces
+    Map potentially symbols used in kernels as register arguments pointing
+    to (polynomial) memory from non-universal from to a universal one.
+    Note this includes both "normal" source and destination arguments
+    from FHE operation as well as meta-data such as keys
+    or (i)psis for negative wrapped convolution in (i)ntt
+    `sym_obj_name` is string returned from function `sym_get_obj_name`
+    applied to flattened (sub-)object names found in lower-level traces
     """
     # TODO: Actual implementation likely in C++ as we need same function also eventually there
     #    and to have only single implementation (via native code invocation from python) would
     #    be easier and more robust to maintain
 
     args = instr.args
-    q_size = (
-        context.q_size
-        if context.q_size > 0
-        else context.key_rns_num - context.digit_size
-    )
+    # UNUSED? q_size = context.q_size if context.q_size > 0 else context.key_rns_num - context.digit_size
 
     args_src = args.srcs  # getattr(args, args.WhichOneof("op_specific"))
     args_dest = args.dests  # getattr(args, args.WhichOneof("op_specific_dest"))
@@ -47,7 +45,7 @@ def map_mem_sym(
         # rules for meta data
         case "psi" | "ipsi":
             # See comments in extract_metadata_polys why we do this additional safety check
-            mapped_sym_obj_name = f'{sym_obj_name}_{"default"}'
+            mapped_sym_obj_name = f"{sym_obj_name}_{'default'}"
         case "ipsi_rot":
             # See comments in extract_metadata_polys why we do this additional safety check
             mapped_sym_obj_name = f"ipsi_{map_twiddle_type(context, instr)}"
@@ -55,12 +53,10 @@ def map_mem_sym(
             if context.scheme == hpc.SCHEME_BGV:
                 mapped_sym_obj_name = f"rlk_{instr.plaintext_index}"
             else:
-                mapped_sym_obj_name = f"rlk"
+                mapped_sym_obj_name = "rlk"
         case "gk":
             if context.scheme == hpc.SCHEME_BGV:
-                mapped_sym_obj_name = (
-                    f"gk_{instr.plaintext_index}_{args.params['galois_elt'].value}"
-                )
+                mapped_sym_obj_name = f"gk_{instr.plaintext_index}_{args.params['galois_elt'].value}"
             else:
                 mapped_sym_obj_name = f"gk_{args.params['galois_elt'].value}"
         case "q_last_half":
@@ -72,9 +68,7 @@ def map_mem_sym(
     return mapped_sym_obj_name
 
 
-def map_immediate_sym(
-    context: hpd.FHEContext, instr: hpf.Instruction, sym_imm_name: str
-) -> str:
+def map_immediate_sym(context: hpd.FHEContext, instr: hpf.Instruction, sym_imm_name: str) -> str:
     """
     Map potentially non-universal immediate symbols used in kernels with either a universal one
     or (e.g., for `add_corrected`) an actual numerical value
@@ -94,18 +88,22 @@ def map_immediate_sym(
                 case "d":
                     adj_factor = int(instr.args.params["adj_factor2"].value)
                 case _:
-                    assert False
+                    raise ValueError(f"Invalid immediate symbol name: {sym_imm_name}")
             adj_factor = hud.convert_to_montgomery(adj_factor, context.q_i[int(m[2])])
             mapped_sym_imm_name = f"{adj_factor}"
 
         case r"^it$" as m:
-            mapped_sym_imm_name = f"neg_inv_t_{instr.plaintext_index}_mod_q_i_{instr.args.srcs[0].num_rns-1}"  # in flattening we start with 0 ..
+            mapped_sym_imm_name = (
+                f"neg_inv_t_{instr.plaintext_index}_mod_q_i_{instr.args.srcs[0].num_rns - 1}"  # in flattening we start with 0 ..
+            )
 
         case r"^t_inverse_mod_p_(\d+)$" as m:
-            mapped_sym_imm_name = f"neg_inv_t_{instr.plaintext_index}_mod_q_i_{key_rns_num - k + int(m[1])}"  # in flattening we start with 0 ..
+            mapped_sym_imm_name = (
+                f"neg_inv_t_{instr.plaintext_index}_mod_q_i_{key_rns_num - k + int(m[1])}"  # in flattening we start with 0 ..
+            )
 
         case r"^iq_(\d+)$" as m:
-            mapped_sym_imm_name = f"inv_q_i_{instr.args.srcs[0].num_rns-1}_mod_q_j_{m[1]}"  # in flattening we start with 0 ..
+            mapped_sym_imm_name = f"inv_q_i_{instr.args.srcs[0].num_rns - 1}_mod_q_j_{m[1]}"  # in flattening we start with 0 ..
 
         case r"^t_(\d+)$" as m:
             mapped_sym_imm_name = f"t_{instr.plaintext_index}_mod_q_i_{m[1]}"
@@ -114,25 +112,21 @@ def map_immediate_sym(
             mapped_sym_imm_name = f"inv_p_mod_q_i_{m[1]}"
 
         case r"^corr-inv-target-corr-q-scalar_(\d+)$" as m:
-            mont_adj_factor = hud.convert_to_montgomery(
-                int(instr.args.params["adj_factor1"].value), context.q_i[int(m[1])]
-            )
+            mont_adj_factor = hud.convert_to_montgomery(int(instr.args.params["adj_factor1"].value), context.q_i[int(m[1])])
             mapped_sym_imm_name = f"{mont_adj_factor}"
 
         case r"^const-reduced_(\d+)$" as m:
             adj_factor = int(instr.args.params["adj_factor1"].value)
             if bool(instr.args.params["do_invert"].value):
                 adj_factor = pow(adj_factor, -1, context.q_i[int(m[1])])
-            mont_adj_factor = hud.convert_to_montgomery(
-                adj_factor, context.q_i[int(m[1])]
-            )
+            mont_adj_factor = hud.convert_to_montgomery(adj_factor, context.q_i[int(m[1])])
             mapped_sym_imm_name = f"{mont_adj_factor}"
 
         case r"^BaseChangeMatrix_(\d+_\d+)$" as m:
-            mapped_sym_imm_name = f"base_change_matrix_{instr.args.srcs[0].num_rns-1}_{m[1]}"  # in flattening we start with 0 ..
+            mapped_sym_imm_name = f"base_change_matrix_{instr.args.srcs[0].num_rns - 1}_{m[1]}"  # in flattening we start with 0 ..
 
         case r"^InvPuncturedProd_(\d+)$" as m:
-            mapped_sym_imm_name = f"inv_punctured_prod_{instr.args.srcs[0].num_rns-1}_{m[1]}"  # in flattening we start with 0 ..
+            mapped_sym_imm_name = f"inv_punctured_prod_{instr.args.srcs[0].num_rns - 1}_{m[1]}"  # in flattening we start with 0 ..
 
         case _:
             mapped_sym_imm_name = sym_imm_name
@@ -176,8 +170,10 @@ flat_obj_syn_name_pattern = re.compile(r"^([a-zA-Z_]+)_([\d_]*)$")
 
 def split_sym_name(flat_sym_name: str) -> tuple[str, str | None]:
     """
-    Split the symbolic name of an object from a provided flattened (polynomial-based sub-)object names as found in lower-level traces into the obj name and the extension
-    if the name is _not_ a name of a flattened object, the name is returned and the second element of the tuple, normally the extension, is 'None'
+    Split the symbolic name of an object from a provided flattened(polynomial-based sub-)object names
+    as found in lower-level traces into the obj name and the extension.
+    If the name is _not_ a name of a flattened object,
+     the name is returned and the second element of the tuple, normally the extension, is 'None'
     """
     match = flat_obj_syn_name_pattern.match(flat_sym_name)
     if match:
@@ -187,7 +183,8 @@ def split_sym_name(flat_sym_name: str) -> tuple[str, str | None]:
 
 def combine_sym_name(sym_obj_name: str, sym_obj_extension: str) -> str:
     """
-    Split the symbolic name of an object from a provided flattened (polynomial-based sub-)object names as found in lower-level traces into the obj name and the extension
+    Split the symbolic name of an object from a provided flattened
+    (polynomial-based sub-)object names as found in lower-level traces into the obj name and the extension
     """
     return f"{sym_obj_name}_{sym_obj_extension}"
 
@@ -199,8 +196,9 @@ def combine_sym_name(sym_obj_name: str, sym_obj_extension: str) -> str:
 #       c. polyname: polynomial -> {polyname_r${rnsnum}: rns32polynomial } # arbitrary size rns32 polys with _r for rns
 #       d. rnsname: rns32polynomial -> {rnsname_c${chunkname}: rns32/8kpolynomial chunks with _c for chunk
 #
-#   Above has to be applied recursively to required depth -- depending on consumer transformation d. is not alwaysneeded ... --  with results
-#   the union of intermediary sets, i.e., only resulting in a single set, not sets of sets.
+#   Above has to be applied recursively to required depth
+#   -- depending on consumer transformation d. is not always needed ... --
+#   with results the union of intermediary sets, i.e., only resulting in a single set, not sets of sets.
 #   E.g., a ciphertext ctx mapped to level d with name c would result in set { c_p$P_r$R_c$C : ctx.poly[$P].rns-poly[$R].chunk[$C]
 #   with $P, $R & $C ranging over the size of the corresponding dimension}.
 #

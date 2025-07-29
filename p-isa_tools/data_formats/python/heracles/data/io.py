@@ -4,24 +4,19 @@
 
 # TODO: create also C++ variants of below; given how simple and stable these functions should be just in replicated form, not shared code
 
-import heracles.proto.data_pb2 as hpd
-import heracles.proto.common_pb2 as hpc
-import heracles.proto.fhe_trace_pb2 as hpf
-import google.protobuf.json_format as gpj
 import json
-import heracles.data.transform as hdt
-from google.protobuf.json_format import MessageToJson, MessageToDict
-from glob import glob
-import re
 import sys
+
+import heracles.proto.data_pb2 as hpd
+from google.protobuf.json_format import MessageToDict
 
 # load & store functions
 # ===============================
 
 
 def parse_manifest(filename: str) -> dict:
-    manifest = dict()
-    with open(filename, "r") as fp:
+    manifest: dict = {}
+    with open(filename) as fp:
         cur_field = None
         found_first_field = False
         for linenum, cur_line in enumerate(fp):
@@ -29,7 +24,7 @@ def parse_manifest(filename: str) -> dict:
             if cur_line.startswith("[") and cur_line.endswith("]"):
                 cur_field = cur_line[1:-1]
                 found_first_field = True
-                manifest[cur_field] = dict()
+                manifest[cur_field] = {}
                 continue
 
             if not found_first_field:
@@ -60,7 +55,7 @@ def generate_manifest(filename: str, manifest: dict):
 # re-check
 def store_hec_context_json(filename: str, context: hpd.FHEContext):
     print(
-        f"Warning: Dumping FHE Context data trace to json can take a long time",
+        "Warning: Dumping FHE Context data trace to json can take a long time",
         file=sys.stderr,
     )
     with open(filename, "w") as fp:
@@ -70,7 +65,7 @@ def store_hec_context_json(filename: str, context: hpd.FHEContext):
 # re-check
 def store_testvector_json(filename: str, testvector: hpd.TestVector):
     print(
-        f"Warning: Dumping TestVector data trace to json can take a long time",
+        "Warning: Dumping TestVector data trace to json can take a long time",
         file=sys.stderr,
     )
     with open(filename, "w") as fp:
@@ -95,15 +90,13 @@ def load_hec_context_from_manifest(manifest: dict) -> hpd.FHEContext:
 
 
 def store_hec_context(filename: str, context_pb: hpd.FHEContext) -> dict:
-    hec_context_manifest = {"context": dict()}
+    hec_context_manifest: dict = {"context": {}}
     tmp_context = hpd.FHEContext()
     tmp_context.CopyFrom(context_pb)
 
     if tmp_context.ByteSize() > 1 << 30:
-        hec_context_manifest["rotation_keys"] = dict()
-        for gkct, (ge, gk_pb) in enumerate(
-            tmp_context.ckks_info.keys.rotation_keys.items()
-        ):
+        hec_context_manifest["rotation_keys"] = {}
+        for gkct, (ge, gk_pb) in enumerate(tmp_context.ckks_info.keys.rotation_keys.items()):
             parts_fn = f"{filename}_hec_context_part_{gkct + 1}"
             hec_context_manifest["rotation_keys"][ge] = parts_fn
             with open(parts_fn, "wb") as fp:
@@ -137,7 +130,7 @@ def load_testvector_from_manifest(manifest: dict) -> hpd.TestVector:
 
 
 def store_testvector(filename: str, testvector_pb: hpd.TestVector) -> dict:
-    testvector_manifest = {"testvector": dict()}
+    testvector_manifest: dict = {"testvector": {}}
     if testvector_pb.ByteSize() > 1 << 30:
         for tvct, (sym, data_pb) in enumerate(testvector_pb.sym_data_map.items()):
             parts_fn = f"{filename}_testvector_part_{tvct}"
@@ -171,9 +164,7 @@ def load_data_trace(filename: str) -> tuple[hpd.FHEContext, hpd.TestVector]:
     )
 
 
-def store_data_trace(
-    filename: str, context_pb: hpd.FHEContext, testvector_pb: hpd.TestVector
-):
+def store_data_trace(filename: str, context_pb: hpd.FHEContext, testvector_pb: hpd.TestVector):
     generate_manifest(
         filename,
         {

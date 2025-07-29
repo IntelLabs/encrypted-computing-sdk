@@ -14,9 +14,9 @@ _Note: for now cmake will _not build with `ninja`_ and is only tested for
 cmake --build build --target test
 ```
 
-Note: Python ```protobuf==4.23.0``` module is required to run the Python test. It can be installed via
+Note: Python `[dev]` dependencies from the root `pyproject.toml` are required to run the Python test. They can be installed via
 ```bash
-pip install -r requirements.txt
+pip install -e ".[dev]"  # from repository root
 ```
 
 ## C++
@@ -74,30 +74,54 @@ general information on using generated C++ protobuf code.
 
 ## Python
 
-### Importing the **HERACLES-Data-Formats** Library
 
-For Python protobuf to work, first the Python ```protobuf``` module is required. It can be installed via
+For the Python package to be used independently of CMake/C++ builds, the optional `dev` dependencies are required.
+
+1. **Install dependencies**:
 ```bash
-pip install -r requirements.txt
-# or
-pip install protobuf==4.23.4
+# For development (includes grpcio-tools for compiling protos, pytest for testing)
+pip install -e ".[dev]"
 ```
 
-The ```PYTHONPATH``` environment variable needs to be set to point to the protobuf generated files:
+2. **Compile Protocol Buffers**:
 ```bash
-export PYTHONPATH=${HERACLES_DATA_FORMATS_DIR}/python/:${PYTHONPATH}
+python p-isa_tools/data_formats/compile_protos.py
 ```
-(with `HERACLES_DATA_FORMATS_DIR` as defined above for building
-dependent C++ projects and/or pointing to the install location in case
-you installed this project).
+
+This generates the Python protobuf files in `p-isa_tools/data_formats/python/heracles/proto/`.
+
+3. **Generate test traces** (if needed for testing):
+```bash
+python p-isa_tools/data_formats/test/generate_test_traces.py
+```
+Alternatively, you can simply run the `pytest` tests, which will create the protobuf files and/or test traces if they do not exist yet.
+
+### Running Tests
+
+From the repository root:
+```bash
+pytest p-isa_tools/data_formats/test/
+```
+(The path is optional, but avoids running unrelated tests)
 
 ### Usage example
 The **HERACLES-Data-Formats** library can be imported via, e.g.,
 ```python
 from heracles.proto.common_pb2 import Scheme
 from heracles.proto.fhe_trace_pb2 import Trace, Instruction
+import heracles.fhe_trace.io as hfi
+import heracles.data.io as hdi
+
+# Create and save a trace
+trace = Trace()
+trace.scheme = Scheme.SCHEME_BGV
+hfi.store_trace("my_trace.bin", trace)
+
+# Load a trace
+loaded_trace = hfi.load_trace("my_trace.bin")
 ```
-Refer to the [heracles_test.py](src/data_formats/test/heracles_test.py) script for
+
+Refer to the [heracles_test.py](test/heracles_test.py) script for
 examples of using Heracles protobuf objects and utility functions as
 well as [Protocol Buffer Basics:
 Python](https://protobuf.dev/getting-started/pythontutorial/) for more

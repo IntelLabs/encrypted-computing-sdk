@@ -1,3 +1,0 @@
-protobuf==4.23.4
-regex-spm
-numpy

@@ -148,7 +148,7 @@ namespace data
     {
         std::vector<std::string> buf;
 
-        unsigned int loc = -1, prev_loc = 0;
+        int loc = -1, prev_loc = 0;
         do
         {
             loc = sym.find('_', loc + 1);

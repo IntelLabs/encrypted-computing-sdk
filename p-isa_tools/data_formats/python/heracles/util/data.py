@@ -5,14 +5,13 @@
 
 import heracles.proto.data_pb2 as hpd
 
-
 # - montgomery transform
-montgomery_R_bits = 32
-montgomery_R = 1 << montgomery_R_bits
+montgomery_r_bits = 32
+montgomery_r = 1 << montgomery_r_bits
 
 
 def convert_to_montgomery(num: int, modulus: int) -> int:
-    return (num << montgomery_R_bits) % modulus
+    return (num << montgomery_r_bits) % modulus
 
 
 # - bit-reversal
