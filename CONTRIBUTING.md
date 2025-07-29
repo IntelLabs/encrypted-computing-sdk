@@ -6,7 +6,7 @@ The Intel Encrypted Computing SDK project is licensed under the terms in [LICENS
 
 ### Code Formatting
 The repository includes `pre-commit` and format hooks to help ensure code
-consistency.  It is recommended to install `pre-commit` and `pre-commit
+consistency. It is recommended to install `pre-commit` and `pre-commit
 hooks` prior to committing to repo.
 
 ### Sign your work
