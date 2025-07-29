@@ -1,8 +1,8 @@
 // Copyright (C) 2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef SRC_DATA_FORMATS_TEST_MATH_UNITTEST_UNITTEST_H_
-#define SRC_DATA_FORMATS_TEST_MATH_UNITTEST_UNITTEST_H_
+#pragma once
+
 #include <stdio.h>
 #ifndef ASSERT_EQ
 #define ASSERT_EQ(a, b)                                                                 \

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15.0...3.24.0)
 project(HERACLES_DATA_FORMATS VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
-set(HERACLES_DATA_FORMATS_CMAKE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/heracles_data_formats")
+set(HERACLES_DATA_FORMATS_CMAKE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
@@ -25,4 +25,28 @@ find_package(OpenMP REQUIRED)
 
 option(BUILD_TEST "Build c++/python tests with ctest" ON)
 enable_testing()
-add_subdirectory(src)
+
+add_subdirectory(proto)
+add_subdirectory(cpp)
+if(BUILD_TEST)
+  add_subdirectory(test)
+endif()
+
+# install python utility functions
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python/
+  DESTINATION python
+  # TODO(skmono): to be added afterwards
+  # FILES_MATCHING
+  # PATTERN "*.py"
+)
+
+# copy python utility functions to build/python
+add_custom_target(HERACLES_DATA_FORMATS_COPY_PYTHON
+  ALL
+  DEPENDS HERACLES_data_proto
+)
+add_custom_command(
+  TARGET HERACLES_DATA_FORMATS_COPY_PYTHON
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/python ${PROJECT_BINARY_DIR}/python/
+)
