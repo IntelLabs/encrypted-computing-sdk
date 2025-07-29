@@ -97,8 +97,8 @@ void map_tests()
 
     // serialize to buffer ...
     // std::byte would be nicer but had trouble compiling with -std=c++17
-    unsigned char buf[polys.ByteSizeLong()];
-    if (!polys.SerializeToArray(&buf, sizeof(buf)))
+    std::vector<unsigned char> buf(polys.ByteSizeLong());
+    if (!polys.SerializeToArray(buf.data(), buf.size()))
     {
         std::cerr << "Could not serialize" << std::endl;
         exit(1);
@@ -106,7 +106,7 @@ void map_tests()
 
     // .. and deserialize it to new object
     heracles::data::DataPolynomials new_polys;
-    if (!new_polys.ParseFromArray(&buf, sizeof(buf)))
+    if (!new_polys.ParseFromArray(buf.data(), buf.size()))
     {
         std::cerr << "Could not serialize" << std::endl;
         exit(1);
