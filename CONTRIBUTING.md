@@ -4,6 +4,11 @@
 
 The Intel Encrypted Computing SDK project is licensed under the terms in [LICENSE](https://github.com/IntelLabs/encrypted-computing-sdk/blob/main/LICENSE). By contributing to the project, you agree to the license and copyright terms therein and release your contribution under these terms.
 
+### Code Formatting
+The repository includes `pre-commit` and format hooks to help ensure code
+consistency. It is recommended to install `pre-commit` and `pre-commit
+hooks` prior to committing to repo.
+
 ### Sign your work
 
 Please use the sign-off line at the end of the patch. Your signature certifies that you wrote the patch or otherwise have the right to pass it on as an open-source patch. The rules are pretty simple: if you can certify
