@@ -19,4 +19,14 @@ bool store_trace(const std::string &filename, const heracles::fhe_trace::Trace &
     */
 heracles::fhe_trace::Trace load_trace(const std::string &filename);
 
+/*
+        Serialize and store a HE op trace in JSON format.
+    */
+bool store_json_trace(const std::string &filename, const heracles::fhe_trace::Trace &trace);
+
+/*
+        Load and deserialize a HE op trace from JSON format.
+    */
+heracles::fhe_trace::Trace load_json_trace(const std::string &filename);
+
 } // namespace heracles::fhe_trace
