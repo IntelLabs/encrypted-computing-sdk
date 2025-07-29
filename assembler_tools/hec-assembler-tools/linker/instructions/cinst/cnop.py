@@ -1,8 +1,14 @@
-﻿from .cinstruction import CInstruction
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""@brief This module implements the cnop C-instruction which adds idle cycles to the control flow."""
+
+from .cinstruction import CInstruction
+
 
 class Instruction(CInstruction):
     """
-    Encapsulates a `cnop` CInstruction.
+    @brief Encapsulates a `cnop` CInstruction.
 
     This instruction adds a desired amount of idle cycles in the Cfetch flow.
 
@@ -16,60 +22,51 @@ class Instruction(CInstruction):
     @classmethod
     def _get_num_tokens(cls) -> int:
         """
-        Gets the number of tokens required for the instruction.
+        @brief Gets the number of tokens required for the instruction.
 
         The `cnop` instruction requires 3 tokens:
         <line: uint>, cnop, <cycles: uint>
 
-        Returns:
-            int: The number of tokens, which is 3.
+        @return The number of tokens, which is 3.
         """
         return 3
 
     @classmethod
     def _get_name(cls) -> str:
         """
-        Gets the name of the instruction.
+        @brief Gets the name of the instruction.
 
-        Returns:
-            str: The name of the instruction, which is "cnop".
+        @return The name of the instruction, which is "cnop".
         """
         return "cnop"
 
     def __init__(self, tokens: list, comment: str = ""):
         """
-        Constructs a new `cnop` CInstruction.
+        @brief Constructs a new `cnop` CInstruction.
 
-        Args:
-            tokens (list): A list of tokens representing the instruction.
-            comment (str, optional): An optional comment for the instruction. Defaults to an empty string.
-
-        Raises:
-            ValueError: If the number of tokens is invalid or the instruction name is incorrect.
+        @param tokens A list of tokens representing the instruction.
+        @param comment An optional comment for the instruction.
+        @throws ValueError If the number of tokens is invalid or the instruction name is incorrect.
         """
         super().__init__(tokens, comment=comment)
 
     @property
     def cycles(self) -> int:
         """
-        Gets the number of idle cycles.
+        @brief Gets the number of idle cycles.
 
-        Returns:
-            int: The number of idle cycles.
+        @return The number of idle cycles.
         """
         return int(self.tokens[2])
 
     @cycles.setter
     def cycles(self, value: int):
         """
-        Sets the number of idle cycles.
+        @brief Sets the number of idle cycles.
 
-        Args:
-            value (int): The number of idle cycles to set.
-
-        Raises:
-            ValueError: If the value is negative.
+        @param value The number of idle cycles to set.
+        @throws ValueError If the value is negative.
         """
         if value < 0:
-            raise ValueError(f'`value` must be non-negative, but {value} received.')
+            raise ValueError(f"`value` must be non-negative, but {value} received.")
         self.tokens[2] = str(value)
