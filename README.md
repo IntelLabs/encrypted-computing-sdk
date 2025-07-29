@@ -30,13 +30,13 @@ representations (IRs) that promotes the separation of concerns at each
 stage of the pipeline, allowing for dedicated transformations and
 optimizations.
 
-Our first target hardware accelerator is Intel’s 
+Our first target hardware accelerator is Intel’s
 [HERACLES accelerator technology](https://dl.acm.org/doi/10.1145/3560810.3565290)
 which introduces a new Polynomial Data type which does not exist in today's
 traditional CPUs. For this new polynomial data type, it supports a
 new set of novel and fundamental instructions, the Polynomial Instructions
 Set Architecture (P-ISA), that operates directly on large polynomials in
-a SIMD fashion. 
+a SIMD fashion.
 
 
 <p>
@@ -66,7 +66,7 @@ a SIMD fashion.
 We are currently at Phase 1, and have a functional ptototype of
 the [P-ISA tools](./p-isa-tools) components and a prototype of
 the [Assemble compiler](./assembler_tools/hec-assembler-tools)
-for the intel HERACLES accelerator technology
+for the intel HERACLES accelerator technology.
 
 # Quick Start
 To start using the Encrypted Computing SDK, it is first necessary to build
