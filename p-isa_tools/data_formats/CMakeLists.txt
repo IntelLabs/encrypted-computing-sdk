@@ -50,3 +50,8 @@ add_custom_command(
   POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/python ${PROJECT_BINARY_DIR}/python/
 )
+
+option(ENABLE_OPENFHE_TRACER "Build the openfhe tracer" ON)
+if(ENABLE_OPENFHE_TRACER)
+add_subdirectory(openfhe_tracer)
+endif()
