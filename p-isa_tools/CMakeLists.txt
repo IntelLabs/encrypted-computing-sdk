@@ -22,7 +22,7 @@ else()
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of Build" FORCE)
 endif()
 
-option(ENABLE_DATA_FORMATS "Enable support for the data formats library" OFF)
+option(ENABLE_DATA_FORMATS "Enable support for the data formats library" OUTPUT_NAME_<CONFIG>)
 message(ENABLE_DATA_FORMATS="${ENABLE_DATA_FORMATS}")
 
 option(ENABLE_FUNCTIONAL_MODELER "Enable building of functional modeler" ON)
@@ -63,6 +63,9 @@ file(GLOB_RECURSE IDE_HEADERS program_mapper/*.h functional_modeler/*.h dependen
 
 # Build sub-directories
 add_subdirectory(common)
+if(ENABLE_DATA_FORMATS)
+add_subdirectory(data_formats)
+endif()
 if(ENABLE_FUNCTIONAL_MODELER)
 add_subdirectory(functional_modeler)
 endif()

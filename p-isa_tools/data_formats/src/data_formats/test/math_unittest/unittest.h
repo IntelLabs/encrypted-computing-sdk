@@ -1,8 +1,8 @@
 // Copyright (C) 2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef TRACING_DATA_FORMATS_SRC_DATA_FORMATS_TEST_MATH_UNITTEST_UNITTEST_H_
-#define TRACING_DATA_FORMATS_SRC_DATA_FORMATS_TEST_MATH_UNITTEST_UNITTEST_H_
+#pragma once
+
 #include <stdio.h>
 #ifndef ASSERT_EQ
 #define ASSERT_EQ(a, b)                                                                 \
@@ -76,4 +76,3 @@ bool TEST_add_uint64_base();
 bool TEST_sub_uint64_base();
 bool TEST_montgomery_add();
 bool TEST_montgomery_mul();
-#endif // TRACING_DATA_FORMATS_SRC_DATA_FORMATS_TEST_MATH_UNITTEST_UNITTEST_H_
