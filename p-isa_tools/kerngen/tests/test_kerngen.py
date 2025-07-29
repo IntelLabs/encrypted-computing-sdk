@@ -26,7 +26,7 @@ def execute_process(cmd: list[str], data_in=None):
     """Helper function for executing processes. stdout and stderr are always
     captured. NOTE: subprocess.run will fail silently with a non-zero exit code
     so always check the returncode"""
-    return run(
+    return run(  # noqa: S603
         list(map(str, cmd)),
         input=data_in,
         capture_output=True,

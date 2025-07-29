@@ -58,7 +58,7 @@ class MemSpecConfig:
     def init_mem_spec_from_json(cls, filename):
         """
         Updates class attributes using methods specified in the target_attributes dictionary based on a JSON file.
-        This method checks wether values found on json file exists in target dictionaries.
+        This method checks whether values found on json file exists in target dictionaries.
 
         Args:
             filename (str): The name of the JSON file to read from.

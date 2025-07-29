@@ -27,8 +27,8 @@ def buildVarAccessListFromTopoSort(dependency_graph: nx.DiGraph):
     topo_sort = list(nx.topological_sort(dependency_graph))
     for idx, node in enumerate(topo_sort):
         instr = dependency_graph.nodes[node]["instruction"]
-        vars = set(instr.sources + instr.dests)
-        for v in vars:
+        vars_ = set(instr.sources + instr.dests)
+        for v in vars_:
             v.accessed_by_xinsts.append(Variable.AccessElement(idx, instr.id))
 
     return topo_sort

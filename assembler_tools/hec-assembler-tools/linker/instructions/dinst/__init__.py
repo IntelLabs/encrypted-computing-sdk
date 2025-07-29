@@ -6,8 +6,6 @@
 
 """@brief This module provides functionality to create and manage data instructions"""
 
-from typing import Optional
-
 from assembler.instructions import tokenize_from_line
 
 from . import dinstruction, dkeygen, dload, dstore

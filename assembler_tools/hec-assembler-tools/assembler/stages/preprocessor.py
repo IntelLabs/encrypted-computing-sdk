@@ -130,7 +130,7 @@ def reduce_var_deps_by_var(mem_model: MemoryModel, insts_list: list, var_name: s
     while last_pos < len(insts_list):
         if var_name in (v.name for v in insts_list[last_pos].sources):
             last_instruction = insts_list[last_pos]
-            if isinstance(last_instruction, (xinst.Mac, xinst.Maci)):
+            if isinstance(last_instruction, xinst.Mac | xinst.Maci):
                 # Check if the conflicting variable is the accumulator
                 if last_instruction.sources[0].name == var_name:
                     # Turn all other variables into copies
@@ -142,16 +142,7 @@ def reduce_var_deps_by_var(mem_model: MemoryModel, insts_list: list, var_name: s
                     continue
                 # If conflict variable was not the accumulator, proceed to change the other variables
             # Skip copy, twxntt and xrshuffle
-            if not isinstance(
-                last_instruction,
-                (
-                    xinst.twiNTT,
-                    xinst.twiNTT,
-                    xinst.irShuffle,
-                    xinst.rShuffle,
-                    xinst.Copy,
-                ),
-            ):
+            if not isinstance(last_instruction, xinst.twiNTT | xinst.twiNTT | xinst.irShuffle | xinst.rShuffle | xinst.Copy):
                 # Break up indicated variable in sources into a temp copy
                 last_pos = inject_variable_copy(mem_model, insts_list, last_pos, var_name)
                 assert last_instruction == insts_list[last_pos]

@@ -47,11 +47,10 @@ def test_kerngen_relin_regression(input_file, output_file):
     expected_output = output_path.read_text().strip()
 
     # Run kerngen.py with -q flag (quiet mode)
-    result = subprocess.run(
+    result = subprocess.run(  # noqa: S603 (allows running potentially untrusted code)
         [sys.executable, str(KERNGEN_PATH), "-q"],
         input=input_content.encode(),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         check=True,
     )
 
@@ -108,16 +107,15 @@ def test_kerngraph_relin_regression(input_file, output_file):
     expected_output = output_path.read_text().strip()
 
     # Step 1: Run kerngen.py with -l flag (legacy mode)
-    kerngen_result = subprocess.run(
+    kerngen_result = subprocess.run(  # noqa: S603 (allows running potentially untrusted code)
         [sys.executable, str(KERNGEN_PATH), "-l"],
         input=input_content.encode(),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         check=True,
     )
 
     # Step 2: Run kerngraph.py with kerngen output as input
-    kerngraph_result = subprocess.run(
+    kerngraph_result = subprocess.run(  # noqa: S603 (allows running potentially untrusted code)
         [
             sys.executable,
             str(KERNGRAPH_PATH),
@@ -130,8 +128,7 @@ def test_kerngraph_relin_regression(input_file, output_file):
             "part",
         ],
         input=kerngen_result.stdout,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         check=True,
     )
 

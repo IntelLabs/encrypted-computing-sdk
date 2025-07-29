@@ -46,7 +46,7 @@ def loadInstructions(istream) -> list:
                 s_comment = line[comment_start_idx + 1 :]
 
             # Tokenize instruction
-            s_instr = map(lambda s: s.strip(), s_instr.split(","))
+            s_instr = (s.strip() for s in s_instr.split(","))
 
             # Add instruction to collection
             retval.append((list(s_instr), s_comment))

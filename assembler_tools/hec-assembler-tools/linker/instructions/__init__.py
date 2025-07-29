@@ -6,8 +6,6 @@
 
 """@brief This module provides functionality to create instruction objects from a line of text."""
 
-from typing import Optional
-
 from assembler.instructions import tokenize_from_line
 
 from linker.instructions.instruction import BaseInstruction

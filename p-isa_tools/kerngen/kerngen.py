@@ -36,9 +36,9 @@ def main(args) -> None:
     Config.legacy_mode = args.legacy
 
     # String blocks of the p-isa instructions (forward the Nones)
-    pisa_ops: list[str | None] = list(
+    pisa_ops: list[str | None] = [
         to_string_block(op, ignore_comments=args.quiet) if op is not None else None for op in parse_results.get_pisa_ops()
-    )
+    ]
 
     filtered = (t for t in zip(pisa_ops, parse_results.commands, strict=False) if t[0] is not None)
 

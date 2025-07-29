@@ -76,7 +76,7 @@ if __name__ == "__main__":
     prev_pisa_inst = 0
     instr_counter = 0
     with open(input_file) as f_in:
-        for line_idx, s_line in enumerate(f_in):
+        for _, s_line in enumerate(f_in):
             instr_regs = set()
             s_split = s_line.split("#")
             s_split = s_split[0].split(",")
@@ -92,7 +92,7 @@ if __name__ == "__main__":
                             register_map[reg] = []
                         register_map[reg].append(pisa_instr_num)
 
-    sorted_keys = [x for x in register_map]
+    sorted_keys = list(register_map)
     sorted_keys.sort()
     error_map = set()
 
