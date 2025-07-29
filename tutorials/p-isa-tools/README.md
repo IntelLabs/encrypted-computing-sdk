@@ -3,4 +3,4 @@
 
 ## Current syntax & semantic
 
-This is the current syntax & semantic for the input language for the program mapper.
+This is the current syntax & semantics of the input language for the program mapper.
