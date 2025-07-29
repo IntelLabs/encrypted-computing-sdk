@@ -90,7 +90,7 @@ class TestLoader(unittest.TestCase):
 
         # Verify the results
         self.assertEqual(result, self.mock_minst)
-        mock_file.assert_called_once_with("test.minst", "r", encoding="utf-8")
+        mock_file.assert_called_once_with("test.minst", encoding="utf-8")
         mock_load.assert_called_once_with(self.minst_lines)
 
     @patch("builtins.open", new_callable=mock_open)
@@ -169,7 +169,7 @@ class TestLoader(unittest.TestCase):
 
         # Verify the results
         self.assertEqual(result, self.mock_cinst)
-        mock_file.assert_called_once_with("test.cinst", "r", encoding="utf-8")
+        mock_file.assert_called_once_with("test.cinst", encoding="utf-8")
         mock_load.assert_called_once_with(self.cinst_lines)
 
     @patch("builtins.open", new_callable=mock_open)
@@ -248,7 +248,7 @@ class TestLoader(unittest.TestCase):
 
         # Verify the results
         self.assertEqual(result, self.mock_xinst)
-        mock_file.assert_called_once_with("test.xinst", "r", encoding="utf-8")
+        mock_file.assert_called_once_with("test.xinst", encoding="utf-8")
         mock_load.assert_called_once_with(self.xinst_lines)
 
     @patch("builtins.open", new_callable=mock_open)
@@ -316,7 +316,7 @@ class TestLoader(unittest.TestCase):
 
         # Verify the results
         self.assertEqual(result, self.mock_dinst)
-        mock_file.assert_called_once_with("test.dinst", "r", encoding="utf-8")
+        mock_file.assert_called_once_with("test.dinst", encoding="utf-8")
         mock_load.assert_called_once_with(self.dinst_lines)
 
     @patch("builtins.open", new_callable=mock_open)
