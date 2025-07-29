@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.15.0...3.24.0)
+
+project(HERACLES_DATA_FORMATS VERSION 1.0.0)
+
+set(CMAKE_CXX_STANDARD 17)
+set(HERACLES_DATA_FORMATS_CMAKE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/heracles_data_formats")
+include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
+
+# Set default output directories
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}")
+
+include(${PROJECT_SOURCE_DIR}/cmake/utils.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/protobuf.cmake)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -fPIC")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -fPIC")
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_INSTALL_RPATH "$ORIGIN;$ORIGIN/${CMAKE_INSTALL_LIBDIR}")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_INSTALL_LIBDIR})
+
+find_package(OpenMP REQUIRED)
+
+option(BUILD_TEST "Build c++/python tests with ctest" ON)
+enable_testing()
+add_subdirectory(src)
