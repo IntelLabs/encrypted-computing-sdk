@@ -30,13 +30,13 @@ representations (IRs) that promotes the separation of concerns at each
 stage of the pipeline and allowing for dedicated transformations and
 optimizations.
 
-Our first target hardware platform is Intel’s 
+Our first target hardware platform is Intel’s
 [HERACLES accelerator technology](https://dl.acm.org/doi/10.1145/3560810.3565290)
 which introduces a new Polynomial Data type which does not exist in today's
 traditional CPUs. For this new polynomial data type, it supports a
 new set of novel and fundamental instructions, the Polynomial Instructions
 Set Architecture (P-ISA), that operates directly on large polynomials in
-a SIMD fashion. 
+a SIMD fashion.
 
 
 <p>

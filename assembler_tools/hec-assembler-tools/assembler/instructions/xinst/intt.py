@@ -88,9 +88,7 @@ class Instruction(XInstruction):
             retval["op_name"] = instr_tokens[1]
             params_start = 2
             params_end = params_start + cls._OP_NUM_DESTS + cls._OP_NUM_SOURCES
-            dst_src = cls.parsePISASourceDestsFromTokens(
-                instr_tokens, cls._OP_NUM_DESTS, cls._OP_NUM_SOURCES, params_start
-            )
+            dst_src = cls.parsePISASourceDestsFromTokens(instr_tokens, cls._OP_NUM_DESTS, cls._OP_NUM_SOURCES, params_start)
             retval.update(dst_src)
             retval["stage"] = int(instr_tokens[params_end])
             retval["res"] = int(instr_tokens[params_end + 1])
@@ -153,11 +151,7 @@ class Instruction(XInstruction):
         Returns:
             str: A string representation of the Instruction object.
         """
-        retval = (
-            "<{}({}) object at {}>(id={}[0], res={}, "
-            "dst={}, src={}, "
-            "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], res={}, " "dst={}, src={}, " "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),
@@ -193,8 +187,7 @@ class Instruction(XInstruction):
         if len(value) != Instruction._OP_NUM_DESTS:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} Variable objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} Variable objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_DESTS, len(value)
                     )
                 )
@@ -216,8 +209,7 @@ class Instruction(XInstruction):
         if len(value) != Instruction._OP_NUM_SOURCES:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} Variable objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} Variable objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_SOURCES, len(value)
                     )
                 )

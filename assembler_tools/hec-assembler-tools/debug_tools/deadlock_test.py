@@ -1,8 +1,12 @@
-﻿import argparse
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+import argparse
 import os
 
 # Searches the CInstQ and MInstQ to find deadlocks caused by sync instructions.
 # Raises exception on first deadlock found, otherwise, completes successfully.
+
 
 def makeUniquePath(path: str):
     """
@@ -15,6 +19,7 @@ def makeUniquePath(path: str):
         str: The normalized and expanded file path.
     """
     return os.path.normcase(os.path.realpath(os.path.expanduser(path)))
+
 
 def loadInstructions(istream) -> list:
     """
@@ -33,12 +38,12 @@ def loadInstructions(istream) -> list:
             # Separate comment
             s_instr = ""
             s_comment = ""
-            comment_start_idx = line.find('#')
+            comment_start_idx = line.find("#")
             if comment_start_idx < 0:
                 s_instr = line
             else:
                 s_instr = line[:comment_start_idx]
-                s_comment = line[comment_start_idx + 1:]
+                s_comment = line[comment_start_idx + 1 :]
 
             # Tokenize instruction
             s_instr = map(lambda s: s.strip(), s_instr.split(","))
@@ -47,6 +52,7 @@ def loadInstructions(istream) -> list:
             retval.append((list(s_instr), s_comment))
 
     return retval
+
 
 def findDeadlock(minsts: list, cinsts: list) -> tuple:
     """
@@ -68,13 +74,13 @@ def findDeadlock(minsts: list, cinsts: list) -> tuple:
         # Remove all non-syncs from q
         sync_idx = len(q)
         for idx, instr in enumerate(q):
-            if 'sync' in instr[1]:
+            if "sync" in instr[1]:
                 # Sync found
                 sync_idx = idx
                 break
         q = q[sync_idx:]
         if q:
-            assert 'sync' in q[0][1], 'Next instruction in queue is not a sync!'
+            assert "sync" in q[0][1], "Next instruction in queue is not a sync!"
 
             if sync_idx != 0:
                 # Queue moved: restart the deadlock watcher
@@ -107,6 +113,7 @@ def findDeadlock(minsts: list, cinsts: list) -> tuple:
 
     return retval
 
+
 def main(input_dir: str, input_prefix: str = None):
     """
     Main function to check for deadlocks in instruction queues.
@@ -119,30 +126,31 @@ def main(input_dir: str, input_prefix: str = None):
     if not input_prefix:
         input_prefix = os.path.basename(input_dir)
 
-    print('Deadlock test.')
+    print("Deadlock test.")
     print()
-    print('Input dir:', input_dir)
-    print('Input prefix:', input_prefix)
+    print("Input dir:", input_dir)
+    print("Input prefix:", input_prefix)
 
     xinst_file = os.path.join(input_dir, input_prefix + ".xinst")
     cinst_file = os.path.join(input_dir, input_prefix + ".cinst")
     minst_file = os.path.join(input_dir, input_prefix + ".minst")
 
-    with open(xinst_file, 'r') as f_xin:
+    with open(xinst_file) as f_xin:
         xinsts = loadInstructions(f_xin)
         xinsts = [x for (x, _) in xinsts]
-    with open(cinst_file, 'r') as f_cin:
+    with open(cinst_file) as f_cin:
         cinsts = loadInstructions(f_cin)
         cinsts = [x for (x, _) in cinsts]
-    with open(minst_file, 'r') as f_min:
+    with open(minst_file) as f_min:
         minsts = loadInstructions(f_min)
         minsts = [x for (x, _) in minsts]
 
     deadlock_indices = findDeadlock(minsts, cinsts)
     if deadlock_indices is not None:
-        raise RuntimeError('Deadlock detected: MinstQ: {}, CInstQ: {}'.format(deadlock_indices[0], deadlock_indices[1]))
+        raise RuntimeError(f"Deadlock detected: MinstQ: {deadlock_indices[0]}, CInstQ: {deadlock_indices[1]}")
 
-    print('No deadlock detected between CInstQ and MInstQ.')
+    print("No deadlock detected between CInstQ and MInstQ.")
+
 
 if __name__ == "__main__":
     module_name = os.path.basename(__file__)

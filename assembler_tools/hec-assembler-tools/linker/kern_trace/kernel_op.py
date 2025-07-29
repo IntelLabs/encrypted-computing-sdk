@@ -79,9 +79,7 @@ class KernelOp:
         which is used to categorize the kernel operation.
         """
         if not kern_vars:
-            raise ValueError(
-                "Kernel operation must have at least one variable to determine level."
-            )
+            raise ValueError("Kernel operation must have at least one variable to determine level.")
 
         # Assuming all input variables have the same level for the operation
         return kern_vars[1].level if len(kern_vars) > 1 else kern_vars[0].level
@@ -101,15 +99,9 @@ class KernelOp:
         """
 
         if name.lower() not in self.valid_kernel_ops:
-            raise ValueError(
-                f"Invalid kernel operation name: {name}. "
-                f"Valid names are: {', '.join(self.valid_kernel_ops)}"
-            )
+            raise ValueError(f"Invalid kernel operation name: {name}. " f"Valid names are: {', '.join(self.valid_kernel_ops)}")
         if context_config.scheme.lower() not in self.valid_schemes:
-            raise ValueError(
-                f"Invalid encryption scheme: {context_config.scheme}. "
-                f"Valid schemes are: {', '.join(self.valid_schemes)}"
-            )
+            raise ValueError(f"Invalid encryption scheme: {context_config.scheme}. " f"Valid schemes are: {', '.join(self.valid_schemes)}")
         if len(kern_args) < 2:
             raise ValueError("Kernel operation must have at least two arguments.")
 

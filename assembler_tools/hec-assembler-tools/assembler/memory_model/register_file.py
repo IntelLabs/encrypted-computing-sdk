@@ -61,12 +61,7 @@ class RegisterBank:
             ValueError: If the bank index is negative or if the register range is invalid.
         """
         if bank_index < 0:
-            raise ValueError(
-                (
-                    f"`bank_index`: expected non-negative a index for bank, "
-                    f"but {bank_index} received."
-                )
-            )
+            raise ValueError((f"`bank_index`: expected non-negative a index for bank, " f"but {bank_index} received."))
         if not register_range:
             register_range = range(constants.MemoryModel.NUM_REGISTER_PER_BANKS)
         elif len(register_range) < 1:
@@ -77,12 +72,7 @@ class RegisterBank:
                 )
             )
         elif abs(register_range.step) != 1:
-            raise ValueError(
-                (
-                    f"`register_range`: expected a range within step of 1 or -1, "
-                    f"but {register_range} received."
-                )
-            )
+            raise ValueError((f"`register_range`: expected a range within step of 1 or -1, " f"but {register_range} received."))
         self.__bank_index = bank_index
         # list of registers in this bank
         self.__registers = [Register(self, register_i) for register_i in register_range]
@@ -106,9 +96,7 @@ class RegisterBank:
         Returns:
             str: A string representation of the RegisterBank.
         """
-        return "<{}  object at {}>(bank_index = {})".format(
-            type(self).__name__, hex(id(self)), self.bank_index
-        )
+        return "<{}  object at {}>(bank_index = {})".format(type(self).__name__, hex(id(self)), self.bank_index)
 
     # Methods and properties
     # ----------------------
@@ -203,9 +191,7 @@ class RegisterBank:
                 variable = register.contained_variable
                 if variable is not None:
                     if variable.name:
-                        var_data = "{}, {}".format(
-                            variable.name, variable.register, variable.register_dirty
-                        )
+                        var_data = "{}, {}".format(variable.name, variable.register, variable.register_dirty)
                     else:
                         var_data = f"Dummy_{variable.tag}"
                 print("{}, {}".format(register.name, var_data), file=ostream)
@@ -246,10 +232,7 @@ class Register(CycleTracker):
         Raises:
             ValueError: If the register index is out of the valid range.
         """
-        if (
-            register_index < 0
-            or register_index >= constants.MemoryModel.NUM_REGISTERS_PER_BANK
-        ):
+        if register_index < 0 or register_index >= constants.MemoryModel.NUM_REGISTERS_PER_BANK:
             raise ValueError(
                 (
                     f"`register_index`: expected an index for register in the range [0, {constants.MemoryModel.NUM_REGISTERS_PER_BANK}), "
@@ -275,9 +258,7 @@ class Register(CycleTracker):
         Returns:
             bool: True if the other Register is the same as this one, False otherwise.
         """
-        return other is self or (
-            isinstance(other, Register) and other.name == self.name
-        )
+        return other is self or (isinstance(other, Register) and other.name == self.name)
 
     def __hash__(self):
         """
@@ -307,9 +288,7 @@ class Register(CycleTracker):
         var_section = ""
         if self.contained_variable:
             var_section = "Variable='{}'".format(self.contained_variable.name)
-        return "<{}({}) object at {}>({})".format(
-            type(self).__name__, self.name, hex(id(self)), var_section
-        )
+        return "<{}({}) object at {}>({})".format(type(self).__name__, self.name, hex(id(self)), var_section)
 
     # Methods and properties
     # ----------------------
@@ -384,9 +363,7 @@ class Register(CycleTracker):
         old_var: Variable = self.contained_variable
         if old_var:
             # make old variable aware that it is no longer in this register
-            assert (
-                not old_var.register_dirty
-            )  # we should not be deallocating dirty variables
+            assert not old_var.register_dirty  # we should not be deallocating dirty variables
             old_var.register = None
         if variable:
             # make variable aware of new register

@@ -1,5 +1,8 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
 
-def clamp(x, minimum = float("-inf"), maximum = float("inf")):
+
+def clamp(x, minimum=float("-inf"), maximum=float("inf")):
     """
     Clamp a value between a specified minimum and maximum.
 

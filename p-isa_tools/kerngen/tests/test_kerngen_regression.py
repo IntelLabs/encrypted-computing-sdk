@@ -4,9 +4,10 @@
 # generative artificial intelligence solutions.
 """Test the expected behaviour of the kerngen script"""
 
+import pathlib
 import subprocess
 import sys
-import pathlib
+
 import pytest
 
 KERNGEN_PATH = pathlib.Path(__file__).parent.parent / "kerngen.py"

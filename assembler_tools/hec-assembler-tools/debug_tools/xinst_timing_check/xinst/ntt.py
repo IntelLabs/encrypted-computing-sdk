@@ -1,19 +1,23 @@
-﻿from argparse import Namespace
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+from argparse import Namespace
 
 from .xinstruction import XInstruction
+
 
 class Instruction(XInstruction):
     """
     Represents an `ntt` instruction (Number Theoretic Transform).
-    
+
     Converts positional form to NTT form.
     For more information, check the specification:
         https://github.com/IntelLabs/hec-assembler-tools/blob/master/docsrc/inst_spec/xinst/xinst_ntt.md
-        
+
     Methods:
         fromASMISALine: Parses an ASM ISA line to create an Instruction instance.
     """
-    
+
     @classmethod
     def fromASMISALine(cls, line: str) -> list:
         """
@@ -33,16 +37,18 @@ class Instruction(XInstruction):
         if tokens:
             tokens, comment = tokens
             if len(tokens) < 3 or tokens[2] != cls.name:
-                raise ValueError('`line`: could not parse f{cls.name} from specified line.')
+                raise ValueError("`line`: could not parse f{cls.name} from specified line.")
             dst_src_map = XInstruction.parseASMISASourceDestsFromTokens(tokens, cls._OP_NUM_DESTS, cls._OP_NUM_SOURCES, 3)
-            retval = cls(int(tokens[0][1:]), # bundle
-                         int(tokens[1]), # pisa
-                         dst_src_map['dst'],
-                         dst_src_map['src'],
-                         cls._OP_DEFAULT_THROUGHPUT,
-                         cls._OP_DEFAULT_LATENCY,
-                         tokens[3 + cls._OP_NUM_DESTS + cls._OP_NUM_SOURCES:],
-                         comment)
+            retval = cls(
+                int(tokens[0][1:]),  # bundle
+                int(tokens[1]),  # pisa
+                dst_src_map["dst"],
+                dst_src_map["src"],
+                cls._OP_DEFAULT_THROUGHPUT,
+                cls._OP_DEFAULT_LATENCY,
+                tokens[3 + cls._OP_NUM_DESTS + cls._OP_NUM_SOURCES :],
+                comment,
+            )
         return retval
 
     @classmethod
@@ -55,15 +61,9 @@ class Instruction(XInstruction):
         """
         return "ntt"
 
-    def __init__(self,
-                 bundle: int,
-                 pisa_instr: int,
-                 dsts: list,
-                 srcs: list,
-                 throughput: int,
-                 latency: int,
-                 other: list = [],
-                 comment: str = ""):
+    def __init__(
+        self, bundle: int, pisa_instr: int, dsts: list, srcs: list, throughput: int, latency: int, other: list = [], comment: str = ""
+    ):
         """
         Initializes an Instruction instance.
 

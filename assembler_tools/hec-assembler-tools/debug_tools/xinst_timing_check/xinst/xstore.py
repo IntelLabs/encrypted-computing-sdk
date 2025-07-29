@@ -40,12 +40,8 @@ class Instruction(XInstruction):
         if tokens:
             tokens, comment = tokens
             if len(tokens) < 3 or tokens[2] != cls.name:
-                raise ValueError(
-                    "`line`: could not parse f{cls.name} from specified line."
-                )
-            dst_src_map = XInstruction.parseASMISASourceDestsFromTokens(
-                tokens, cls._OP_NUM_DESTS, cls._OP_NUM_SOURCES, 3
-            )
+                raise ValueError("`line`: could not parse f{cls.name} from specified line.")
+            dst_src_map = XInstruction.parseASMISASourceDestsFromTokens(tokens, cls._OP_NUM_DESTS, cls._OP_NUM_SOURCES, 3)
             retval = cls(
                 int(tokens[0][1:]),  # bundle
                 int(tokens[1]),  # pisa
@@ -92,6 +88,4 @@ class Instruction(XInstruction):
             other (list, optional): Additional parameters. Defaults to an empty list.
             comment (str, optional): A comment associated with the instruction. Defaults to an empty string.
         """
-        super().__init__(
-            bundle, pisa_instr, dsts, srcs, throughput, latency, other, comment
-        )
+        super().__init__(bundle, pisa_instr, dsts, srcs, throughput, latency, other, comment)

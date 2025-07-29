@@ -26,9 +26,7 @@ class RunConfig:
     debug_verbose: int
 
     __initialized = False  # Specifies whether static members have been initialized
-    __default_config = (
-        {}
-    )  # Dictionary of all configuration items supported and their default values
+    __default_config = {}  # Dictionary of all configuration items supported and their default values
 
     def __init__(self, **kwargs):
         """
@@ -78,23 +76,15 @@ class RunConfig:
 
         # Validate inputs
         if self.repl_policy not in constants.Constants.REPLACEMENT_POLICIES:
-            raise ValueError(
-                'Invalid `repl_policy`. "{}" not in {}'.format(
-                    self.repl_policy, constants.Constants.REPLACEMENT_POLICIES
-                )
-            )
+            raise ValueError('Invalid `repl_policy`. "{}" not in {}'.format(self.repl_policy, constants.Constants.REPLACEMENT_POLICIES))
 
     @classproperty
     def DEFAULT_HBM_SIZE_KB(cls) -> int:
-        return int(
-            constants.MemoryModel.HBM.MAX_CAPACITY / constants.Constants.KILOBYTE
-        )
+        return int(constants.MemoryModel.HBM.MAX_CAPACITY / constants.Constants.KILOBYTE)
 
     @classproperty
     def DEFAULT_SPAD_SIZE_KB(cls) -> int:
-        return int(
-            constants.MemoryModel.SPAD.MAX_CAPACITY / constants.Constants.KILOBYTE
-        )
+        return int(constants.MemoryModel.SPAD.MAX_CAPACITY / constants.Constants.KILOBYTE)
 
     @classproperty
     def DEFAULT_REPL_POLICY(cls) -> int:
@@ -148,7 +138,4 @@ class RunConfig:
             dict: A dictionary representation of the current configuration settings.
         """
         tmp_self_dict = vars(self)
-        return {
-            config_name: tmp_self_dict[config_name]
-            for config_name in self.__default_config
-        }
+        return {config_name: tmp_self_dict[config_name] for config_name in self.__default_config}

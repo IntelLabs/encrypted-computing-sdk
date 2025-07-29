@@ -9,10 +9,9 @@ data instructions.
 """
 
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from linker.instructions.dinst import factory, create_from_mem_line
-from linker.instructions.dinst import DLoad, DStore, DKeyGen
+from linker.instructions.dinst import DKeyGen, DLoad, DStore, create_from_mem_line, factory
 
 
 class TestDInstModule(unittest.TestCase):

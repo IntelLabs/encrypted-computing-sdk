@@ -9,8 +9,8 @@
 from typing import Optional
 
 from assembler.instructions import tokenize_from_line
-from . import dload, dstore, dkeygen
-from . import dinstruction
+
+from . import dinstruction, dkeygen, dload, dstore
 
 DLoad = dload.Instruction
 DStore = dstore.Instruction
@@ -35,7 +35,7 @@ def create_from_mem_line(line: str) -> dinstruction.DInstruction:
             parsed from the specified input line.
     @throws RuntimeError If no valid instruction is found or if there's an error parsing the memory map line.
     """
-    retval: Optional[dinstruction.DInstruction] = None
+    retval: dinstruction.DInstruction | None = None
     tokens, comment = tokenize_from_line(line)
     for instr_type in factory():
         try:

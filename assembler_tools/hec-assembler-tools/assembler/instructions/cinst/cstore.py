@@ -75,11 +75,7 @@ class Instruction(CInstruction):
             str: A string representation of the Instruction object, including
                  its type, name, memory address, ID, throughput, and latency.
         """
-        retval = (
-            "<{}({}) object at {}>(id={}[0], "
-            "mem_model, "
-            "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "mem_model, " "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),
@@ -102,8 +98,7 @@ class Instruction(CInstruction):
         if len(value) != Instruction._OP_NUM_DESTS:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Variable` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Variable` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_SOURCES, len(value)
                     )
                 )
@@ -126,8 +121,7 @@ class Instruction(CInstruction):
         if len(value) != Instruction._OP_NUM_SOURCES:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Register` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Register` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_DESTS, len(value)
                     )
                 )
@@ -161,9 +155,7 @@ class Instruction(CInstruction):
         """
         spad = self.__mem_model.spad
 
-        var_name, (variable, self.__spad_addr) = (
-            self.__mem_model.store_buffer.pop()
-        )  # Will raise IndexError if popping from empty queue
+        var_name, (variable, self.__spad_addr) = self.__mem_model.store_buffer.pop()  # Will raise IndexError if popping from empty queue
         assert var_name == variable.name
         assert self.__spad_addr >= 0 and (
             variable.spad_address < 0 or variable.spad_address == self.__spad_addr

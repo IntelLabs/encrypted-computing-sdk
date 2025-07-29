@@ -7,7 +7,6 @@ from assembler.instructions import tokenize_from_line
 
 
 class XInstruction:
-
     # To be initialized from ASM ISA spec
     _OP_NUM_DESTS: int
     _OP_NUM_SOURCES: int
@@ -57,9 +56,7 @@ class XInstruction:
         return retval
 
     @staticmethod
-    def parseASMISASourceDestsFromTokens(
-        tokens: list, num_dests: int, num_sources: int, offset: int = 0
-    ) -> dict:
+    def parseASMISASourceDestsFromTokens(tokens: list, num_dests: int, num_sources: int, offset: int = 0) -> dict:
         """
         Parses the sources and destinations for an instruction, given sources and
         destinations in tokens in P-ISA format.

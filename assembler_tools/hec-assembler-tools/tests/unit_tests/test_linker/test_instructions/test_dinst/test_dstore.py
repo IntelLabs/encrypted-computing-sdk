@@ -47,9 +47,7 @@ class TestDStoreInstruction(unittest.TestCase):
 
         @test Verifies the instruction is properly initialized with valid tokens
         """
-        inst = Instruction(
-            [MemInfo.Const.Keyword.STORE, self.var_name, str(self.address)]
-        )
+        inst = Instruction([MemInfo.Const.Keyword.STORE, self.var_name, str(self.address)])
 
         self.assertEqual(inst.name, MemInfo.Const.Keyword.STORE)
 

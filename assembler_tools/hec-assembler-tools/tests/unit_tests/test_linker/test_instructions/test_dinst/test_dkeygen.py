@@ -28,9 +28,7 @@ class TestDKeygenInstruction(unittest.TestCase):
         self.seed_idx = 1
         self.key_idx = 2
         self.var_name = "var1"
-        self.inst = Instruction(
-            [Instruction.name, self.seed_idx, self.key_idx, self.var_name]
-        )
+        self.inst = Instruction([Instruction.name, self.seed_idx, self.key_idx, self.var_name])
 
     def test_get_num_tokens(self):
         """@brief Test that _get_num_tokens returns 4
@@ -51,9 +49,7 @@ class TestDKeygenInstruction(unittest.TestCase):
 
         @test Verifies the instruction is properly initialized with valid tokens
         """
-        inst = Instruction(
-            [MemInfo.Const.Keyword.KEYGEN, self.seed_idx, self.key_idx, self.var_name]
-        )
+        inst = Instruction([MemInfo.Const.Keyword.KEYGEN, self.seed_idx, self.key_idx, self.var_name])
         self.assertEqual(inst.name, MemInfo.Const.Keyword.KEYGEN)
 
     def test_initialization_invalid_name(self):

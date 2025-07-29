@@ -55,9 +55,7 @@ class Instruction(CInstruction):
         Raises:
             AssertionError: If the destination register bank index is not 0.
         """
-        assert (
-            dst.bank.bank_index == 0
-        )  # We must be following convention of loading from SPAD into bank 0
+        assert dst.bank.bank_index == 0  # We must be following convention of loading from SPAD into bank 0
         if not throughput:
             throughput = Instruction._OP_DEFAULT_THROUGHPUT
         if not latency:
@@ -75,11 +73,7 @@ class Instruction(CInstruction):
             str: A string representation of the Instruction object.
         """
         assert len(self.dests) > 0
-        retval = (
-            "<{}({}) object at {}>(id={}[0], "
-            "dst={}, src={},"
-            "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "dst={}, src={}," "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),
@@ -105,8 +99,7 @@ class Instruction(CInstruction):
         if len(value) != Instruction._OP_NUM_DESTS:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Register` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Register` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_DESTS, len(value)
                     )
                 )
@@ -128,8 +121,7 @@ class Instruction(CInstruction):
         if len(value) != Instruction._OP_NUM_SOURCES:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Variable` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Variable` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_SOURCES, len(value)
                     )
                 )
@@ -155,40 +147,26 @@ class Instruction(CInstruction):
             int: The throughput for this instruction, i.e., the number of cycles by which to advance
             the current cycle counter.
         """
-        assert (
-            Instruction._OP_NUM_DESTS > 0
-            and len(self.dests) == Instruction._OP_NUM_DESTS
-        )
-        assert (
-            Instruction._OP_NUM_SOURCES > 0
-            and len(self.sources) == Instruction._OP_NUM_SOURCES
-        )
+        assert Instruction._OP_NUM_DESTS > 0 and len(self.dests) == Instruction._OP_NUM_DESTS
+        assert Instruction._OP_NUM_SOURCES > 0 and len(self.sources) == Instruction._OP_NUM_SOURCES
 
         variable: Variable = self.sources[0]  # Expected sources to contain a Variable
         target_register: Register = self.dests[0]
 
         if variable.spad_address < 0:
-            raise RuntimeError(
-                f"Null Access Violation: Variable `{variable}` not allocated in SPAD."
-            )
+            raise RuntimeError(f"Null Access Violation: Variable `{variable}` not allocated in SPAD.")
         # Cannot allocate variable to more than one register (memory coherence)
         # and must not overwrite a register that already contains a variable.
         if variable.register:
-            raise RuntimeError(
-                f"Variable `{variable}` already allocated in register `{variable.register}`."
-            )
+            raise RuntimeError(f"Variable `{variable}` already allocated in register `{variable.register}`.")
         if target_register.contained_variable:
-            raise RuntimeError(
-                f"Register `{target_register}` already contains a Variable object."
-            )
+            raise RuntimeError(f"Register `{target_register}` already contains a Variable object.")
 
         retval = super()._schedule(cycle_count, schedule_id)
         # Perform the load
         target_register.allocateVariable(variable)
         # Track last access to SPAD address
-        spad_access_tracking = self.__mem_model.spad.getAccessTracking(
-            variable.spad_address
-        )
+        spad_access_tracking = self.__mem_model.spad.getAccessTracking(variable.spad_address)
         spad_access_tracking.last_cload = self
         # No need to sync to any previous MLoads after cload
         spad_access_tracking.last_mload = None

@@ -4,6 +4,7 @@
 # generative artificial intelligence solutions.
 
 """Module for defining constants and enums used in the kernel generator"""
+
 from enum import Enum
 
 
