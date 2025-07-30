@@ -8,14 +8,15 @@
 @file test_kern_remap.py
 @brief Unit tests for the kern_remap module
 """
-from unittest.mock import MagicMock
-import pytest
 
+from unittest.mock import MagicMock
+
+import pytest
+from linker.instructions.cinst import BLoad, BOnes, CLoad, CStore, NLoad
+from linker.instructions.minst import MLoad, MStore
 from linker.kern_trace.kern_remap import remap_dinstrs_vars, remap_m_c_instrs_vars
 from linker.kern_trace.kern_var import KernVar
 from linker.kern_trace.kernel_op import KernelOp
-from linker.instructions.minst import MLoad, MStore
-from linker.instructions.cinst import BLoad, CLoad, BOnes, NLoad, CStore
 
 
 class TestRemapDinstrsVars:

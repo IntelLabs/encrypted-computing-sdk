@@ -8,3 +8,8 @@
 # variation of params
 parms = "parms"
 bload = "bload"
+
+[files]
+extend-exclude = [
+    "requirements-dev.txt",
+]

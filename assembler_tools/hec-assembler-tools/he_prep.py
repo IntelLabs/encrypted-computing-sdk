@@ -21,15 +21,16 @@ Usage:
     arguments to specify input and output files and verbosity options for the preprocessing process.
 
 """
+
 import argparse
 import os
 import time
 
 from assembler.common import constants
+from assembler.memory_model import MemoryModel
 from assembler.spec_config.isa_spec import ISASpecConfig
 from assembler.spec_config.mem_spec import MemSpecConfig
 from assembler.stages import preprocessor
-from assembler.memory_model import MemoryModel
 
 
 def save_pisa_listing(out_stream, instr_listing: list):
@@ -89,18 +90,12 @@ def main(output_file_name: str, input_file_name: str, b_verbose: bool):
     # read input kernel and pre-process P-ISA:
     # resulting instructions will be correctly transformed and ready to be converted into ASM-ISA instructions;
     # variables used in the kernel will be automatically assigned to banks.
-    with open(input_file_name, "r", encoding="utf-8") as insts:
-        insts_listing = preprocessor.preprocess_pisa_kernel_listing(
-            hec_mem_model, insts, progress_verbose=b_verbose
-        )
-    num_input_instr: int = len(
-        insts_listing
-    )  # track number of instructions in input kernel
+    with open(input_file_name, encoding="utf-8") as insts:
+        insts_listing = preprocessor.preprocess_pisa_kernel_listing(hec_mem_model, insts, progress_verbose=b_verbose)
+    num_input_instr: int = len(insts_listing)  # track number of instructions in input kernel
     if b_verbose:
         print("Assigning register banks to variables...")
-    preprocessor.assign_register_banks_to_vars(
-        hec_mem_model, insts_listing, use_bank0=False, verbose=b_verbose
-    )
+    preprocessor.assign_register_banks_to_vars(hec_mem_model, insts_listing, use_bank0=False, verbose=b_verbose)
     insts_end = time.time() - start_time
 
     if b_verbose:
@@ -127,7 +122,10 @@ def parse_args():
         argparse.Namespace: Parsed command-line arguments.
     """
     parser = argparse.ArgumentParser(
-        description="HERACLES Assembling Pre-processor.\nThis program performs the preprocessing of P-ISA abstract kernels before further assembling."
+        description=(
+            "HERACLES Assembling Pre-processor.\n"
+            "This program performs the preprocessing of P-ISA abstract kernels before further assembling."
+        )
     )
     parser.add_argument(
         "input_file_name",
@@ -172,12 +170,8 @@ if __name__ == "__main__":
 
     args = parse_args()
 
-    args.isa_spec_file = ISASpecConfig.initialize_isa_spec(
-        module_dir, args.isa_spec_file
-    )
-    args.mem_spec_file = MemSpecConfig.initialize_mem_spec(
-        module_dir, args.mem_spec_file
-    )
+    args.isa_spec_file = ISASpecConfig.initialize_isa_spec(module_dir, args.isa_spec_file)
+    args.mem_spec_file = MemSpecConfig.initialize_mem_spec(module_dir, args.mem_spec_file)
 
     if args.verbose > 0:
         print(module_name)

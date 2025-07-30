@@ -1,4 +1,7 @@
-﻿import collections
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+import collections
 import heapq
 import networkx as nx
 from typing import NamedTuple
@@ -9,6 +12,7 @@ from assembler.instructions import xinst, cinst, minst
 from assembler.memory_model import MemoryModel
 from assembler.memory_model.variable import Variable
 from pickle import TRUE
+
 
 def __orderKeygenVars(mem_model: MemoryModel) -> list:
     """
@@ -30,20 +34,18 @@ def __orderKeygenVars(mem_model: MemoryModel) -> list:
     for var_name, (seed_idx, key_idx) in mem_model.keygen_variables.items():
         assert seed_idx < len(retval)
         if key_idx >= len(retval[seed_idx]):
-            retval[seed_idx] += ((key_idx - len(retval[seed_idx]) + 1) * [None])
+            retval[seed_idx] += (key_idx - len(retval[seed_idx]) + 1) * [None]
         retval[seed_idx][key_idx] = var_name
     # Validate that no key material was skipped
     for seed_idx, l in enumerate(retval):
         for key_idx, var_name in enumerate(l):
             if var_name is None:
-                raise RuntimeError(f'Detected key material {key_idx} generation skipped for seed {seed_idx}.')
+                raise RuntimeError(f"Detected key material {key_idx} generation skipped for seed {seed_idx}.")
 
     return retval
 
-def __findVarInPrevDeps(deps_graph: nx.DiGraph,
-                        instr_id: tuple,
-                        var_name: str,
-                        b_only_sources: bool = False) -> tuple:
+
+def __findVarInPrevDeps(deps_graph: nx.DiGraph, instr_id: tuple, var_name: str, b_only_sources: bool = False) -> tuple:
     """
     Returns the ID for an instruction that uses the specified variable, and is
     a dependency for input instruction.
@@ -64,7 +66,7 @@ def __findVarInPrevDeps(deps_graph: nx.DiGraph,
     retval = None
 
     if instr_id in deps_graph:
-        checked_instructions = set() # avoids checking same instruction multiple times
+        checked_instructions = set()  # avoids checking same instruction multiple times
         dep_instructions = collections.deque()
         last_instr = deps_graph.nodes[instr_id]["instruction"]
         # Repeat while we have instructions to process and we haven't found what we need
@@ -87,9 +89,8 @@ def __findVarInPrevDeps(deps_graph: nx.DiGraph,
 
     return retval
 
-def enforceKeygenOrdering(deps_graph: nx.DiGraph,
-                          mem_model: MemoryModel,
-                          verbose_ostream = None):
+
+def enforceKeygenOrdering(deps_graph: nx.DiGraph, mem_model: MemoryModel, verbose_ostream=None):
     """
     Given the dependency graph for instructions and a complete memory model, injects
     instructions and dependencies to enforce ordering required for the keygen subsystem.
@@ -129,23 +130,25 @@ def enforceKeygenOrdering(deps_graph: nx.DiGraph,
     ordered_kg_vars = __orderKeygenVars(mem_model)
 
     if ordered_kg_vars and verbose_ostream:
-        print("Enforcing keygen ordering", file = verbose_ostream)
+        print("Enforcing keygen ordering", file=verbose_ostream)
 
     for seed_idx, kg_seed_list in enumerate(ordered_kg_vars):
         if verbose_ostream:
-            print(f"Seed {seed_idx} / {len(ordered_kg_vars)}", file = verbose_ostream)
+            print(f"Seed {seed_idx} / {len(ordered_kg_vars)}", file=verbose_ostream)
         last_copy_id = None
-        b_copy_deps_found = False # tracks whether we have correctly added dependencies for the new copy
+        b_copy_deps_found = False  # tracks whether we have correctly added dependencies for the new copy
         for key_idx, kg_var_name in enumerate(kg_seed_list):
             # Create a copy instruction and make all instructions using this kg var depend on it
             src = mem_model.variables[kg_var_name]
             # Create temp target variable
             dst = mem_model.retrieveVarAdd(mem_model.findUniqueVarName(), src.suggested_bank)
-            copy_instr = xinst.Copy(0, # id
-                                    0, # N
-                                    [ dst ],
-                                    [ src ],
-                                    comment=f'injected copy to generate keygen var {kg_var_name} (seed = {seed_idx}, key = {key_idx})')
+            copy_instr = xinst.Copy(
+                0,  # id
+                0,  # N
+                [dst],
+                [src],
+                comment=f"injected copy to generate keygen var {kg_var_name} (seed = {seed_idx}, key = {key_idx})",
+            )
             deps_graph.add_node(copy_instr.id, instruction=copy_instr)
             # Enforce ordering of copies based on ordering of keygen
             if last_copy_id is not None:
@@ -154,8 +157,7 @@ def enforceKeygenOrdering(deps_graph: nx.DiGraph,
             last_copy_id = copy_instr.id
 
             for instr_id in deps_graph:
-                if instr_id != copy_instr.id \
-                   and kg_var_name in set(src.name for src in deps_graph.nodes[instr_id]['instruction'].sources):
+                if instr_id != copy_instr.id and kg_var_name in set(src.name for src in deps_graph.nodes[instr_id]["instruction"].sources):
                     # Found instruction that uses the kg var:
 
                     if not b_copy_deps_found:
@@ -169,19 +171,19 @@ def enforceKeygenOrdering(deps_graph: nx.DiGraph,
                                 # dependency -> copy_instr
                                 deps_graph.add_edge(dependency_id, copy_instr.id)
 
-                            b_copy_deps_found = True # found artificial dependencies for copy
+                            b_copy_deps_found = True  # found artificial dependencies for copy
 
                     # Make instruction depend on this injected copy
                     # copy_instr -> instr
                     deps_graph.add_edge(copy_instr.id, instr_id)
 
     if ordered_kg_vars and verbose_ostream:
-        print(f"Seed {len(ordered_kg_vars)} / {len(ordered_kg_vars)}", file = verbose_ostream)
+        print(f"Seed {len(ordered_kg_vars)} / {len(ordered_kg_vars)}", file=verbose_ostream)
     # We should not have introduced any cycles with these modifications
     assert nx.is_directed_acyclic_graph(deps_graph)
 
-def generateInstrDependencyGraph(insts_listing: list,
-                                 verbose_ostream = None) -> nx.DiGraph:
+
+def generateInstrDependencyGraph(insts_listing: list, verbose_ostream=None) -> nx.DiGraph:
     """
     Given a pre-processed P-ISA instructions listing, generates a dependency graph
     for the instructions based on their inputs and outputs, and any shared HW resources
@@ -203,8 +205,8 @@ def generateInstrDependencyGraph(insts_listing: list,
 
     class VarTracking(NamedTuple):
         # Used for clarity
-        last_write: object # last instruction that wrote to this variable
-        reads_after_last_write: list # all insts that read from this variable after last write
+        last_write: object  # last instruction that wrote to this variable
+        reads_after_last_write: list  # all insts that read from this variable after last write
 
     retval = nx.DiGraph()
 
@@ -215,14 +217,11 @@ def generateInstrDependencyGraph(insts_listing: list,
         verbose_report_every_x_insts = 1
 
     # Look up table for already seen variables
-    vars2insts = {} # dict(var_name, VarTracking )
+    vars2insts = {}  # dict(var_name, VarTracking )
     for idx, inst in enumerate(insts_listing):
-
         if verbose_ostream:
             if idx % verbose_report_every_x_insts == 0:
-                print("{}% - {}/{}".format(idx * 100 // len(insts_listing),
-                                           idx,
-                                           len(insts_listing)), file = verbose_ostream)
+                print("{}% - {}/{}".format(idx * 100 // len(insts_listing), idx, len(insts_listing)), file=verbose_ostream)
 
         # Add new node
         # All instructions are nodes
@@ -242,52 +241,54 @@ def generateInstrDependencyGraph(insts_listing: list,
                     for inst_dep in vars2insts[variable.name].reads_after_last_write:
                         if inst_dep.id != inst.id:
                             retval.add_edge(inst_dep.id, inst.id)
-                else: # Add dep to last write
-                    inst_dep = vars2insts[variable.name].last_write # last instruction that wrote to this variable
+                else:  # Add dep to last write
+                    inst_dep = vars2insts[variable.name].last_write  # last instruction that wrote to this variable
                     if inst_dep and inst_dep.id != inst.id:
                         retval.add_edge(inst_dep.id, inst.id)
             # Record write
-            vars2insts[variable.name] = VarTracking( inst, [] ) # (last inst that wrote to this, all insts that read from it after last write)
+            vars2insts[variable.name] = VarTracking(
+                inst, []
+            )  # (last inst that wrote to this, all insts that read from it after last write)
 
         for variable in inst.sources:
             if variable.name in vars2insts:
                 # Add dependency to last write
-                inst_dep = vars2insts[variable.name].last_write # last instruction that wrote to this variable
+                inst_dep = vars2insts[variable.name].last_write  # last instruction that wrote to this variable
                 if inst_dep and inst_dep.id != inst.id:
                     retval.add_edge(inst_dep.id, inst.id)
             else:
                 # First time seeing this var
-                vars2insts[variable.name] = VarTracking( None, [] )
+                vars2insts[variable.name] = VarTracking(None, [])
             # Record read
             vars2insts[variable.name].reads_after_last_write.append(inst)
 
     # Different variants to enforce ordering
 
-    #print('##### DEBUG #####')
+    # print('##### DEBUG #####')
     ### sequential instructions (no reordering)
-    #print('***** Sequential *****')
-    #for idx in range(len(insts_listing) - 1):
+    # print('***** Sequential *****')
+    # for idx in range(len(insts_listing) - 1):
     #    retval.add_edge(insts_listing[idx].id, insts_listing[idx + 1].id)
 
     ## tw before rshuffle
-    #print('***** twid before rshuffle *****')
-    #for idx in range(len(insts_listing) - 1):
+    # print('***** twid before rshuffle *****')
+    # for idx in range(len(insts_listing) - 1):
     #    if isinstance(insts_listing[idx], xinst.rShuffle):
     #        if isinstance(insts_listing[idx + 1], xinst.twNTT):
     #            print(insts_listing[idx].id)
     #            retval.add_edge(insts_listing[idx + 1].id, insts_listing[idx].id)
 
     # rshuffle before tw
-    #print('***** rshuffle before twid *****')
-    #for idx in range(len(insts_listing) - 1):
+    # print('***** rshuffle before twid *****')
+    # for idx in range(len(insts_listing) - 1):
     #    if isinstance(insts_listing[idx], xinst.rShuffle):
     #        if isinstance(insts_listing[idx + 1], xinst.twNTT):
     #            print(insts_listing[idx].id)
     #            retval.add_edge(insts_listing[idx].id, insts_listing[idx + 1].id)
 
     # rshuffles ordered
-    #print('***** Ordered rshuffles *****')
-    #for idx in range(len(insts_listing) - 1):
+    # print('***** Ordered rshuffles *****')
+    # for idx in range(len(insts_listing) - 1):
     #    if isinstance(insts_listing[idx], xinst.rShuffle):
     #        for j in range(len(insts_listing) - idx):
     #            jdx = j + idx + 1
@@ -297,8 +298,8 @@ def generateInstrDependencyGraph(insts_listing: list,
     #                break
 
     # twid ordered
-    #print('***** Ordered twntt *****')
-    #for idx in range(len(insts_listing) - 1):
+    # print('***** Ordered twntt *****')
+    # for idx in range(len(insts_listing) - 1):
     #    if isinstance(insts_listing[idx], xinst.twNTT):
     #        for jdx in range(idx + 1, len(insts_listing)):
     #            if isinstance(insts_listing[jdx], xinst.twNTT):
@@ -308,16 +309,16 @@ def generateInstrDependencyGraph(insts_listing: list,
 
     # Detect cycles in result
     if not nx.is_directed_acyclic_graph(retval):
-        raise nx.NetworkXUnfeasible('Instruction listing must form a Directed Acyclic Graph dependency.')
+        raise nx.NetworkXUnfeasible("Instruction listing must form a Directed Acyclic Graph dependency.")
 
     if verbose_ostream:
-        print("100% - {0}/{0}".format(len(insts_listing)), file = verbose_ostream)
+        print("100% - {0}/{0}".format(len(insts_listing)), file=verbose_ostream)
 
     # retval contains the dependency graph
     return retval
 
-def schedulePISAInstructions(dependency_graph: nx.DiGraph,
-                             progress_verbose: bool = False) -> (list, int, int):
+
+def schedulePISAInstructions(dependency_graph: nx.DiGraph, progress_verbose: bool = False) -> (list, int, int):
     """
     Given the dependency directed acyclic graph of XInsts, returns a schedule
     for the corresponding P-ISA instructions, that minimizes idle cycles.
@@ -332,18 +333,16 @@ def schedulePISAInstructions(dependency_graph: nx.DiGraph,
             - int: The total number of idle cycles.
             - int: The number of NOPs inserted.
     """
+
     class PrioritizedInstruction(PrioritizedPlaceholder):
-        def __init__(self,
-                     instruction,
-                     priority_delta = (0, 0)):
+        def __init__(self, instruction, priority_delta=(0, 0)):
             super().__init__(priority_delta=priority_delta)
             self.__instruction = instruction
 
         def __repr__(self):
-            return '<{} (priority = {})>(instruction={}, priority_delta={})'.format(type(self).__name__,
-                                                                                    self.priority,
-                                                                                    repr(self.instruction),
-                                                                                    self.priority_delta)
+            return "<{} (priority = {})>(instruction={}, priority_delta={})".format(
+                type(self).__name__, self.priority, repr(self.instruction), self.priority_delta
+            )
 
         @property
         def instruction(self):
@@ -354,24 +353,22 @@ def schedulePISAInstructions(dependency_graph: nx.DiGraph,
 
     retval = []
     topo_sort = buildVarAccessListFromTopoSort(dependency_graph)
-    dependency_graph = nx.DiGraph(dependency_graph) # make a copy of the incoming graph to avoid modifying input
+    dependency_graph = nx.DiGraph(dependency_graph)  # make a copy of the incoming graph to avoid modifying input
     total_idle_cycles = 0
     num_nops = 0
-    set_processed_instrs = set() # track instructions that have been process to avoid encountering them after scheduling
-    current_cycle = CycleType(bundle = 0, cycle = 1)
-    p_queue = [] # Sorted list by priority: ready cycle
-    b_changed = True # Track when there are changes in the priority queue or dependency graph
+    set_processed_instrs = set()  # track instructions that have been process to avoid encountering them after scheduling
+    current_cycle = CycleType(bundle=0, cycle=1)
+    p_queue = []  # Sorted list by priority: ready cycle
+    b_changed = True  # Track when there are changes in the priority queue or dependency graph
     total_insts = dependency_graph.number_of_nodes()
     prev_report_pct = -1
     while dependency_graph:
-
         if progress_verbose:
             pct = int(len(retval) * 100 / total_insts)
             if pct > prev_report_pct and pct % 10 == 0:
                 prev_report_pct = pct
                 print(f"{pct}% - {len(retval)}/{total_insts}")
-        if b_changed: # If priority queue or dependency graph have changed since last iteration
-
+        if b_changed:  # If priority queue or dependency graph have changed since last iteration
             # Extract all the instructions that can be executed without dependencies
             # and merge to current instructions that can be executed without dependencies
             last_idx = -1
@@ -380,16 +377,16 @@ def schedulePISAInstructions(dependency_graph: nx.DiGraph,
                     if dependency_graph.in_degree(instr_id) > 0:
                         # Found first instruction with dependencies
                         break
-                    instr = dependency_graph.nodes[instr_id]['instruction']
+                    instr = dependency_graph.nodes[instr_id]["instruction"]
                     p_queue.append(PrioritizedInstruction(instr))
                     set_processed_instrs.add(instr.id)
                 last_idx = idx
             # Remove all instructions that got queued for scheduling
             if last_idx >= 0:
-                topo_sort = topo_sort[last_idx + 1:]
+                topo_sort = topo_sort[last_idx + 1 :]
 
             # Reorder priority queue since the items' priorities may change after scheduling an instruction
-            assert(p_queue)
+            assert p_queue
             heapq.heapify(p_queue)
 
         # Schedule next instruction
@@ -412,23 +409,23 @@ def schedulePISAInstructions(dependency_graph: nx.DiGraph,
             # Make new instruction to execute a nop
             instr = xinst.Nop(instr.id[0], num_idle_cycles)
             num_nops += 1
-            b_changed = False # No changes in the queue or graph
+            b_changed = False  # No changes in the queue or graph
 
             # Do not pop actual instruction from graph or queue since we had to add nops before its scheduling
         else:
             # Instruction ready: pop instruction from queue and update dependency graph
             # (this breaks the heap invariant for p_queue, but we heapify
             # on every iteration due to priorities changing based on latency)
-            p_queue = p_queue[:element_idx] + p_queue[element_idx + 1:]
-            dependents = list(dependency_graph.neighbors(instr.id)) # find instructions that depend on this instruction
-            dependency_graph.remove_node(instr.id) # remove from graph to update the in_degree of dependendent instrs
+            p_queue = p_queue[:element_idx] + p_queue[element_idx + 1 :]
+            dependents = list(dependency_graph.neighbors(instr.id))  # find instructions that depend on this instruction
+            dependency_graph.remove_node(instr.id)  # remove from graph to update the in_degree of dependent instrs
             # "move" dependent instrs that have no other dependencies to the top of the topo sort
-            topo_sort = [ instr_id for instr_id in dependents if dependency_graph.in_degree(instr_id) <= 0 ] + topo_sort
+            topo_sort = [instr_id for instr_id in dependents if dependency_graph.in_degree(instr_id) <= 0] + topo_sort
             # Do not search the topo sort to actually remove the duplicated instrs because it is O(N) costly:
             # set_processed_instrs will take care of skipping them once encountered.
-            b_changed = True # queue and/or graph changed
+            b_changed = True  # queue and/or graph changed
 
-        cycle_throughput = instr.schedule(current_cycle, len(retval) + 1) # simulate execution to update cycle ready of dependents
+        cycle_throughput = instr.schedule(current_cycle, len(retval) + 1)  # simulate execution to update cycle ready of dependents
         retval.append(instr)
 
         # Next cycle starts

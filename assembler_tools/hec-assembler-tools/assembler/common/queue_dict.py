@@ -1,4 +1,8 @@
-﻿from collections import deque
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+from collections import deque
+
 
 class QueueDict:
     """
@@ -12,6 +16,7 @@ class QueueDict:
     of items occur at the start of the queue structure only. No removals
     are allowed on any other items of the structure.
     """
+
     def __init__(self):
         """
         Initializes a new, empty QueueDict object.
@@ -87,7 +92,7 @@ class QueueDict:
         self.__q.clear()
         self.__lookup = {}
 
-    def copy(self) -> object: # QueueDict
+    def copy(self) -> object:  # QueueDict
         """
         Returns a shallow copy of the QueueDict.
 
@@ -116,7 +121,7 @@ class QueueDict:
     def pop(self) -> tuple:
         """
         Removes and returns the (key, value) pair item at the start of the QueueDict.
-        
+
         Returns:
             tuple: The (key, value) pair that was removed.
         """

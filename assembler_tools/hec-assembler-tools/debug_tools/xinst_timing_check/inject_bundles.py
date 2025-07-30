@@ -94,13 +94,12 @@ def main(
     cinst_file_o = os.path.join(output_dir, output_prefix + ".cinst")
     minst_file_o = os.path.join(output_dir, output_prefix + ".minst")
 
-    with open(xinst_file_i, "r") as f_xinst_file_i, open(
-        cinst_file_i, "r"
-    ) as f_cinst_file_i, open(minst_file_i, "r") as f_minst_file_i:
-        with open(xinst_file_o, "w") as f_xinst_file_o, open(
-            cinst_file_o, "w"
-        ) as f_cinst_file_o, open(minst_file_o, "w") as f_minst_file_o:
-
+    with open(xinst_file_i, "r") as f_xinst_file_i, open(cinst_file_i, "r") as f_cinst_file_i, open(minst_file_i, "r") as f_minst_file_i:
+        with (
+            open(xinst_file_o, "w") as f_xinst_file_o,
+            open(cinst_file_o, "w") as f_cinst_file_o,
+            open(minst_file_o, "w") as f_minst_file_o,
+        ):
             current_bundle = 0
 
             # Read xinst until first bundle is over
@@ -123,12 +122,8 @@ def main(
                     num_xstores += 1
 
             cinst_line_no = 0
-            cinst_insertion_line_start = (
-                0  # Track which line we started inserting dummy bundles into CInstQ
-            )
-            cinst_insertion_line_count = (
-                0  # Track how many lines of dummy bundles were inserted into CInstQ
-            )
+            cinst_insertion_line_start = 0  # Track which line we started inserting dummy bundles into CInstQ
+            cinst_insertion_line_count = 0  # Track how many lines of dummy bundles were inserted into CInstQ
 
             # Read cinst until first bundle is over
             while True:  # do-while
@@ -246,9 +241,7 @@ def main(
                     print(idx)
 
                 tokens, comment = xinstruction.tokenize_from_line(line)
-                assert (
-                    int(tokens[0]) == idx
-                ), "Unexpected line number mismatch in MInstQ."
+                assert int(tokens[0]) == idx, "Unexpected line number mismatch in MInstQ."
 
                 tokens = list(tokens)
                 # Process sync instruction
@@ -287,9 +280,7 @@ if __name__ == "__main__":
     parser.add_argument("-b", "--dummy_bundles", dest="nbundles", type=int, default=0)
     parser.add_argument("-ne", "--skip_exit", dest="b_use_exit", action="store_false")
     args = parser.parse_args()
-    args.isa_spec_file = XTCSpecConfig.initialize_isa_spec(
-        module_dir, args.isa_spec_file
-    )
+    args.isa_spec_file = XTCSpecConfig.initialize_isa_spec(module_dir, args.isa_spec_file)
 
     print(f"ISA Spec: {args.isa_spec_file}")
     print()

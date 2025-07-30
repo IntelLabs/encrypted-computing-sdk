@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Intel Corporation
+// Copyright (C) 2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "p_isa_performance_modeler.h"
@@ -27,8 +27,8 @@ void PISAPerformanceModeler::addGraphAnalysis(PerformanceReport &report)
     {
         depth++;
         auto input_nodes       = p_isa_graph_instructions.getInputNodes(true, true, true);
-        report.graph_min_width = std::min(report.graph_min_width, (int64_t)input_nodes.size());
-        report.graph_max_width = std::max(report.graph_max_width, (int64_t)input_nodes.size());
+        report.graph_min_width = std::min(report.graph_min_width, static_cast<int64_t>(input_nodes.size()));
+        report.graph_max_width = std::max(report.graph_max_width, static_cast<int64_t>(input_nodes.size()));
         report.graph_average_width += input_nodes.size();
         for (auto &input : input_nodes)
         {

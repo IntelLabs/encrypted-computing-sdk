@@ -12,6 +12,7 @@ during the assembly process.
 """
 
 from assembler.memory_model.mem_info import MemInfo
+
 from .dinstruction import DInstruction
 
 

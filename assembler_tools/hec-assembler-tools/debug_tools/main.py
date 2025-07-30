@@ -77,9 +77,7 @@ def main_readmem(args):
     if args.mem_file:
         mem_filename = args.mem_file
     else:
-        raise argparse.ArgumentError(
-            None, "Please provide input memory file using `--mem_file` option."
-        )
+        raise argparse.ArgumentError(None, "Please provide input memory file using `--mem_file` option.")
 
     mem_meta_info = None
     with open(mem_filename, "r") as mem_ifnum:
@@ -101,9 +99,7 @@ def main_readmem(args):
         print("None")
 
 
-def asmisa_preprocessing(
-    input_filename: str, output_filename: str, b_use_bank_0: bool, b_verbose=True
-) -> int:
+def asmisa_preprocessing(input_filename: str, output_filename: str, b_use_bank_0: bool, b_verbose=True) -> int:
     """
     Preprocess P-ISA kernel and save the intermediate result.
 
@@ -128,15 +124,11 @@ def asmisa_preprocessing(
     start_time = time.time()
 
     with open(input_filename, "r") as insts:
-        insts_listing = preprocessor.preprocess_pisa_kernel_listing(
-            hec_mem_model, insts, progress_verbose=b_verbose
-        )
+        insts_listing = preprocessor.preprocess_pisa_kernel_listing(hec_mem_model, insts, progress_verbose=b_verbose)
 
     if b_verbose:
         print("Assigning register banks to variables...")
-    preprocessor.assign_register_banks_to_vars(
-        hec_mem_model, insts_listing, use_bank0=b_use_bank_0
-    )
+    preprocessor.assign_register_banks_to_vars(hec_mem_model, insts_listing, use_bank0=b_use_bank_0)
 
     retval_timing = time.time() - start_time
 
@@ -189,9 +181,7 @@ def asmisa_assembly(
         print("Assembling!")
         print("Reloading kernel from intermediate...")
 
-    hec_mem_model = MemoryModel(
-        hbm_capacity_words, spad_capacity_words, num_register_banks, register_range
-    )
+    hec_mem_model = MemoryModel(hbm_capacity_words, spad_capacity_words, num_register_banks, register_range)
 
     insts_listing = []
     with open(input_filename, "r") as insts:
@@ -206,11 +196,7 @@ def asmisa_assembly(
                 parsed_insts = [inst]
 
             if not parsed_insts:
-                raise SyntaxError(
-                    "Line {}: unable to parse kernel instruction:\n{}".format(
-                        line_no, s_line
-                    )
-                )
+                raise SyntaxError("Line {}: unable to parse kernel instruction:\n{}".format(line_no, s_line))
 
             insts_listing += parsed_insts
 
@@ -303,9 +289,7 @@ def main_asmisa(args):
     if len(args.base_names) > 0:
         all_base_names = args.base_names
     else:
-        raise argparse.ArgumentError(
-            message=f"Please provide one or more input file prefixes using `--prefix` option."
-        )
+        raise argparse.ArgumentError(message=f"Please provide one or more input file prefixes using `--prefix` option.")
 
     for base_name in all_base_names:
         in_kernel = f"{base_name}.csv"
@@ -363,16 +347,12 @@ def main_pisa(args):
     b_use_bank_0: bool = False
     b_verbose = True if args.verbose > 0 else False
 
-    hec_mem_model = MemoryModel(
-        constants.MemoryModel.HBM.MAX_CAPACITY_WORDS // 2, 16, 4, range(8)
-    )
+    hec_mem_model = MemoryModel(constants.MemoryModel.HBM.MAX_CAPACITY_WORDS // 2, 16, 4, range(8))
 
     if len(args.base_names) == 1:
         base_name = args.base_names[0]
     else:
-        raise argparse.ArgumentError(
-            None, f"Please provide an input file prefix using `--prefix` option."
-        )
+        raise argparse.ArgumentError(None, f"Please provide an input file prefix using `--prefix` option.")
 
     print("HBM")
     print(hec_mem_model.hbm.CAPACITY / constants.Constants.GIGABYTE, "GB")
@@ -389,18 +369,12 @@ def main_pisa(args):
     # Resulting instructions will be correctly transformed and ready to be converted into ASM-ISA instructions;
     # Variables used in the kernel will be automatically assigned to banks.
     with open(in_kernel, "r") as insts:
-        insts_listing = preprocessor.preprocessPISAKernelListing(
-            hec_mem_model, insts, progress_verbose=b_verbose
-        )
+        insts_listing = preprocessor.preprocessPISAKernelListing(hec_mem_model, insts, progress_verbose=b_verbose)
 
     print("Assigning register banks to variables...")
-    preprocessor.assignRegisterBanksToVars(
-        hec_mem_model, insts_listing, use_bank0=b_use_bank_0
-    )
+    preprocessor.assignRegisterBanksToVars(hec_mem_model, insts_listing, use_bank0=b_use_bank_0)
 
-    hec_mem_model.output_variables.update(
-        v_name for v_name in hec_mem_model.variables if "output" in v_name
-    )
+    hec_mem_model.output_variables.update(v_name for v_name in hec_mem_model.variables if "output" in v_name)
 
     insts_end = time.time() - start_time
 
@@ -439,9 +413,7 @@ def main_pisa(args):
 
     print("Scheduling P-ISA instructions...")
     start_time = time.time()
-    pisa_insts_schedule, num_idle_cycles, num_nops = schedulePISAInstructions(
-        dep_graph, progress_verbose=b_verbose
-    )
+    pisa_insts_schedule, num_idle_cycles, num_nops = schedulePISAInstructions(dep_graph, progress_verbose=b_verbose)
     sched_end = time.time() - start_time
 
     print("Saving...")

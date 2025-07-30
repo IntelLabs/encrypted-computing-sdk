@@ -1,4 +1,7 @@
-﻿from .xinstruction import XInstruction
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+from .xinstruction import XInstruction
 from . import add, mul, muli, mac, maci, ntt, intt, twntt, twintt, rshuffle, sub, move, xstore, nop
 from . import exit as exit_mod
 
@@ -21,4 +24,4 @@ Exit = exit_mod.Instruction
 Nop = nop.Instruction
 
 # collection of XInstructions with P-ISA or intermediate P-ISA equivalents
-ASMISA_INSTRUCTIONS = ( Add, Mul, Muli, Mac, Maci, NTT, iNTT, twNTT, twiNTT, rShuffle, Sub, Move, XStore, Exit, Nop )
+ASMISA_INSTRUCTIONS = (Add, Mul, Muli, Mac, Maci, NTT, iNTT, twNTT, twiNTT, rShuffle, Sub, Move, XStore, Exit, Nop)

@@ -56,9 +56,7 @@ class Instruction(CInstruction):
         if not latency:
             latency = Instruction._OP_DEFAULT_LATENCY
         super().__init__(id, throughput, latency, comment=comment)
-        self.bundle_id = (
-            bundle_id  # Instruction number from the MINST queue for which to wait
-        )
+        self.bundle_id = bundle_id  # Instruction number from the MINST queue for which to wait
 
     def __repr__(self):
         """
@@ -68,11 +66,7 @@ class Instruction(CInstruction):
             str: A string representation of the Instruction object, including
                  its type, name, memory address, ID, bundle_id, throughput, and latency.
         """
-        retval = (
-            "<{}({}) object at {}>(id={}[0], "
-            "bundle_id={}, "
-            "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "bundle_id={}, " "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),

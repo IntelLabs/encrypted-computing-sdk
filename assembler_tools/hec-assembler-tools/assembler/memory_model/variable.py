@@ -126,15 +126,12 @@ class Variable(CycleTracker):
         # validate bank number
         if suggested_bank >= constants.MemoryModel.NUM_REGISTER_BANKS:
             raise ValueError(
-                (
-                    "`suggested_bank`: Expected negative to indicate no "
-                    "suggestion or a bank index less than {}, but {} received."
-                ).format(constants.MemoryModel.NUM_REGISTER_BANKS, suggested_bank)
+                ("`suggested_bank`: Expected negative to indicate no " "suggestion or a bank index less than {}, but {} received.").format(
+                    constants.MemoryModel.NUM_REGISTER_BANKS, suggested_bank
+                )
             )
 
-        super().__init__(
-            CycleType(0, 0)
-        )  # cycle ready in the form (bundle, clock_cycle)
+        super().__init__(CycleType(0, 0))  # cycle ready in the form (bundle, clock_cycle)
 
         self.__suggested_bank = suggested_bank
         # HBM data region address (zero-based word index) where this variable is stored.
@@ -144,9 +141,7 @@ class Variable(CycleTracker):
         self.__spad_dirty = False
         self.__register = None  # Register
         self.__register_dirty = False
-        self.accessed_by_xinsts = (
-            []
-        )  # list of AccessElements containing instruction IDs that access this variable
+        self.accessed_by_xinsts = []  # list of AccessElements containing instruction IDs that access this variable
         self.last_x_access = None  # last xinstruction that accessed this variable
 
     # Special methods
@@ -230,9 +225,7 @@ class Variable(CycleTracker):
     def suggested_bank(self, value: int):
         if value >= constants.MemoryModel.NUM_REGISTER_BANKS:
             raise ValueError(
-                "`value`: must be in range [0, {}), but {} received.".format(
-                    constants.MemoryModel.NUM_REGISTER_BANKS, str(value)
-                )
+                "`value`: must be in range [0, {}), but {} received.".format(constants.MemoryModel.NUM_REGISTER_BANKS, str(value))
             )
         if value >= 0:  # ignore negative values
             self.__suggested_bank = value
@@ -256,13 +249,7 @@ class Variable(CycleTracker):
 
         if value:
             if not isinstance(value, Register):
-                raise ValueError(
-                    (
-                        "`value`: expected a `Register`, but received a `{}`.".format(
-                            type(value).__name__
-                        )
-                    )
-                )
+                raise ValueError(("`value`: expected a `Register`, but received a `{}`.".format(type(value).__name__)))
             self.__register = value
         else:
             self.__register = None
@@ -358,9 +345,7 @@ class Variable(CycleTracker):
             RuntimeError: If the variable is not allocated to a register.
         """
         if not self.register:
-            raise RuntimeError(
-                "`Variable` object not allocated to register. Cannot convert to XInst ASM-ISA format."
-            )
+            raise RuntimeError("`Variable` object not allocated to register. Cannot convert to XInst ASM-ISA format.")
         return self.register.to_xasmisa_format()
 
     def to_casmisa_format(self) -> str:
@@ -374,9 +359,7 @@ class Variable(CycleTracker):
             RuntimeError: If the variable is not stored in SPAD.
         """
         if self.spad_address < 0:
-            raise RuntimeError(
-                "`Variable` object not allocated in SPAD. Cannot convert to CInst ASM-ISA format."
-            )
+            raise RuntimeError("`Variable` object not allocated in SPAD. Cannot convert to CInst ASM-ISA format.")
         return self.spad_address if GlobalConfig.hasHBM else self.name
 
     def to_masmisa_format(self) -> str:
@@ -390,9 +373,7 @@ class Variable(CycleTracker):
             RuntimeError: If the variable is not stored in HBM.
         """
         if self.hbm_address < 0:
-            raise RuntimeError(
-                "`Variable` object not allocated in HBM. Cannot convert to MInst ASM-ISA format."
-            )
+            raise RuntimeError("`Variable` object not allocated in HBM. Cannot convert to MInst ASM-ISA format.")
         return self.name if GlobalConfig.useHBMPlaceHolders else self.hbm_address
 
 

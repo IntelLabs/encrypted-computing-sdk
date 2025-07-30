@@ -34,4 +34,4 @@ Performs one-stage of inverse NTT.
 
 Both NTT and inverse NTT instructions are defined as one-stage of the transformation. A complete NTT/iNTT transformation is composed of LOG_N such one-stage instructions.
 
-This instruction matches to HERACLES ISA `intt`. It requires a preceeding, matching [`rmove`](xinst_rmove.md) to shuffle the input bits into correct tile-pairs.
+This instruction matches to HERACLES ISA `intt`. It requires a preceding, matching [`remove`](xinst_remove.md) to shuffle the input bits into correct tile-pairs.

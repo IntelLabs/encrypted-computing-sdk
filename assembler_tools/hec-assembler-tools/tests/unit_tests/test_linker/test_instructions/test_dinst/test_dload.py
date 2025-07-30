@@ -48,9 +48,7 @@ class TestDLoadInstruction(unittest.TestCase):
 
         @test Verifies the instruction is properly initialized with valid tokens
         """
-        inst = Instruction(
-            [MemInfo.Const.Keyword.LOAD, self.type, str(self.address), self.var_name]
-        )
+        inst = Instruction([MemInfo.Const.Keyword.LOAD, self.type, str(self.address), self.var_name])
 
         self.assertEqual(inst.name, MemInfo.Const.Keyword.LOAD)
 
@@ -83,9 +81,7 @@ class TestDLoadInstruction(unittest.TestCase):
             str(self.address),
             self.var_name,
         ]
-        inst = Instruction(
-            [Instruction.name, self.type, str(self.address), self.var_name]
-        )
+        inst = Instruction([Instruction.name, self.type, str(self.address), self.var_name])
 
         self.assertEqual(inst.tokens, expected_tokens)
 
@@ -94,7 +90,7 @@ class TestDLoadInstruction(unittest.TestCase):
 
         @test Verifies extra tokens are preserved in the tokens property
         """
-        additional_token = "extra"
+        additional_token = "extra"  # noqa: S105 (allow hardcoded string)
         inst_with_extra = Instruction(
             [
                 Instruction.name,
