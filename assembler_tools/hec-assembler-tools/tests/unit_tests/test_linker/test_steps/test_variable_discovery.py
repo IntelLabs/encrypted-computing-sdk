@@ -14,8 +14,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from assembler.common.config import GlobalConfig
-from linker.instructions.cinst import BLoad, BOnes, CLoad, CNop, CStore, NLoad
-from linker.instructions.minst import MLoad, MStore, MSyncc
 from linker.steps.variable_discovery import (
     check_unused_variables,
     discover_variables,
@@ -31,45 +29,73 @@ class TestVariableDiscovery(unittest.TestCase):
         """@brief Set up test fixtures."""
         # Group MInstructions in a dictionary
         self.m_instrs = {
-            "load": MagicMock(source="var1", spec=MLoad),
-            "store": MagicMock(dest="var2", spec=MStore),
-            "other": MagicMock(spec=MSyncc),  # MInstruction that's neither MLoad nor MStore
+            "load": MagicMock(source="var1"),
+            "store": MagicMock(dest="var2"),
+            "other": MagicMock(),  # MInstruction that's neither MLoad nor MStore
         }
 
         # Group CInstructions in a dictionary
         self.c_instrs = {
-            "bload": MagicMock(source="var3", spec=BLoad),
-            "cload": MagicMock(source="var4", spec=CLoad),
-            "bones": MagicMock(source="var5", spec=BOnes),
-            "nload": MagicMock(source="var6", spec=NLoad),
-            "cstore": MagicMock(dest="var7", spec=CStore),
-            "other": MagicMock(spec=CNop),  # CInstruction that's none of the above
+            "bload": MagicMock(source="var3"),
+            "cload": MagicMock(source="var4"),
+            "bones": MagicMock(source="var5"),
+            "nload": MagicMock(source="var6"),
+            "cstore": MagicMock(dest="var7"),
+            "other": MagicMock(),  # CInstruction that's none of the above
         }
 
+    @patch("linker.steps.variable_discovery.minst")
+    @patch("linker.steps.variable_discovery.MInstruction")
     @patch("assembler.memory_model.variable.Variable.validateName")
-    def test_discover_variables_valid(self, mock_validate):
+    def test_discover_variables_valid(self, mock_validate, mock_minst_class, mock_minst):
         """@brief Test discovering variables from valid MInstructions.
 
         @test Verifies that variables are correctly discovered from MLoad and MStore instructions
         """
+        # Setup mocks
+        mock_minst.MLoad = MagicMock()
+        mock_minst.MStore = MagicMock()
 
-        # Configure validateName to return True
-        mock_validate.return_value = True
+        # Configure type checking at the module level, avoiding patching isinstance
+        def is_minst_side_effect(obj):
+            return obj in [
+                self.m_instrs["load"],
+                self.m_instrs["store"],
+                self.m_instrs["other"],
+            ]
 
-        # Test with a list containing both MLoad and MStore
-        minstrs = [
-            self.m_instrs["load"],
-            self.m_instrs["store"],
-            self.m_instrs["other"],
-        ]
+        def is_mload_side_effect(obj):
+            return obj is self.m_instrs["load"]
 
-        # Call the function
-        result = list(discover_variables(minstrs))
+        def is_mstore_side_effect(obj):
+            return obj is self.m_instrs["store"]
 
-        # Verify results
-        self.assertEqual(result, ["var1", "var2"])
-        mock_validate.assert_any_call("var1")
-        mock_validate.assert_any_call("var2")
+        # Replace the actual isinstance calls in the module with our mock functions
+        with patch(
+            "linker.steps.variable_discovery.isinstance",
+            side_effect=lambda obj, cls: {
+                mock_minst_class: is_minst_side_effect(obj),
+                mock_minst.MLoad: is_mload_side_effect(obj),
+                mock_minst.MStore: is_mstore_side_effect(obj),
+            }.get(cls, False),
+        ):
+            # Configure validateName to return True
+            mock_validate.return_value = True
+
+            # Test with a list containing both MLoad and MStore
+            minstrs = [
+                self.m_instrs["load"],
+                self.m_instrs["store"],
+                self.m_instrs["other"],
+            ]
+
+            # Call the function
+            result = list(discover_variables(minstrs))
+
+            # Verify results
+            self.assertEqual(result, ["var1", "var2"])
+            mock_validate.assert_any_call("var1")
+            mock_validate.assert_any_call("var2")
 
     def test_discover_variables_empty_list(self):
         """@brief Test discovering variables from an empty list of MInstructions.
@@ -122,12 +148,21 @@ class TestVariableDiscovery(unittest.TestCase):
             # Verify the error message
             self.assertIn("Invalid Variable name", str(context.exception))
 
+    @patch("linker.steps.variable_discovery.cinst")
+    @patch("linker.steps.variable_discovery.CInstruction")
     @patch("assembler.memory_model.variable.Variable.validateName")
-    def test_discover_variables_spad_valid(self, mock_validate):
+    def test_discover_variables_spad_valid(self, mock_validate, mock_cinst_class, mock_cinst):
         """@brief Test discovering variables from valid CInstructions.
 
         @test Verifies that variables are correctly discovered from all relevant CInstruction types
         """
+        # Setup mocks
+        mock_cinst.BLoad = MagicMock()
+        mock_cinst.CLoad = MagicMock()
+        mock_cinst.BOnes = MagicMock()
+        mock_cinst.NLoad = MagicMock()
+        mock_cinst.CStore = MagicMock()
+
         # Configure validateName to return True
         mock_validate.return_value = True
 
@@ -141,16 +176,37 @@ class TestVariableDiscovery(unittest.TestCase):
             self.c_instrs["other"],
         ]
 
-        # Call the function
-        result = list(discover_variables_spad(cinstrs))
+        # Improved mock for isinstance that handles tuples of classes
+        def mock_isinstance(obj, cls):
+            # Handle tuple case first
+            if isinstance(cls, tuple):
+                return any(mock_isinstance(obj, c) for c in cls)
 
-        # Verify results
-        self.assertEqual(result, ["var3", "var4", "var5", "var6", "var7"])
-        mock_validate.assert_any_call("var3")
-        mock_validate.assert_any_call("var4")
-        mock_validate.assert_any_call("var5")
-        mock_validate.assert_any_call("var6")
-        mock_validate.assert_any_call("var7")
+            # Use a dictionary to map class types to their respective checks
+            class_checks = {
+                mock_cinst_class: lambda: obj in cinstrs,
+                mock_cinst.BLoad: lambda: obj is self.c_instrs["bload"],
+                mock_cinst.CLoad: lambda: obj is self.c_instrs["cload"],
+                mock_cinst.BOnes: lambda: obj is self.c_instrs["bones"],
+                mock_cinst.NLoad: lambda: obj is self.c_instrs["nload"],
+                mock_cinst.CStore: lambda: obj is self.c_instrs["cstore"],
+            }
+
+            # Check if cls is in our mapping and return the result of its check function
+            return class_checks.get(cls, lambda: False)()
+
+        # Patch the isinstance calls at the module level
+        with patch("linker.steps.variable_discovery.isinstance", side_effect=mock_isinstance):
+            # Call the function
+            result = list(discover_variables_spad(cinstrs))
+
+            # Verify results
+            self.assertEqual(result, ["var3", "var4", "var5", "var6", "var7"])
+            mock_validate.assert_any_call("var3")
+            mock_validate.assert_any_call("var4")
+            mock_validate.assert_any_call("var5")
+            mock_validate.assert_any_call("var6")
+            mock_validate.assert_any_call("var7")
 
     def test_discover_variables_spad_empty_list(self):
         """@brief Test discovering variables from an empty list of CInstructions.
@@ -179,22 +235,39 @@ class TestVariableDiscovery(unittest.TestCase):
             # Verify the error message
             self.assertIn("not a valid CInstruction", str(context.exception))
 
+    @patch("linker.steps.variable_discovery.cinst")
+    @patch("linker.steps.variable_discovery.CInstruction")
     @patch("assembler.memory_model.variable.Variable.validateName")
-    def test_discover_variables_spad_invalid_variable_name(self, mock_validate):
+    def test_discover_variables_spad_invalid_variable_name(self, mock_validate, mock_cinst_class, mock_cinst):
         """@brief Test discovering variables with an invalid variable name.
 
         @test Verifies that a RuntimeError is raised when a variable name is invalid
         """
+        # Setup mocks
+        mock_cinst.BLoad = MagicMock()
 
         # Configure validateName to return False
         mock_validate.return_value = False
 
-        # Call the function
-        with self.assertRaises(RuntimeError) as context:
-            list(discover_variables_spad([self.c_instrs["bload"]]))
+        # Mock isinstance to make our mock object appear as CInstruction and BLoad
+        with patch(
+            "linker.steps.variable_discovery.isinstance",
+            side_effect=lambda obj, cls: {
+                mock_cinst_class: True,
+                (
+                    mock_cinst.BLoad,
+                    mock_cinst.CLoad,
+                    mock_cinst.BOnes,
+                    mock_cinst.NLoad,
+                ): True,
+            }.get(cls, False),
+        ):
+            # Call the function
+            with self.assertRaises(RuntimeError) as context:
+                list(discover_variables_spad([self.c_instrs["bload"]]))
 
-        # Verify the error message
-        self.assertIn("Invalid Variable name", str(context.exception))
+            # Verify the error message
+            self.assertIn("Invalid Variable name", str(context.exception))
 
     def test_scan_variables(self):
         """

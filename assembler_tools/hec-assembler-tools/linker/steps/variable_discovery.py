@@ -35,7 +35,7 @@ def discover_variables_spad(cinstrs: list):
         # TODO: Implement variable counting for CInst
         ###############
         # Raise NotImplementedError("Implement variable counting for CInst")
-        if isinstance(cinstr, cinst.BLoad | cinst.CLoad | cinst.BOnes | cinst.NLoad):
+        if isinstance(cinstr, (cinst.BLoad, cinst.CLoad, cinst.BOnes, cinst.NLoad)):
             retval = cinstr.source
         elif isinstance(cinstr, cinst.CStore):
             retval = cinstr.dest
