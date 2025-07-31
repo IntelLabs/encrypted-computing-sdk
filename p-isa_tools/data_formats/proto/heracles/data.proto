@@ -43,9 +43,9 @@ message FHEContext {
     repeated uint32        psi         = 6;  // 2n-th root of Z_{q_i}, implies elsewhere used n-th root omega = psi^2
     uint32                 q_size      = 7;  // n(Q), for SEAL it is always ( key_rns_num - 1 ), OpenFHE (cc->GetElementParams()->GetParams().size())
     uint32                 alpha       = 8;  // ceil(q_size/dnum)
-    oneof scheme_specific {
-        CKKSSpecific        ckks_info   = 9;
-        BGVSpecific        bgv_info    = 10;
+    oneof                  scheme_specific {
+        CKKSSpecific ckks_info = 9;
+        BGVSpecific  bgv_info  = 10;
     }
 }
 
@@ -76,9 +76,8 @@ message TestVector {
 
 // TODO: merge this with above
 message Data {
-    DCRTPoly   dcrtpoly   = 1; // this is only used for v2
+    DCRTPoly dcrtpoly = 1;  // this is only used for v2
 }
-
 
 // MAIN INTERFACE FOR CONSUMERs &
 // ROOT TYPES FOR SERIALIZATIONS
@@ -129,17 +128,16 @@ message BGVPlaintextSpecific {
 }
 
 message CKKSSpecific {
-    Keys                keys                    = 1;
-    uint32              composite_degree        = 2; // BASE_NUM_LEVELS_TO_DROP
+    Keys   keys             = 1;
+    uint32 composite_degree = 2;  // BASE_NUM_LEVELS_TO_DROP
     // Scaling factors
-    repeated double     scaling_factor_real     = 3; // size: q_size (CryptoParametersRNS->GetScalingFactorReal())
-    repeated double     scaling_factor_real_big = 4; // size: q_size - 1(CryptoParametersRNS->GetScalingFactorRealBig())
+    repeated double     scaling_factor_real     = 3;  // size: q_size (CryptoParametersRNS->GetScalingFactorReal())
+    repeated double     scaling_factor_real_big = 4;  // size: q_size - 1(CryptoParametersRNS->GetScalingFactorRealBig())
     map<string, uint32> metadata_extra          = 5;
 }
 
-
 message Keys {
-    KeySwitch          relin_key     = 1;
+    KeySwitch              relin_key     = 1;
     map<uint32, KeySwitch> rotation_keys = 2;
 }
 
@@ -169,7 +167,7 @@ message Plaintext {
 
 // DCRTPoly form
 message DCRTPoly {
-    repeated Polynomial polys       = 1; // size = order
+    repeated Polynomial polys       = 1;  // size = order
     bool                in_ntt_form = 2;
 }
 
@@ -182,8 +180,6 @@ message Polynomial {
 message RNSPolynomial {
     repeated uint32 coeffs  = 1;  // repeated a power-of-two times with power-of-two
     uint32          modulus = 2;  // need modulus in case curr_rns < max_rns, as it will use part of Q and all of P
-
-
 }
 
 message HECRNSPolynomial {

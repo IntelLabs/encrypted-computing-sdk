@@ -4,11 +4,7 @@
 
 # TODO: create also C++ variants of below; given how simple and stable these functions should be just in replicated form, not shared code
 
-from heracles.proto.fhe_trace_pb2 import Trace as TraceV1
 from heracles.proto.fhe_trace_pb2 import Trace
-import heracles.proto.common_pb2 as hpc
-import heracles.proto.fhe_trace_pb2 as hpf
-import csv
 
 # load & store functions
 # ===============================
