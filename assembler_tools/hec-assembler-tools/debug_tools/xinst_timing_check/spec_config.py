@@ -65,7 +65,6 @@ class XTCSpecConfig(ISASpecConfig):
 
     @classmethod
     def initialize_isa_spec(cls, module_dir, isa_spec_file):
-
         if not isa_spec_file:
             isa_spec_file = os.path.join(module_dir, "../../config/isa_spec.json")
             isa_spec_file = os.path.abspath(isa_spec_file)

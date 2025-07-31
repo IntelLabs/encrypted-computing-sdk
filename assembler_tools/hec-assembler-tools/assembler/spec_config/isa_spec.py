@@ -113,15 +113,11 @@ class ISASpecConfig:
 
         for inst_type, ops in cls._target_ops.items():
             if inst_type not in isa_spec:
-                raise ValueError(
-                    f"Instruction type '{inst_type}' is not found in the JSON file."
-                )
+                raise ValueError(f"Instruction type '{inst_type}' is not found in the JSON file.")
 
             for op_name, op in ops.items():
                 if op_name not in isa_spec[inst_type]:
-                    raise ValueError(
-                        f"Operation '{op_name}' is not found in the JSON file for instruction type '{inst_type}'."
-                    )
+                    raise ValueError(f"Operation '{op_name}' is not found in the JSON file for instruction type '{inst_type}'.")
 
                 attributes = isa_spec[inst_type][op_name]
 
@@ -135,7 +131,6 @@ class ISASpecConfig:
 
     @classmethod
     def initialize_isa_spec(cls, module_dir, isa_spec_file):
-
         if not isa_spec_file:
             isa_spec_file = os.path.join(module_dir, "config/isa_spec.json")
             isa_spec_file = os.path.abspath(isa_spec_file)

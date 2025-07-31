@@ -1,14 +1,17 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 """Module containing digit decomposition/base extend"""
 
-from string import ascii_letters
 import itertools as it
-
 from dataclasses import dataclass
+from string import ascii_letters
+
 import high_parser.pisa_operations as pisa_op
+from high_parser import HighOp, Immediate, KernelContext, Polys
 from high_parser.pisa_operations import PIsaOp
-from high_parser import KernelContext, HighOp, Immediate, Polys
 
 from .basic import Muli, mixed_to_pisa_ops
 from .ntt import INTT, NTT

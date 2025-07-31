@@ -1,0 +1,13 @@
+// Copyright (C) 2025 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
+
+
+
+#ifndef _heracles_proto_h_
+#define _heracles_proto_h_
+
+#include "heracles/proto/common.pb.h"
+#include "heracles/proto/data.pb.h"
+#include "heracles/proto/fhe_trace.pb.h"
+#include "heracles/proto/maps.pb.h"
+#endif  // _heracles_proto_h_

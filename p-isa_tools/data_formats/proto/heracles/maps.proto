@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package heracles.maps;
+
+// MAIN INTERFACE FOR BOTH CONSUMERs AND PRODUCERS
+// ROOT TYPE FOR SERIALIZATIONS
+//=================================
+
+// Map associating (virtual) HBM address to symbols in code.
+// Required in user-space loader library of driver to form the join with meta-data and input values
+// when creating the DMA download requests and to find address of outputs to retrieve via DMA uploads.
+// see also heracles.data.PolySymbols for "peer" map
+message HBM {
+    map<string, int64> sym_addr_map = 1;
+}

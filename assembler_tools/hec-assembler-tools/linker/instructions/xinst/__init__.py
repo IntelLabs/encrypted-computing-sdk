@@ -5,19 +5,19 @@
 
 from . import (
     add,
-    sub,
-    mul,
-    muli,
+    intt,
     mac,
     maci,
-    ntt,
-    intt,
-    twntt,
-    twintt,
-    rshuffle,
     move,
-    xstore,
+    mul,
+    muli,
     nop,
+    ntt,
+    rshuffle,
+    sub,
+    twintt,
+    twntt,
+    xstore,
 )
 from . import exit as exit_mod
 

@@ -73,12 +73,7 @@ class Instruction(CInstruction):
             str: A string representation of the Instruction object.
         """
         assert len(self.sources) > 0
-        retval = (
-            "<{}({}) object at {}>(id={}[0], "
-            "src_col_num={}, src={}, "
-            "mem_model, "
-            "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "src_col_num={}, src={}, " "mem_model, " "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),
@@ -115,8 +110,7 @@ class Instruction(CInstruction):
         if len(value) != Instruction._OP_NUM_SOURCES:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Variable` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Variable` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_SOURCES, len(value)
                     )
                 )
@@ -140,24 +134,17 @@ class Instruction(CInstruction):
             int: The throughput for this instruction, i.e., the number of cycles by which to advance
             the current cycle counter.
         """
-        assert (
-            Instruction._OP_NUM_SOURCES > 0
-            and len(self.sources) == Instruction._OP_NUM_SOURCES
-        )
+        assert Instruction._OP_NUM_SOURCES > 0 and len(self.sources) == Instruction._OP_NUM_SOURCES
 
         variable: Variable = self.sources[0]  # Expected sources to contain a Variable.
         if variable.spad_address < 0:
-            raise RuntimeError(
-                f"Null Access Violation: Variable `{variable}` not allocated in SPAD."
-            )
+            raise RuntimeError(f"Null Access Violation: Variable `{variable}` not allocated in SPAD.")
         if self.src_col_num < 0:
             raise RuntimeError("Invalid `src_col_num` negative `Ones` target index.")
 
         retval = super()._schedule(cycle_count, schedule_id)
         # Track last access to SPAD address.
-        spad_access_tracking = self.__mem_model.spad.getAccessTracking(
-            variable.spad_address
-        )
+        spad_access_tracking = self.__mem_model.spad.getAccessTracking(variable.spad_address)
         spad_access_tracking.last_cload = self
         # No need to sync to any previous MLoads after bones.
         spad_access_tracking.last_mload = None

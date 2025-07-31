@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 
 from assembler.common.config import GlobalConfig
 from assembler.memory_model import mem_info
-from linker import VariableInfo, HBM, MemoryModel
+from linker import HBM, MemoryModel, VariableInfo
 
 
 class TestVariableInfo(unittest.TestCase):

@@ -100,9 +100,7 @@ class Instruction(XInstruction):
             retval["op_name"] = instr_tokens[1]
             params_start = 2
             params_end = params_start + cls._OP_NUM_DESTS + cls._OP_NUM_SOURCES
-            dst_src = cls.parsePISASourceDestsFromTokens(
-                instr_tokens, cls._OP_NUM_DESTS, cls._OP_NUM_SOURCES, params_start
-            )
+            dst_src = cls.parsePISASourceDestsFromTokens(instr_tokens, cls._OP_NUM_DESTS, cls._OP_NUM_SOURCES, params_start)
             retval.update(dst_src)
             if len(instr_tokens) < cls._OP_NUM_TOKENS:
                 # temporary warning to avoid syntax error during testing
@@ -153,9 +151,7 @@ class Instruction(XInstruction):
         N = 0  # does not require ring-size
         super().__init__(id, N, throughput, latency, comment=comment)
         if dst[0].name == src[0].name:
-            raise ValueError(
-                f'`dst`: Source and destination cannot be the same for instruction "{self.name}".'
-            )
+            raise ValueError(f'`dst`: Source and destination cannot be the same for instruction "{self.name}".')
         self._set_dests(dst)
         self._set_sources(src)
 
@@ -166,11 +162,7 @@ class Instruction(XInstruction):
         Returns:
             str: A string representation of object.
         """
-        retval = (
-            "<{}({}) object at {}>(id={}[0], "
-            "dst={}, src={}, "
-            "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "dst={}, src={}, " "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),
@@ -195,8 +187,7 @@ class Instruction(XInstruction):
         if len(value) != Instruction._OP_NUM_DESTS:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Variable` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Variable` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_SOURCES, len(value)
                     )
                 )
@@ -218,8 +209,7 @@ class Instruction(XInstruction):
         if len(value) != Instruction._OP_NUM_SOURCES:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Variable` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Variable` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_SOURCES, len(value)
                     )
                 )

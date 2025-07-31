@@ -7,7 +7,6 @@
 """@brief linker/__init__.py contains classes to encapsulate the memory model used by the linker."""
 
 import collections.abc as collections
-from typing import Dict
 
 from assembler.common.config import GlobalConfig
 from assembler.memory_model import mem_info
@@ -81,9 +80,7 @@ class HBM:
             )
         if var_info.hbm_address != hbm_address:
             if var_info.hbm_address >= 0:
-                raise ValueError(
-                    f"`var_info`: variable {var_info.var_name} already allocated in address {var_info.hbm_address}."
-                )
+                raise ValueError(f"`var_info`: variable {var_info.var_name} already allocated in address {var_info.hbm_address}.")
 
             in_var_info = self.buffer[hbm_address]
             # Validate hbm address
@@ -96,10 +93,7 @@ class HBM:
                         f"when attempting to allocate variable {var_info.var_name}"
                     )
             else:
-                if in_var_info and (
-                    in_var_info.uses > 0
-                    or in_var_info.last_kernel_used >= var_info.last_kernel_used
-                ):
+                if in_var_info and (in_var_info.uses > 0 or in_var_info.last_kernel_used >= var_info.last_kernel_used):
                     raise RuntimeError(
                         f"HBM address {hbm_address} already occupied by variable {in_var_info.var_name} "
                         f"when attempting to allocate variable {var_info.var_name}"
@@ -124,10 +118,7 @@ class HBM:
                     retval = idx
                     break
             else:
-                if not in_var_info or (
-                    in_var_info.uses <= 0
-                    and in_var_info.last_kernel_used < var_info.last_kernel_used
-                ):
+                if not in_var_info or (in_var_info.uses <= 0 and in_var_info.last_kernel_used < var_info.last_kernel_used):
                     retval = idx
                     break
         if retval < 0:
@@ -149,64 +140,29 @@ class MemoryModel:
         """
         self.hbm = HBM(hbm_size_words)
         self.__mem_info = mem_meta_info
-        self.__variables: Dict[str, VariableInfo] = (
-            {}
-        )  # dict(var_name: str, VariableInfo)
+        self.__variables: dict[str, VariableInfo] = {}  # dict(var_name: str, VariableInfo)
 
         # Group related collections into a dictionary
         self.__mem_collections = {
-            "keygen_vars": {
-                var_info.var_name: var_info for var_info in self.__mem_info.keygens
-            },
-            "inputs": {
-                var_info.var_name: var_info for var_info in self.__mem_info.inputs
-            },
-            "outputs": {
-                var_info.var_name: var_info for var_info in self.__mem_info.outputs
-            },
+            "keygen_vars": {var_info.var_name: var_info for var_info in self.__mem_info.keygens},
+            "inputs": {var_info.var_name: var_info for var_info in self.__mem_info.inputs},
+            "outputs": {var_info.var_name: var_info for var_info in self.__mem_info.outputs},
             "meta": (
-                {
-                    var_info.var_name: var_info
-                    for var_info in self.__mem_info.metadata.intt_auxiliary_table
-                }
-                | {
-                    var_info.var_name: var_info
-                    for var_info in self.__mem_info.metadata.intt_routing_table
-                }
-                | {
-                    var_info.var_name: var_info
-                    for var_info in self.__mem_info.metadata.ntt_auxiliary_table
-                }
-                | {
-                    var_info.var_name: var_info
-                    for var_info in self.__mem_info.metadata.ntt_routing_table
-                }
-                | {
-                    var_info.var_name: var_info
-                    for var_info in self.__mem_info.metadata.ones
-                }
-                | {
-                    var_info.var_name: var_info
-                    for var_info in self.__mem_info.metadata.twiddle
-                }
-                | {
-                    var_info.var_name: var_info
-                    for var_info in self.__mem_info.metadata.keygen_seeds
-                }
+                {var_info.var_name: var_info for var_info in self.__mem_info.metadata.intt_auxiliary_table}
+                | {var_info.var_name: var_info for var_info in self.__mem_info.metadata.intt_routing_table}
+                | {var_info.var_name: var_info for var_info in self.__mem_info.metadata.ntt_auxiliary_table}
+                | {var_info.var_name: var_info for var_info in self.__mem_info.metadata.ntt_routing_table}
+                | {var_info.var_name: var_info for var_info in self.__mem_info.metadata.ones}
+                | {var_info.var_name: var_info for var_info in self.__mem_info.metadata.twiddle}
+                | {var_info.var_name: var_info for var_info in self.__mem_info.metadata.keygen_seeds}
             ),
         }
 
         # Derived collections
-        self.__mem_info_fixed_addr_vars = (
-            self.__mem_collections["outputs"] | self.__mem_collections["meta"]
-        )
+        self.__mem_info_fixed_addr_vars = self.__mem_collections["outputs"] | self.__mem_collections["meta"]
         # Keygen variables should not be part of mem_info_vars set since they
         # do not start in HBM
-        self.__mem_info_vars = (
-            self.__mem_collections["inputs"]
-            | self.__mem_collections["outputs"]
-            | self.__mem_collections["meta"]
-        )
+        self.__mem_info_vars = self.__mem_collections["inputs"] | self.__mem_collections["outputs"] | self.__mem_collections["meta"]
 
     @property
     def mem_info_meta(self) -> collections.Collection:
@@ -258,9 +214,7 @@ class MemoryModel:
                 # with predefined HBM address
                 if var_name in self.__mem_info_fixed_addr_vars:
                     var_info.uses = float("inf")
-                self.hbm.force_allocate(
-                    var_info, self.__mem_info_vars[var_name].hbm_address
-                )
+                self.hbm.force_allocate(var_info, self.__mem_info_vars[var_name].hbm_address)
             self.variables[var_name] = var_info
         var_info.uses += 1
 
@@ -286,8 +240,9 @@ class MemoryModel:
             self.hbm.allocate(var_info)
 
         assert var_info.hbm_address >= 0
-        assert (
-            self.hbm.buffer[var_info.hbm_address].var_name == var_info.var_name
-        ), f"Expected variable {var_info.var_name} in HBM {var_info.hbm_address}, but variable {self.hbm.buffer[var_info.hbm_address].var_name} found instead."
+        assert self.hbm.buffer[var_info.hbm_address].var_name == var_info.var_name, (
+            f"Expected variable {var_info.var_name} in HBM {var_info.hbm_address},"
+            f" but variable {self.hbm.buffer[var_info.hbm_address].var_name} found instead."
+        )
 
         return var_info.hbm_address

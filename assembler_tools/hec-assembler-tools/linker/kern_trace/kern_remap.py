@@ -7,16 +7,15 @@
 """@brief Module for remapping kernel variables in DINST files."""
 
 import re
+
+from linker.instructions import cinst, minst
+from linker.instructions.cinst.cinstruction import CInstruction
 from linker.instructions.dinst.dinstruction import DInstruction
 from linker.instructions.minst.minstruction import MInstruction
-from linker.instructions.cinst.cinstruction import CInstruction
-from linker.instructions import minst, cinst
 from linker.kern_trace.kernel_op import KernelOp
 
 
-def remap_dinstrs_vars(
-    kernel_dinstrs: list[DInstruction], kernel_op: KernelOp
-) -> dict[str, str]:
+def remap_dinstrs_vars(kernel_dinstrs: list[DInstruction], kernel_op: KernelOp) -> dict[str, str]:
     """
     @brief Remaps variable names in DInstructions based on KernelOp variables.
 
@@ -44,9 +43,7 @@ def remap_dinstrs_vars(
         try:
             prefix, rest = dinstr.var.split("_", 1)
         except ValueError as e:
-            raise ValueError(
-                f"Unexpected format: variable name '{dinstr.var}' does not contain items to split by '_': {e}"
-            ) from e
+            raise ValueError(f"Unexpected format: variable name '{dinstr.var}' does not contain items to split by '_': {e}") from e
 
         # Skip if prefix is not 'ct' or 'pt'
         if not (prefix.lower().startswith("ct") or prefix.lower().startswith("pt")):
@@ -56,9 +53,7 @@ def remap_dinstrs_vars(
         match = re.search(r"([a-zA-Z]+)(\d+)", prefix)
 
         if not match:
-            raise ValueError(
-                f"Unexpected format: variable prefix '{prefix}' does not contain a number after text."
-            )
+            raise ValueError(f"Unexpected format: variable prefix '{prefix}' does not contain a number after text.")
 
         number_part = int(match.group(2))
 
@@ -68,7 +63,8 @@ def remap_dinstrs_vars(
             kern_var = sorted_kern_vars[number_part]
         except IndexError as exc:
             raise IndexError(
-                f"Number part {number_part} from prefix '{prefix}' is out of range [0, {len(sorted_kern_vars)-1}] for the KernelOp variables"
+                f"Number part {number_part} from prefix '{prefix}' is out of range [0, {len(sorted_kern_vars)-1}]"
+                "for the KernelOp variables"
             ) from exc
 
         old_var = dinstr.var
@@ -91,20 +87,14 @@ def remap_m_c_instrs_vars(kernel_instrs: list, remap_dict: dict[str, str]) -> No
     """
     if remap_dict:
         for instr in kernel_instrs:
-            if not isinstance(instr, (MInstruction, CInstruction)):
+            if not isinstance(instr, MInstruction | CInstruction):
                 raise TypeError(f"Item {instr} is not a valid M or C Instruction.")
 
-            if isinstance(
-                instr, (minst.MLoad, cinst.BLoad, cinst.CLoad, cinst.BOnes, cinst.NLoad)
-            ):
+            if isinstance(instr, minst.MLoad | cinst.BLoad | cinst.CLoad | cinst.BOnes | cinst.NLoad):
                 if instr.source in remap_dict:
-                    instr.comment = instr.comment.replace(
-                        instr.source, remap_dict[instr.source]
-                    )
+                    instr.comment = instr.comment.replace(instr.source, remap_dict[instr.source])
                     instr.source = remap_dict[instr.source]
-            elif isinstance(instr, (minst.MStore, cinst.CStore)):
+            elif isinstance(instr, minst.MStore | cinst.CStore):
                 if instr.dest in remap_dict:
-                    instr.comment = instr.comment.replace(
-                        instr.dest, remap_dict[instr.dest]
-                    )
+                    instr.comment = instr.comment.replace(instr.dest, remap_dict[instr.dest])
                     instr.dest = remap_dict[instr.dest]

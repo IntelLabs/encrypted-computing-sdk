@@ -6,8 +6,9 @@
 """Module for loop interchange optimization in P-ISA operations"""
 
 import re
+
 from const.options import LoopKey
-from high_parser.pisa_operations import PIsaOp, Comment
+from high_parser.pisa_operations import Comment, PIsaOp
 
 
 class PIsaOpGroup:
@@ -66,7 +67,8 @@ def split_by_reorderable(pisa_list: list[PIsaOp]) -> list[PIsaOpGroup]:
     no_reoderable_group = True
 
     for pisa in pisa_list:
-        # if the pisa is a comment and it contains <reorderable> tag, treat the following pisa as reorderable until a </reorderable> tag is found.
+        # if the pisa is a comment and it contains <reorderable> tag,
+        # treat the following pisa as reorderable until a </reorderable> tag is found.
         if isinstance(pisa, Comment):
             if "<reorderable>" in pisa.line:
                 # If current group has instructions, append it to groups first

@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Intel Corporation
+// Copyright (C) 2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -57,9 +57,9 @@ public:
         };
 
         MemorySizesMap = {
-            { "MEMORY", uint64_t(1572000) },
-            { "CACHE", uint64_t(1572000) },
-            { "REGISTER", uint64_t(1572000) },
+            { "MEMORY", static_cast<uint64_t>(1572000) },
+            { "CACHE", static_cast<uint64_t>(1572000) },
+            { "REGISTER", static_cast<uint64_t>(1572000) },
 
         };
     }
@@ -91,9 +91,9 @@ public:
         };
 
         MemorySizesMap = {
-            { "MEMORY", uint64_t(1572000) },
-            { "CACHE", uint64_t(1572000) },
-            { "REGISTER", uint64_t(1572000) },
+            { "MEMORY", static_cast<uint64_t>(1572000) },
+            { "CACHE", static_cast<uint64_t>(1572000) },
+            { "REGISTER", static_cast<uint64_t>(1572000) },
 
         };
     }
@@ -125,9 +125,9 @@ public:
         };
 
         MemorySizesMap = {
-            { "MEMORY", uint64_t(1572000) },
-            { "CACHE", uint64_t(2048) },
-            { "REGISTER", uint64_t(256) },
+            { "MEMORY", static_cast<uint64_t>(1572000) },
+            { "CACHE", static_cast<uint64_t>(2048) },
+            { "REGISTER", static_cast<uint64_t>(256) },
 
         };
     }

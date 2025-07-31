@@ -3,26 +3,24 @@
 
 """Module for parsing isa commands"""
 
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 from .config import Config
 from .generators import Generators
 from .pisa_operations import PIsaOp
 from .types import (
-    Context,
-    KernelContext,
     Comment,
-    EmptyLine,
+    Context,
     Data,
-    Immediate,
-    Polys,
+    EmptyLine,
     HighOp,
+    Immediate,
+    KernelContext,
+    Polys,
 )
 
-MANIFEST_FILE = str(
-    Path(__file__).parent.parent.absolute() / "pisa_generators/manifest.json"
-)
+MANIFEST_FILE = str(Path(__file__).parent.parent.absolute() / "pisa_generators/manifest.json")
 
 Symbol = str
 
@@ -41,9 +39,7 @@ class ParseResults:
         if not context_list:
             raise LookupError("No Context found for commands list for ParseResults")
         if len(context_list) > 1:
-            raise LookupError(
-                "Multiple Context found in commands list for ParseResults"
-            )
+            raise LookupError("Multiple Context found in commands list for ParseResults")
         return context_list[0]
 
     @property
@@ -70,10 +66,7 @@ class ParseResults:
                 if isinstance(command, HighOp) and hasattr(command, "context"):
                     command.context.label = str(self.context.ntt_stages)
 
-        return (
-            command.to_pisa() if isinstance(command, HighOp) else None
-            for command in commands
-        )
+        return (command.to_pisa() if isinstance(command, HighOp) else None for command in commands)
 
 
 class Parser:
@@ -132,18 +125,14 @@ class Parser:
             case _:
                 # If context has not been given yet - FAIL
                 if len(context_seen) == 0:
-                    raise RuntimeError(
-                        f"No `CONTEXT` provided before `{command_str.rstrip()}`"
-                    )
+                    raise RuntimeError(f"No `CONTEXT` provided before `{command_str.rstrip()}`")
 
                 # Look up commands defined in manifest
                 if self.generators is None:
                     raise ValueError("Generator not set")
 
                 cls = self.generators.get_kernel(command)
-                kernel_context = KernelContext.from_context(
-                    context_seen[0], label=label
-                )
+                kernel_context = KernelContext.from_context(context_seen[0], label=label)
                 return cls.from_string(kernel_context, symbols_map, rest)
 
     def parse_inputs(self, lines: list[str]) -> ParseResults:

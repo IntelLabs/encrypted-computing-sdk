@@ -1,5 +1,8 @@
-﻿import numbers
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 from typing import NamedTuple
+
 
 class PrioritizedPlaceholder:
     """
@@ -22,9 +25,8 @@ class PrioritizedPlaceholder:
         _get_priority(): Returns the base priority of the item.
         _get_priority_delta(): Returns the priority delta of the item.
     """
-    def __init__(self,
-                 priority = (0, 0),
-                 priority_delta = (0, 0)):
+
+    def __init__(self, priority=(0, 0), priority_delta=(0, 0)):
         """
         Initializes a new PrioritizedPlaceholder object.
 
@@ -45,7 +47,7 @@ class PrioritizedPlaceholder:
         Returns:
             tuple: The current priority.
         """
-        return tuple([sum(x) for x in zip(self._get_priority(), self.priority_delta)])
+        return tuple([sum(x) for x in zip(self._get_priority(), self.priority_delta, strict=False)])
 
     @property
     def priority_delta(self):
@@ -113,6 +115,7 @@ class PrioritizedPlaceholder:
         """
         return self.priority > other.priority
 
+
 class CycleType(NamedTuple):
     """
     Named tuple to add structure to a cycle type.
@@ -158,9 +161,9 @@ class CycleType(NamedTuple):
         elif isinstance(other, tuple):
             return self.__binaryop_tuple(other, lambda m, n: m + n)
         else:
-            raise TypeError('`other`: expected type `int` or `tuple`.')
+            raise TypeError("`other`: expected type `int` or `tuple`.")
 
-    def __sub__(self, other): 
+    def __sub__(self, other):
         """
         Subtracts a tuple or an integer from the `CycleType`.
 
@@ -178,7 +181,7 @@ class CycleType(NamedTuple):
         elif isinstance(other, tuple):
             return self.__binaryop_tuple(other, lambda m, n: m - n)
         else:
-            raise TypeError('`other`: expected type `int` or `tuple`.')
+            raise TypeError("`other`: expected type `int` or `tuple`.")
 
     def __binaryop_cycles(self, cycles, binaryop_callable):
         """
@@ -191,7 +194,7 @@ class CycleType(NamedTuple):
         Returns:
             CycleType: The resulting `CycleType` after the operation.
         """
-        assert(isinstance(cycles, int))
+        assert isinstance(cycles, int)
         return CycleType(self.bundle, binaryop_callable(self.cycle, cycles))
 
     def __binaryop_tuple(self, other, binaryop_callable):
@@ -205,8 +208,11 @@ class CycleType(NamedTuple):
         Returns:
             CycleType: The resulting `CycleType` after the operation.
         """
-        return CycleType(binaryop_callable(self.bundle, int(other[0]) if len(other) > 0 else 0),
-                         binaryop_callable(self.cycle, int(other[1]) if len(other) > 1 else 0))
+        return CycleType(
+            binaryop_callable(self.bundle, int(other[0]) if len(other) > 0 else 0),
+            binaryop_callable(self.cycle, int(other[1]) if len(other) > 1 else 0),
+        )
+
 
 class CycleTracker:
     """
@@ -239,9 +245,9 @@ class CycleTracker:
             cycle_ready (CycleType): The initial cycle when the object is ready to be used. Must be a tuple with at least
             two elements (bundle, cycle).
         """
-        assert(len(cycle_ready) > 1)
+        assert len(cycle_ready) > 1
         self.__cycle_ready = CycleType(*cycle_ready)
-        self.tag = 0 # User-defined tag
+        self.tag = 0  # User-defined tag
 
     @property
     def cycle_ready(self):
@@ -287,7 +293,7 @@ class CycleTracker:
             value (CycleType or tuple): New clock cycle when this object will be ready for use.
             The tuple should be in the form (bundle: int, cycle: int).
         """
-        assert(len(value) > 1)
-        #if self.cycle_ready < value:
+        assert len(value) > 1
+        # if self.cycle_ready < value:
         #    self.__cycle_ready = CycleType(*value)
         self.__cycle_ready = CycleType(*value)

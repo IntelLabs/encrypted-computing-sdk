@@ -1,11 +1,14 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 # Copyright (C) 2024 Intel Corporation
 
 """Module containing conversions or operations from isa to p-isa."""
 
 from dataclasses import dataclass
 
-from high_parser.pisa_operations import PIsaOp
 from high_parser import Context, HighOp, Polys
+from high_parser.pisa_operations import PIsaOp
 
 from .basic import Copy, Mul, mixed_to_pisa_ops
 

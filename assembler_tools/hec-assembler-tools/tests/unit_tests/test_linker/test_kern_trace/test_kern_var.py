@@ -8,8 +8,8 @@
 @file test_kern_var.py
 @brief Unit tests for the KernVar class
 """
-import pytest
 
+import pytest
 from linker.kern_trace.kern_var import KernVar
 
 
@@ -96,9 +96,7 @@ class TestKernVar:
 
         # Act & Assert
         with pytest.raises(AttributeError):
-            kern_var.label = (
-                "new_label"  # Should raise AttributeError for read-only property
-            )
+            kern_var.label = "new_label"  # Should raise AttributeError for read-only property
 
     def test_degree_property_immutability(self):
         """

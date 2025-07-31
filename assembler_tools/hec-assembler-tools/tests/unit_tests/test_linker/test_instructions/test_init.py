@@ -12,7 +12,7 @@ and initialization functionality.
 """
 
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from linker.instructions import create_from_str_line
 
@@ -53,9 +53,7 @@ class TestCreateFromStrLine(unittest.TestCase):
         mock_tokenize.return_value = (tokens, comment)
 
         # Call function
-        result = create_from_str_line(
-            "instruction, arg1, arg2 # Test comment", self.factory
-        )
+        result = create_from_str_line("instruction, arg1, arg2 # Test comment", self.factory)
 
         # Verify
         mock_tokenize.assert_called_once_with("instruction, arg1, arg2 # Test comment")
@@ -78,9 +76,7 @@ class TestCreateFromStrLine(unittest.TestCase):
         self.mock_class.side_effect = ValueError("Invalid instruction")
 
         # Call function
-        result = create_from_str_line(
-            "unknown, arg1, arg2 # Test comment", self.factory
-        )
+        result = create_from_str_line("unknown, arg1, arg2 # Test comment", self.factory)
 
         # Verify
         self.assertIsNone(result)
@@ -132,9 +128,7 @@ class TestCreateFromStrLine(unittest.TestCase):
         self.mock_class.side_effect = ValueError("Invalid values")
 
         # Call function - should handle the exception and return None
-        result = create_from_str_line(
-            "instruction, arg1, arg2 # Test comment", self.factory
-        )
+        result = create_from_str_line("instruction, arg1, arg2 # Test comment", self.factory)
 
         # Verify
         self.assertIsNone(result)

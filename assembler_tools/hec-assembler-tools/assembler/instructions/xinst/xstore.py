@@ -25,9 +25,7 @@ class Instruction(XInstruction):
         reset_GlobalCycleReady: Resets the global cycle ready for `xstore` instructions.
     """
 
-    __xstore_global_cycle_ready = CycleType(
-        0, 0
-    )  # private class attribute to track cycle ready among xstores
+    __xstore_global_cycle_ready = CycleType(0, 0)  # private class attribute to track cycle ready among xstores
 
     @classmethod
     def _get_op_name_asm(cls) -> str:
@@ -86,20 +84,10 @@ class Instruction(XInstruction):
         self.__internal_set_dests(src)
 
         if dest_spad_addr < 0 and src[0].spad_address < 0:
-            raise ValueError(
-                "`dest_spad_addr` must be a valid SPAD address if source variable is not allocated in SPAD."
-            )
-        if (
-            dest_spad_addr >= 0
-            and src[0].spad_address >= 0
-            and dest_spad_addr != src[0].spad_address
-        ):
-            raise ValueError(
-                "`dest_spad_addr` must be null SPAD address (negative) if source variable is allocated in SPAD."
-            )
-        self.dest_spad_address = (
-            src[0].spad_address if dest_spad_addr < 0 else dest_spad_addr
-        )
+            raise ValueError("`dest_spad_addr` must be a valid SPAD address if source variable is not allocated in SPAD.")
+        if dest_spad_addr >= 0 and src[0].spad_address >= 0 and dest_spad_addr != src[0].spad_address:
+            raise ValueError("`dest_spad_addr` must be null SPAD address (negative) if source variable is allocated in SPAD.")
+        self.dest_spad_address = src[0].spad_address if dest_spad_addr < 0 else dest_spad_addr
 
     def __repr__(self):
         """
@@ -109,11 +97,7 @@ class Instruction(XInstruction):
             str: A string representation of the Instruction object, including
                  its type, name, memory address, ID, source, memory model, destination SPAD address, throughput, and latency.
         """
-        retval = (
-            "<{}({}) object at {}>(id={}[0], "
-            "src={}, mem_model, dest_spad_addr={}, "
-            "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "src={}, mem_model, dest_spad_addr={}, " "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),
@@ -172,8 +156,7 @@ class Instruction(XInstruction):
         if len(value) != Instruction._OP_NUM_DESTS:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Variable` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Variable` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_SOURCES, len(value)
                     )
                 )
@@ -196,8 +179,7 @@ class Instruction(XInstruction):
         if len(value) != Instruction._OP_NUM_SOURCES:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Variable` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Variable` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_SOURCES, len(value)
                     )
                 )
@@ -243,37 +225,21 @@ class Instruction(XInstruction):
             int: The throughput for this instruction. i.e. the number of cycles by which to advance
                  the current cycle counter.
         """
-        assert (
-            Instruction._OP_NUM_SOURCES > 0
-            and len(self.sources) == Instruction._OP_NUM_SOURCES
-        )
-        assert (
-            Instruction._OP_NUM_DESTS > 0
-            and len(self.dests) == Instruction._OP_NUM_DESTS
-        )
+        assert Instruction._OP_NUM_SOURCES > 0 and len(self.sources) == Instruction._OP_NUM_SOURCES
+        assert Instruction._OP_NUM_DESTS > 0 and len(self.dests) == Instruction._OP_NUM_DESTS
         assert all(src == dst for src, dst in zip(self.sources, self.dests))
 
         if not isinstance(self.sources[0], Variable):
-            raise RuntimeError(
-                "XInstruction ({}, id = {}) already scheduled.".format(
-                    self.name, self.id
-                )
-            )
+            raise RuntimeError("XInstruction ({}, id = {}) already scheduled.".format(self.name, self.id))
 
-        store_buffer_item = MemoryModel.StoreBufferValueType(
-            variable=self.sources[0], dest_spad_address=self.dest_spad_address
-        )
+        store_buffer_item = MemoryModel.StoreBufferValueType(variable=self.sources[0], dest_spad_address=self.dest_spad_address)
         register = self.sources[0].register
         retval = super()._schedule(cycle_count, schedule_id)
         # Perform xstore
         register.register_dirty = False  # Register has been flushed
         register.allocateVariable(None)
-        self.sources[0] = (
-            register  # Make the register the source for freezing, since variable is no longer in it
-        )
-        self.__mem_model.store_buffer[store_buffer_item.variable.name] = (
-            store_buffer_item
-        )
+        self.sources[0] = register  # Make the register the source for freezing, since variable is no longer in it
+        self.__mem_model.store_buffer[store_buffer_item.variable.name] = store_buffer_item
         # Matching CInst cstore completes the xstore
 
         if self.comment:
@@ -285,9 +251,7 @@ class Instruction(XInstruction):
         )
 
         # Set the global cycle ready for next xstore
-        Instruction.__set_xstoreGlobalCycleReady(
-            CycleType(cycle_count.bundle, cycle_count.cycle + self.latency)
-        )
+        Instruction.__set_xstoreGlobalCycleReady(CycleType(cycle_count.bundle, cycle_count.cycle + self.latency))
         return retval
 
     def _to_pisa_format(self, *extra_args) -> str:

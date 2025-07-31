@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Intel Corporation
+// Copyright (C) 2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -297,7 +297,7 @@ std::vector<std::pair<std::string, std::vector<T>>> JSONDataHandler<T>::getAllim
         }
         auto metadata = m_input_json["metadata"];
         auto inputs   = metadata.find("immediate");
-        if (inputs != metadata.end() && !inputs->empty())
+        if (!inputs.operator==(metadata.end()) && !inputs->empty())
         {
             for (const auto &input : inputs->items())
             {

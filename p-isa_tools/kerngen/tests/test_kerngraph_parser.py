@@ -24,24 +24,21 @@ Dependencies:
 - pisa_generators.* for kernel operation classes.
 """
 
-from kernel_parser.parser import KernelParser
-from high_parser.types import KernelContext, Polys, Immediate
-from pisa_generators.basic import Copy, Add, Sub, Mul, Muli
-from pisa_generators.ntt import NTT, INTT
-from pisa_generators.square import Square
-from pisa_generators.relin import Relin
-from pisa_generators.rotate import Rotate
-from pisa_generators.mod import Mod, ModUp
-from pisa_generators.rescale import Rescale
 import pytest
+from high_parser.types import Immediate, KernelContext, Polys
+from kernel_parser.parser import KernelParser
+from pisa_generators.basic import Add, Copy, Mul, Muli, Sub
+from pisa_generators.mod import Mod, ModUp
+from pisa_generators.ntt import INTT, NTT
+from pisa_generators.relin import Relin
+from pisa_generators.rescale import Rescale
+from pisa_generators.rotate import Rotate
+from pisa_generators.square import Square
 
 
 def test_parse_context_valid():
     """Test parsing of a valid KernelContext string."""
-    s = (
-        "KernelContext(scheme='CKKS', poly_order=16, key_rns=5, current_rns=3, "
-        "max_rns=4, num_digits=None, label='foo')"
-    )
+    s = "KernelContext(scheme='CKKS', poly_order=16, key_rns=5, current_rns=3, " "max_rns=4, num_digits=None, label='foo')"
     ctx = KernelParser.parse_context(s)
     assert isinstance(ctx, KernelContext)
     assert ctx.scheme == "CKKS"

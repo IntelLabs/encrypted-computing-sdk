@@ -1,4 +1,8 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 from .xinstruction import XInstruction
+
 
 class Instruction(XInstruction):
     """
@@ -12,7 +16,7 @@ class Instruction(XInstruction):
     Methods:
         fromASMISALine: Parses an ASM ISA line to create an Instruction instance.
     """
-    
+
     @classmethod
     def fromASMISALine(cls, line: str) -> list:
         """
@@ -32,7 +36,7 @@ class Instruction(XInstruction):
         if tokens:
             tokens, comment = tokens
             if len(tokens) < 4 or tokens[2] != cls.name:
-                raise ValueError('`line`: could not parse f{cls.name} from specified line.')
+                raise ValueError("`line`: could not parse f{cls.name} from specified line.")
             idle_cycles = int(tokens[3]) + 1
             retval = cls(
                 int(tokens[0][1:]),  # Bundle
@@ -42,7 +46,7 @@ class Instruction(XInstruction):
                 idle_cycles,
                 idle_cycles,
                 tokens[3:],
-                comment
+                comment,
             )
         return retval
 
@@ -56,15 +60,9 @@ class Instruction(XInstruction):
         """
         return "nop"
 
-    def __init__(self,
-                 bundle: int,
-                 pisa_instr: int,
-                 dsts: list,
-                 srcs: list,
-                 throughput: int,
-                 latency: int,
-                 other: list = [],
-                 comment: str = ""):
+    def __init__(
+        self, bundle: int, pisa_instr: int, dsts: list, srcs: list, throughput: int, latency: int, other: list = [], comment: str = ""
+    ):
         """
         Initializes an Instruction instance.
 
