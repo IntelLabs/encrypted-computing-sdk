@@ -21,22 +21,22 @@ the data movement between the memory and the compute elements.
 The Encrypted Computing SDK introduces a multistage transformation
 (compiler) pipeline that breaks down the large polynomial computation into
 the various abstraction layers to make it easier for developers to target
-different hardware architectures as well as to develop new implementations
+different hardware platform architectures as well as to develop new implementations
 of FHE schemes, and integrate with existing 3rd Party libraries, compilers
 and transpilers. The SDK is inspired by the
 [LLVM Compiler Infrastructure](https://llvm.org/), and adopts a
 modular approach based on language independent intermediate
 representations (IRs) that promotes the separation of concerns at each
-stage of the pipeline and allowing for dedicated transformations and
+stage of the pipeline, allowing for dedicated transformations and
 optimizations.
 
-Our first target hardware platform is Intel’s 
+Our first target hardware accelerator is Intel’s
 [HERACLES accelerator technology](https://dl.acm.org/doi/10.1145/3560810.3565290)
 which introduces a new Polynomial Data type which does not exist in today's
 traditional CPUs. For this new polynomial data type, it supports a
 new set of novel and fundamental instructions, the Polynomial Instructions
 Set Architecture (P-ISA), that operates directly on large polynomials in
-a SIMD fashion. 
+a SIMD fashion.
 
 
 <p>
@@ -63,13 +63,19 @@ a SIMD fashion.
 <br/>
 </p>
 
-We are currently at Phase 1, developing the P-ISA tools and Assembler tools
-component which comprises a) Kernel Generator, b) Program
-Mapper, c) Functional Modeler Simulator, and d) HERACLES Assembler.
-Each tool in this repo is self contained and has its own local README.
+We are currently at Phase 1, and have a functional ptototype of
+the [P-ISA tools](./p-isa-tools) components and a prototype of
+the [Assemble compiler](./assembler_tools/hec-assembler-tools)
+for the intel HERACLES accelerator technology.
+
+# Quick Start
+To start using the Encrypted Computing SDK, it is first necessary to build
+two of the components of the P-ISA Tools. Please follow the instructions
+in the [README file](./p-isa_tools). After building the tools, check
+the [P-ISA Tutorials](./tutorials/p-isa-tools/README.md).
 
 # Contributing
-Intel P-ISA Tools project welcomes external contributions through pull
+The Encrypted Computing SDK team welcomes external contributions through pull
 requests to the `main` branch.
 
 Please refer to the [Contributing](CONTRIBUTING.md) and
@@ -93,6 +99,6 @@ the tests pass.
 
 # Feedback
 We encourage feedback and suggestions via
-[GitHub Issues](https://github.com/IntelLabs/encrypted-computing-sdk/issues) as well
-as via
+[GitHub Issues](https://github.com/IntelLabs/encrypted-computing-sdk/issues)
+as well as via
 [GitHub Discussions](https://github.com/IntelLabs/encrypted-computing-sdk/discussions).
