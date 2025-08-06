@@ -109,6 +109,9 @@ skip-magic-trailing-comma = false
 # Automatically detect the appropriate line ending
 line-ending = "auto"
 
+[tool.pytest.ini_options]
+pythonpath = ["p-isa_tools/kerngen", "assembler_tools/hec-assembler-tools"]
+
 [tool.mypy]
 python_version = "3.10"
 namespace_packages = true
