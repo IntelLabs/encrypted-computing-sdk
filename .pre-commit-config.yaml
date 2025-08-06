@@ -32,6 +32,8 @@ repos:
           - --license-filepath
           # defaults to: LICENSE.txt
           - HEADER
+          - --fuzzy-match-generates-todo
+          - --fuzzy-ratio-cut-off=85
         - id: insert-license
           name: insert-license-cpp
           files: \.(c|cc|cxx|cpp|h|hpp|hxx|inl|h.in)$
@@ -41,6 +43,8 @@ repos:
           - HEADER
           - --comment-style
           - //                   # defaults to: #
+          - --fuzzy-match-generates-todo
+          - --fuzzy-ratio-cut-off=85
         - id: remove-tabs
           name: remove-tabs
           files: \.(py)$
