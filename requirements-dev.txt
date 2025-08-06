@@ -9,7 +9,7 @@ pylint>=3.0.0
 
 # Optional: For IDE integration and manual use (pre-commit handles these automatically)
 black==25.1.0
-mypy==1.17.0
+mypy==1.17.1
 
 # C++ linting
 cpplint>=1.6.0
