@@ -1,10 +1,5 @@
-# Copyright (C) 2025 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
-
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
-
-# Copyright (C) 2024 Intel Corporation
 
 """Module containing conversions or operations from isa to p-isa."""
 
@@ -42,7 +37,11 @@ class Rescale(HighOp):
         # Immediates
         last_q = self.input0.rns - 1
 
-        one, r2, iq = common_immediates(r2_rns=last_q, iq_rns=last_q, iq_suffix=self.var_suffix + f"_{self.context.current_rns}")
+        one, r2, iq = common_immediates(
+            r2_rns=last_q,
+            iq_rns=last_q,
+            iq_suffix=self.var_suffix + f"_{self.context.current_rns}",
+        )
 
         q_last_half = Polys("qLastHalf", 1, self.input0.rns)
         q_i_last_half = Polys("qiLastHalf" + f"_{self.context.current_rns}", 1, rns=last_q)

@@ -1,6 +1,3 @@
-# Copyright (C) 2025 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
-
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
@@ -129,7 +126,15 @@ class Mul(HighOp):
     input1: KeyPolys | Polys
 
     # pylint: disable=too-many-arguments
-    def generate_unit(self, unit: int, q: int, out_idx: int, in_idxs: InIdxs, *, digit: int | None = None):
+    def generate_unit(
+        self,
+        unit: int,
+        q: int,
+        out_idx: int,
+        in_idxs: InIdxs,
+        *,
+        digit: int | None = None,
+    ):
         """Helper for a given unit and q generate the p-isa ops for a multiplication"""
 
         def get_pisa_op(num):
