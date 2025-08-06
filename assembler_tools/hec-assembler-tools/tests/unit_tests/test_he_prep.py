@@ -8,12 +8,13 @@
 @brief Unit tests for he_prep module.
 """
 
-from unittest import mock
 import os
-import sys
 import pathlib
-import pytest
+import sys
+from unittest import mock
+
 import he_prep
+import pytest
 
 
 def test_main_assigns_and_saves(monkeypatch, tmp_path):
@@ -37,9 +38,7 @@ def test_main_assigns_and_saves(monkeypatch, tmp_path):
         "preprocess_pisa_kernel_listing",
         mock.Mock(return_value=dummy_insts),
     )
-    monkeypatch.setattr(
-        he_prep.preprocessor, "assign_register_banks_to_vars", mock.Mock()
-    )
+    monkeypatch.setattr(he_prep.preprocessor, "assign_register_banks_to_vars", mock.Mock())
 
     he_prep.main(str(output_file), str(input_file), b_verbose=False)
     # Output file should contain the instruction
@@ -51,9 +50,7 @@ def test_main_no_input_file():
     @brief Test that main raises an error when no input file is provided.
     """
     with pytest.raises(FileNotFoundError):
-        he_prep.main(
-            "", "", b_verbose=False
-        )  # Should raise an error due to missing input file
+        he_prep.main("", "", b_verbose=False)  # Should raise an error due to missing input file
 
 
 def test_main_no_output_file():
@@ -61,9 +58,7 @@ def test_main_no_output_file():
     @brief Test that main raises an error when no output file is provided.
     """
     with pytest.raises(FileNotFoundError):
-        he_prep.main(
-            "", "input.csv", b_verbose=False
-        )  # Should raise an error due to missing output file
+        he_prep.main("", "input.csv", b_verbose=False)  # Should raise an error due to missing output file
 
 
 def test_main_no_instructions(monkeypatch):
@@ -85,18 +80,13 @@ def test_main_no_instructions(monkeypatch):
         "preprocess_pisa_kernel_listing",
         mock.Mock(return_value=[]),
     )
-    monkeypatch.setattr(
-        he_prep.preprocessor, "assign_register_banks_to_vars", mock.Mock()
-    )
+    monkeypatch.setattr(he_prep.preprocessor, "assign_register_banks_to_vars", mock.Mock())
 
     he_prep.main(output_file, input_file, b_verbose=False)
 
     # Output file should be empty
     output_file_path = pathlib.Path(output_file)
-    assert (
-        not output_file_path.exists()
-        or output_file_path.read_text(encoding="utf-8").strip() == ""
-    )
+    assert not output_file_path.exists() or output_file_path.read_text(encoding="utf-8").strip() == ""
 
 
 def test_main_invalid_input_file(tmp_path):
@@ -107,9 +97,7 @@ def test_main_invalid_input_file(tmp_path):
     output_file = tmp_path / "output.csv"
 
     with pytest.raises(FileNotFoundError):
-        he_prep.main(
-            str(output_file), str(input_file), b_verbose=False
-        )  # Should raise an error due to missing input file
+        he_prep.main(str(output_file), str(input_file), b_verbose=False)  # Should raise an error due to missing input file
 
 
 def test_main_invalid_output_file(tmp_path):
@@ -127,9 +115,7 @@ def test_main_invalid_output_file(tmp_path):
     os.chmod(output_file, 0o444)  # Read-only permissions
 
     with pytest.raises(PermissionError):
-        he_prep.main(
-            str(output_file), str(input_file), b_verbose=False
-        )  # Should raise an error due to permission issues
+        he_prep.main(str(output_file), str(input_file), b_verbose=False)  # Should raise an error due to permission issues
 
 
 def test_parse_args():

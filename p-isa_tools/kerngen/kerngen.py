@@ -7,21 +7,17 @@
 
 import argparse
 import sys
-from typing import Iterable
+from collections.abc import Iterable
 
-from high_parser.parser import Parser
 from high_parser.config import Config
+from high_parser.parser import Parser
 
 
 def parse_args():
     """Parse arguments from the commandline"""
     parser = argparse.ArgumentParser(description="Kernel Generator")
-    parser.add_argument(
-        "-q", "--quiet", action="store_true", help="disable comments in output"
-    )
-    parser.add_argument(
-        "-l", "--legacy", action="store_true", help="enable legacy mode"
-    )
+    parser.add_argument("-q", "--quiet", action="store_true", help="disable comments in output")
+    parser.add_argument("-l", "--legacy", action="store_true", help="enable legacy mode")
     return parser.parse_args()
 
 
@@ -41,11 +37,10 @@ def main(args) -> None:
 
     # String blocks of the p-isa instructions (forward the Nones)
     pisa_ops: list[str | None] = list(
-        to_string_block(op, ignore_comments=args.quiet) if op is not None else None
-        for op in parse_results.get_pisa_ops()
+        to_string_block(op, ignore_comments=args.quiet) if op is not None else None for op in parse_results.get_pisa_ops()
     )
 
-    filtered = (t for t in zip(pisa_ops, parse_results.commands) if t[0] is not None)
+    filtered = (t for t in zip(pisa_ops, parse_results.commands, strict=False) if t[0] is not None)
 
     if args.quiet is True:
         for pisa_op, _ in filtered:

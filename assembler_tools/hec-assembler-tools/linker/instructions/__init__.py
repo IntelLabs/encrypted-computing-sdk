@@ -7,11 +7,13 @@
 """@brief This module provides functionality to create instruction objects from a line of text."""
 
 from typing import Optional
+
 from assembler.instructions import tokenize_from_line
+
 from linker.instructions.instruction import BaseInstruction
 
 
-def create_from_str_line(line: str, factory) -> Optional[BaseInstruction]:
+def create_from_str_line(line: str, factory) -> BaseInstruction | None:
     """
     @brief Parses an instruction from a line of text.
 

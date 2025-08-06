@@ -8,6 +8,7 @@
 @file linker_run_config.py
 @brief This module provides configuration for the linker process.
 """
+
 import io
 import os
 from typing import Any
@@ -73,9 +74,7 @@ class LinkerRunConfig(RunConfig):
             if not isinstance(kwargs["hbm_size"], int):
                 raise ValueError("Invalid param: hbm_size must be an integer")
             if kwargs["hbm_size"] < 0:
-                raise ValueError(
-                    "Invalid param: hbm_size must be a non-negative integer"
-                )
+                raise ValueError("Invalid param: hbm_size must be a non-negative integer")
 
         if "has_hbm" in kwargs and not isinstance(kwargs["has_hbm"], bool):
             raise ValueError("Invalid param: has_hbm must be a boolean value")
@@ -89,9 +88,7 @@ class LinkerRunConfig(RunConfig):
                 if not hasattr(self, config_name):
                     setattr(self, config_name, default_value)
                     if getattr(self, config_name) is None:
-                        raise TypeError(
-                            f"Expected value for configuration `{config_name}`, but `None` received."
-                        )
+                        raise TypeError(f"Expected value for configuration `{config_name}`, but `None` received.")
 
         # Fix file paths
         # E0203: Access to member 'input_mem_file' before its definition.
@@ -141,10 +138,5 @@ class LinkerRunConfig(RunConfig):
         """
         retval = super().as_dict()
         tmp_self_dict = vars(self)
-        retval.update(
-            {
-                config_name: tmp_self_dict[config_name]
-                for config_name in self.__default_config
-            }
-        )
+        retval.update({config_name: tmp_self_dict[config_name] for config_name in self.__default_config})
         return retval

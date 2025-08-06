@@ -1,14 +1,19 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
 """Module containing relin."""
-from dataclasses import dataclass
-from high_parser.pisa_operations import PIsaOp, Comment
-from high_parser import KernelContext, HighOp, KeyPolys, Polys
-from .basic import Add, KeyMul, mixed_to_pisa_ops, extract_last_part_polys
 
-from .mod import Mod
+from dataclasses import dataclass
+
+from high_parser import HighOp, KernelContext, KeyPolys, Polys
+from high_parser.pisa_operations import Comment, PIsaOp
+
+from .basic import Add, KeyMul, extract_last_part_polys, mixed_to_pisa_ops
 from .decomp import DigitDecompExtend
+from .mod import Mod
 
 
 @dataclass
@@ -25,18 +30,14 @@ class Relin(HighOp):
         supports number of digits equal to the RNS size"""
         self.output.parts = 2
         self.input0.parts = 3
-        relin_key = KeyPolys(
-            "rlk", parts=2, rns=self.context.key_rns, digits=self.input0.rns
-        )
+        relin_key = KeyPolys("rlk", parts=2, rns=self.context.key_rns, digits=self.input0.rns)
 
         mul_by_rlk = Polys("c2_rlk", parts=2, rns=self.context.key_rns)
 
         mul_by_rlk_modded_down = Polys.from_polys(mul_by_rlk)
         mul_by_rlk_modded_down.rns = self.input0.rns
 
-        input_last_part, last_coeff, upto_last_coeffs = extract_last_part_polys(
-            self.input0, self.context.key_rns
-        )
+        input_last_part, last_coeff, upto_last_coeffs = extract_last_part_polys(self.input0, self.context.key_rns)
 
         add_original = Polys.from_polys(mul_by_rlk_modded_down)
         add_original.name = self.input0.name

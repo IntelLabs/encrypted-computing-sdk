@@ -6,14 +6,16 @@
 
 """@brief This module provides functionality to link kernels into a program."""
 
-from typing import Dict, Any, cast
-from linker import MemoryModel
-from linker.loader import Loader
-from linker.instructions import minst, cinst, dinst
-from linker.instructions.dinst.dinstruction import DInstruction
-from linker.kern_trace.kern_remap import remap_m_c_instrs_vars
+from typing import Any, cast
+
 from assembler.common.config import GlobalConfig
 from assembler.instructions import cinst as ISACInst
+
+from linker import MemoryModel
+from linker.instructions import cinst, dinst, minst
+from linker.instructions.dinst.dinstruction import DInstruction
+from linker.kern_trace.kern_remap import remap_m_c_instrs_vars
+from linker.loader import Loader
 
 
 class LinkedProgram:  # pylint: disable=too-many-instance-attributes
@@ -54,9 +56,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         self._minst_line_offset = 0
         self._cinst_line_offset = 0
         self._kernel_count = 0  # Number of kernels linked into this program
-        self._is_open = (
-            True  # Tracks whether this program is still accepting kernels to link
-        )
+        self._is_open = True  # Tracks whether this program is still accepting kernels to link
 
     @property
     def is_open(self) -> bool:
@@ -115,20 +115,16 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         @exception RuntimeError If the HBM address is invalid or does not match the declared address.
         """
         if hbm_address < 0:
-            raise RuntimeError(
-                f'Invalid negative HBM address for variable "{var_name}".'
-            )
+            raise RuntimeError(f'Invalid negative HBM address for variable "{var_name}".')
         if var_name in self.__mem_model.mem_info_vars:
             # Cast to dictionary to fix the indexing error
-            mem_info_vars_dict = cast(Dict[str, Any], self.__mem_model.mem_info_vars)
+            mem_info_vars_dict = cast(dict[str, Any], self.__mem_model.mem_info_vars)
             if mem_info_vars_dict[var_name].hbm_address != hbm_address:
                 raise RuntimeError(
-                    (
-                        f"Declared HBM address "
-                        f"({mem_info_vars_dict[var_name].hbm_address})"
-                        f" of mem Variable '{var_name}'"
-                        f" differs from allocated HBM address ({hbm_address})."
-                    )
+                    f"Declared HBM address "
+                    f"({mem_info_vars_dict[var_name].hbm_address})"
+                    f" of mem Variable '{var_name}'"
+                    f" differs from allocated HBM address ({hbm_address})."
                 )
 
     def _validate_spad_address(self, var_name: str, spad_address: int):
@@ -146,20 +142,16 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         # this method will validate the variable SPAD address against the
         # original HBM address, since there is no HBM
         if spad_address < 0:
-            raise RuntimeError(
-                f'Invalid negative SPAD address for variable "{var_name}".'
-            )
+            raise RuntimeError(f'Invalid negative SPAD address for variable "{var_name}".')
         if var_name in self.__mem_model.mem_info_vars:
             # Cast to dictionary to fix the indexing error
-            mem_info_vars_dict = cast(Dict[str, Any], self.__mem_model.mem_info_vars)
+            mem_info_vars_dict = cast(dict[str, Any], self.__mem_model.mem_info_vars)
             if mem_info_vars_dict[var_name].hbm_address != spad_address:
                 raise RuntimeError(
-                    (
-                        f"Declared HBM address"
-                        f" ({mem_info_vars_dict[var_name].hbm_address})"
-                        f" of mem Variable '{var_name}'"
-                        f" differs from allocated HBM address ({spad_address})."
-                    )
+                    f"Declared HBM address"
+                    f" ({mem_info_vars_dict[var_name].hbm_address})"
+                    f" of mem Variable '{var_name}'"
+                    f" differs from allocated HBM address ({spad_address})."
                 )
 
     def _update_minsts(self, kernel_minstrs: list):
@@ -180,29 +172,17 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             # Change mload variable names into HBM addresses
             if isinstance(minstr, minst.MLoad):
                 var_name = minstr.source
-                hbm_address = self.__mem_model.use_variable(
-                    var_name, self._kernel_count
-                )
+                hbm_address = self.__mem_model.use_variable(var_name, self._kernel_count)
                 self._validate_hbm_address(var_name, hbm_address)
                 minstr.source = str(hbm_address)
-                minstr.comment = (
-                    f" var: {var_name} - HBM({hbm_address})" + f";{minstr.comment}"
-                    if minstr.comment
-                    else ""
-                )
+                minstr.comment = f" var: {var_name} - HBM({hbm_address})" + f";{minstr.comment}" if minstr.comment else ""
             # Change mstore variable names into HBM addresses
             if isinstance(minstr, minst.MStore):
                 var_name = minstr.dest
-                hbm_address = self.__mem_model.use_variable(
-                    var_name, self._kernel_count
-                )
+                hbm_address = self.__mem_model.use_variable(var_name, self._kernel_count)
                 self._validate_hbm_address(var_name, hbm_address)
                 minstr.dest = str(hbm_address)
-                minstr.comment = (
-                    f" var: {var_name} - HBM({hbm_address})" + f";{minstr.comment}"
-                    if minstr.comment
-                    else ""
-                )
+                minstr.comment = f" var: {var_name} - HBM({hbm_address})" + f";{minstr.comment}" if minstr.comment else ""
 
     def _remove_and_merge_csyncm_cnop(self, kernel_cinstrs: list):
         """
@@ -305,9 +285,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 cinstr.bundle = cinstr.bundle + self._bundle_offset
             # Update xinstfetch
             if isinstance(cinstr, cinst.XInstFetch):
-                raise NotImplementedError(
-                    "`xinstfetch` not currently supported by linker."
-                )
+                raise NotImplementedError("`xinstfetch` not currently supported by linker.")
             # Update csyncm
             if isinstance(cinstr, cinst.CSyncm):
                 cinstr.target = cinstr.target + self._minst_line_offset
@@ -315,32 +293,18 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             if not GlobalConfig.hasHBM:
                 # update all SPAD instruction variable names to be SPAD addresses
                 # change xload variable names into SPAD addresses
-                if isinstance(
-                    cinstr, (cinst.BLoad, cinst.BOnes, cinst.CLoad, cinst.NLoad)
-                ):
+                if isinstance(cinstr, (cinst.BLoad, cinst.BOnes, cinst.CLoad, cinst.NLoad)):
                     var_name = cinstr.source
-                    hbm_address = self.__mem_model.use_variable(
-                        var_name, self._kernel_count
-                    )
+                    hbm_address = self.__mem_model.use_variable(var_name, self._kernel_count)
                     self._validate_spad_address(var_name, hbm_address)
                     cinstr.source = str(hbm_address)
-                    cinstr.comment = (
-                        f" var: {var_name} - HBM({hbm_address})" + f";{cinstr.comment}"
-                        if cinstr.comment
-                        else ""
-                    )
+                    cinstr.comment = f" var: {var_name} - HBM({hbm_address})" + f";{cinstr.comment}" if cinstr.comment else ""
                 if isinstance(cinstr, cinst.CStore):
                     var_name = cinstr.dest
-                    hbm_address = self.__mem_model.use_variable(
-                        var_name, self._kernel_count
-                    )
+                    hbm_address = self.__mem_model.use_variable(var_name, self._kernel_count)
                     self._validate_spad_address(var_name, hbm_address)
                     cinstr.dest = str(hbm_address)
-                    cinstr.comment = (
-                        f" var: {var_name} - HBM({hbm_address})" + f";{cinstr.comment}"
-                        if cinstr.comment
-                        else ""
-                    )
+                    cinstr.comment = f" var: {var_name} - HBM({hbm_address})" + f";{cinstr.comment}" if cinstr.comment else ""
 
     def _update_cinsts(self, kernel_cinstrs: list):
         """
@@ -373,15 +337,11 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         for xinstr in kernel_xinstrs:
             xinstr.bundle = xinstr.bundle + self._bundle_offset
             if last_bundle > xinstr.bundle:
-                raise RuntimeError(
-                    f'Detected invalid bundle. Instruction bundle is less than previous: "{xinstr.to_line()}"'
-                )
+                raise RuntimeError(f'Detected invalid bundle. Instruction bundle is less than previous: "{xinstr.to_line()}"')
             last_bundle = xinstr.bundle
         return last_bundle
 
-    def link_kernel(
-        self, kernel_minstrs: list, kernel_cinstrs: list, kernel_xinstrs: list
-    ):
+    def link_kernel(self, kernel_minstrs: list, kernel_cinstrs: list, kernel_xinstrs: list):
         """
         @brief Links a specified kernel (given by its three instruction queues) into this
         program.
@@ -431,18 +391,12 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 print(f" #{minstr.comment}", end="", file=self._minst_ostream)
             print(file=self._minst_ostream)
 
-        self._minst_line_offset += (
-            len(kernel_minstrs) - 1
-        )  # Subtract last line that is getting removed
-        self._cinst_line_offset += (
-            len(kernel_cinstrs) - 1
-        )  # Subtract last line that is getting removed
+        self._minst_line_offset += len(kernel_minstrs) - 1  # Subtract last line that is getting removed
+        self._cinst_line_offset += len(kernel_cinstrs) - 1  # Subtract last line that is getting removed
         self._kernel_count += 1  # Count the appended kernel
 
     @classmethod
-    def join_dinst_kernels(
-        cls, kernels_instrs: list[list[DInstruction]]
-    ) -> list[DInstruction]:
+    def join_dinst_kernels(cls, kernels_instrs: list[list[DInstruction]]) -> list[DInstruction]:
         """
         @brief Joins a list of dinst kernels, consolidating variables that are outputs in one kernel
         and inputs in the next. This ensures that variables carried across kernels are not duplicated,
@@ -466,7 +420,6 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         new_kernels_instrs: list[DInstruction] = []
         for kernel_instrs in kernels_instrs:
             for cur_dinst in kernel_instrs:
-
                 # Save the current output instruction to add at the end
                 if isinstance(cur_dinst, dinst.DStore):
                     key = cur_dinst.var
@@ -477,9 +430,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                     key = cur_dinst.var
                     # Skip if the input is already in carry-over from previous outputs
                     if key in carry_over_vars:
-                        carry_over_vars.pop(
-                            key
-                        )  # Remove from (output) carry-overs since it's now an input
+                        carry_over_vars.pop(key)  # Remove from (output) carry-overs since it's now an input
                         continue
 
                     # If the input is not (a previous output) in carry-over, add if it's not already (loaded) in inputs
@@ -500,9 +451,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         return new_kernels_instrs
 
     @staticmethod
-    def link_kernels_to_files(
-        input_files, output_files, mem_model, verbose_stream=None
-    ):
+    def link_kernels_to_files(input_files, output_files, mem_model, verbose_stream=None):
         """
         @brief Links input kernels and writes the output to the specified files.
 
@@ -511,15 +460,12 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         @param mem_model Memory model to use.
         @param verbose_stream Stream for verbose output.
         """
-        with open(output_files.minst, "w", encoding="utf-8") as fnum_output_minst, open(
-            output_files.cinst, "w", encoding="utf-8"
-        ) as fnum_output_cinst, open(
-            output_files.xinst, "w", encoding="utf-8"
-        ) as fnum_output_xinst:
-
-            result_program = LinkedProgram(
-                fnum_output_minst, fnum_output_cinst, fnum_output_xinst, mem_model
-            )
+        with (
+            open(output_files.minst, "w", encoding="utf-8") as fnum_output_minst,
+            open(output_files.cinst, "w", encoding="utf-8") as fnum_output_cinst,
+            open(output_files.xinst, "w", encoding="utf-8") as fnum_output_xinst,
+        ):
+            result_program = LinkedProgram(fnum_output_minst, fnum_output_cinst, fnum_output_xinst, mem_model)
 
             for idx, kernel in enumerate(input_files):
                 if verbose_stream:
@@ -535,9 +481,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 remap_m_c_instrs_vars(kernel_minstrs, kernel.remap_dict)
                 remap_m_c_instrs_vars(kernel_cinstrs, kernel.remap_dict)
 
-                result_program.link_kernel(
-                    kernel_minstrs, kernel_cinstrs, kernel_xinstrs
-                )
+                result_program.link_kernel(kernel_minstrs, kernel_cinstrs, kernel_xinstrs)
             if verbose_stream:
                 print(
                     "[ 100% ] Finalizing output",

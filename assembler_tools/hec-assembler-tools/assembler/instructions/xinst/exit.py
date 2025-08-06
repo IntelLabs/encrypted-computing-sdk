@@ -25,9 +25,7 @@ class Instruction(XInstruction):
         """
         return "bexit"
 
-    def __init__(
-        self, id: int, throughput: int = None, latency: int = None, comment: str = ""
-    ):
+    def __init__(self, id: int, throughput: int = None, latency: int = None, comment: str = ""):
         """
         Initializes an Instruction object with the given parameters.
 
@@ -51,9 +49,7 @@ class Instruction(XInstruction):
         Returns:
             str: A string representation.
         """
-        retval = (
-            "<{}({}) object at {}>(id={}[0], " "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),
@@ -73,9 +69,7 @@ class Instruction(XInstruction):
         Raises:
             RuntimeError: Always raised as `bexit` does not have parameters.
         """
-        raise RuntimeError(
-            f"Instruction `{self.op_name_pisa}` does not have parameters."
-        )
+        raise RuntimeError(f"Instruction `{self.op_name_pisa}` does not have parameters.")
 
     def _set_sources(self, value):
         """
@@ -87,9 +81,7 @@ class Instruction(XInstruction):
         Raises:
             RuntimeError: Always raised as `bexit` does not have parameters.
         """
-        raise RuntimeError(
-            f"Instruction `{self.op_name_pisa}` does not have parameters."
-        )
+        raise RuntimeError(f"Instruction `{self.op_name_pisa}` does not have parameters.")
 
     def _to_pisa_format(self, *extra_args) -> str:
         """

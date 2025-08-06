@@ -6,8 +6,9 @@
 """Module for loop interchange optimization in P-ISA operations"""
 
 import re
+
 from const.options import LoopKey
-from high_parser.pisa_operations import PIsaOp, Comment
+from high_parser.pisa_operations import Comment, PIsaOp
 
 
 class PIsaOpGroup:

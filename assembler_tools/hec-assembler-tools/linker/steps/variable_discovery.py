@@ -4,13 +4,16 @@
 """
 @brief This module provides functionality to discover variable names in MInstructions and CInstructions.
 """
-from typing import Optional, TextIO, List
-from assembler.memory_model.variable import Variable
-from assembler.memory_model import MemoryModel
+
+from typing import TextIO
+
 from assembler.common.config import GlobalConfig
-from linker.instructions import minst, cinst
-from linker.instructions.minst.minstruction import MInstruction
+from assembler.memory_model import MemoryModel
+from assembler.memory_model.variable import Variable
+
+from linker.instructions import cinst, minst
 from linker.instructions.cinst.cinstruction import CInstruction
+from linker.instructions.minst.minstruction import MInstruction
 from linker.kern_trace import KernelInfo, remap_m_c_instrs_vars
 from linker.loader import Loader
 
@@ -27,9 +30,7 @@ def discover_variables_spad(cinstrs: list):
     """
     for idx, cinstr in enumerate(cinstrs):
         if not isinstance(cinstr, CInstruction):
-            raise TypeError(
-                f"Item {idx} in list of CInstructions is not a valid CInstruction."
-            )
+            raise TypeError(f"Item {idx} in list of CInstructions is not a valid CInstruction.")
         retval = None
         # TODO: Implement variable counting for CInst
         ###############
@@ -41,9 +42,7 @@ def discover_variables_spad(cinstrs: list):
 
         if retval is not None:
             if not Variable.validateName(retval):
-                raise RuntimeError(
-                    f'Invalid Variable name "{retval}" detected in instruction "{idx}, {cinstr.to_line()}"'
-                )
+                raise RuntimeError(f'Invalid Variable name "{retval}" detected in instruction "{idx}, {cinstr.to_line()}"')
             yield retval
 
 
@@ -59,9 +58,7 @@ def discover_variables(minstrs: list):
     """
     for idx, minstr in enumerate(minstrs):
         if not isinstance(minstr, MInstruction):
-            raise TypeError(
-                f"Item {idx} in list of MInstructions is not a valid MInstruction."
-            )
+            raise TypeError(f"Item {idx} in list of MInstructions is not a valid MInstruction.")
         retval = None
         if isinstance(minstr, minst.MLoad):
             retval = minstr.source
@@ -70,16 +67,14 @@ def discover_variables(minstrs: list):
 
         if retval is not None:
             if not Variable.validateName(retval):
-                raise RuntimeError(
-                    f'Invalid Variable name "{retval}" detected in instruction "{idx}, {minstr.to_line()}"'
-                )
+                raise RuntimeError(f'Invalid Variable name "{retval}" detected in instruction "{idx}, {minstr.to_line()}"')
             yield retval
 
 
 def scan_variables(
-    kernels_info: List[KernelInfo],
+    kernels_info: list[KernelInfo],
     mem_model: MemoryModel,
-    verbose_stream: Optional[TextIO] = None,
+    verbose_stream: TextIO | None = None,
 ):
     """
     @brief Scans input files for variables and adds them to the memory model.
@@ -89,7 +84,6 @@ def scan_variables(
     @param verbose_stream Stream for verbose output.
     """
     for idx, kernel_info in enumerate(kernels_info):
-
         if not GlobalConfig.hasHBM:
             if verbose_stream:
                 print(
@@ -124,6 +118,4 @@ def check_unused_variables(mem_model):
     for var_name in mem_model.mem_info_vars:
         if var_name not in mem_model.variables:
             if GlobalConfig.hasHBM or var_name not in mem_model.mem_info_meta:
-                raise RuntimeError(
-                    f'Unused variable from input mem file: "{var_name}" not in memory model.'
-                )
+                raise RuntimeError(f'Unused variable from input mem file: "{var_name}" not in memory model.')

@@ -1,10 +1,13 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
 """Module containing the low level p-isa operations"""
 
-from dataclasses import dataclass
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 from .config import Config
 
@@ -45,9 +48,7 @@ class BinaryOp:
     def _op_str(self, op: str) -> str:
         """Return the p-isa instructions of operation `op`"""
 
-        return (
-            f"{self.label}, {op}, {self.output}, {self.input0}, {self.input1}, {self.q}"
-        )
+        return f"{self.label}, {op}, {self.output}, {self.input0}, {self.input1}, {self.q}"
 
 
 @dataclass
@@ -146,10 +147,7 @@ class Butterfly:
                 f"{self.label}, {op}, {self.output0}, {self.output1}, "
                 f"{self.input0}, {self.input1}, w_{self.q}_{self.stage}_{self.unit}, {self.q}"
             )
-        return (
-            f"{self.label}, {op}, {self.output0}, {self.output1}, "
-            f"{self.input0}, {self.input1}, {self.stage}, {self.unit}, {self.q}"
-        )
+        return f"{self.label}, {op}, {self.output0}, {self.output1}, " f"{self.input0}, {self.input1}, {self.stage}, {self.unit}, {self.q}"
 
 
 class NTT(Butterfly, PIsaOp):

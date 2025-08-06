@@ -1,14 +1,17 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
 """Module containing conversions or operations from isa to p-isa."""
 
-from dataclasses import dataclass
 import itertools as it
+from dataclasses import dataclass
 
 import high_parser.pisa_operations as pisa_op
+from high_parser import HighOp, Immediate, KernelContext, Polys
 from high_parser.pisa_operations import PIsaOp
-from high_parser import KernelContext, Immediate, HighOp, Polys
 
 from .basic import Mul, Muli, mixed_to_pisa_ops
 
@@ -31,26 +34,19 @@ def butterflies_ops(
     input0: Polys,
     *,  # only kwargs after
     init_input: bool = False,
-    unit_size: int = 8192
+    unit_size: int = 8192,
 ) -> list[PIsaOp]:
     """Helper to return butterflies pisa operations for NTT/INTT"""
     ntt_stages_div_by_two = context.ntt_stages % 2
 
     # generate the stages, which depends on the total ntt stages.
     stage_dst_srcs = [
-        (
-            (stage, outtmp, output)
-            if ntt_stages_div_by_two == stage % 2
-            else (stage, output, outtmp)
-        )
-        for stage in range(context.ntt_stages)
+        ((stage, outtmp, output) if ntt_stages_div_by_two == stage % 2 else (stage, output, outtmp)) for stage in range(context.ntt_stages)
     ]
 
     # For INTTs, start with input0 on the first stage destinations
     if init_input is True:
-        stage_dst_srcs[0] = (
-            (0, outtmp, input0) if ntt_stages_div_by_two == 0 else (0, output, input0)
-        )
+        stage_dst_srcs[0] = (0, outtmp, input0) if ntt_stages_div_by_two == 0 else (0, output, input0)
 
     return [
         op(
@@ -84,9 +80,7 @@ class NTT(HighOp):
     def to_pisa(self) -> list[PIsaOp]:
         """Return the p-isa code to perform an NTT"""
         # TODO Is this passed in?
-        psi = Polys(
-            "psi", parts=1, rns=self.input0.rns, start_rns=self.input0.start_rns
-        )
+        psi = Polys("psi", parts=1, rns=self.input0.rns, start_rns=self.input0.start_rns)
         # TODO We need to decide whether output symbols need to be defined
         outtmp = Polys("outtmp", self.output.parts, self.output.rns)
 
@@ -120,9 +114,7 @@ class INTT(HighOp):
     def to_pisa(self) -> list[PIsaOp]:
         """Return the p-isa code to perform an INTT"""
         # TODO Is this passed in?
-        ipsi = Polys(
-            "ipsi", parts=1, rns=self.input0.rns, start_rns=self.input0.start_rns
-        )
+        ipsi = Polys("ipsi", parts=1, rns=self.input0.rns, start_rns=self.input0.start_rns)
         # TODO We need to decide whether output symbols need to be defined
         outtmp = Polys("outtmp", self.output.parts, self.output.rns)
         iN = Immediate(name="iN")

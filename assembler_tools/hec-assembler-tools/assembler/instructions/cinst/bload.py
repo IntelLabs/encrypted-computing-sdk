@@ -78,12 +78,7 @@ class Instruction(CInstruction):
             str: A string representation.
         """
         assert len(self.sources) > 0
-        retval = (
-            "<{}({}) object at {}>(id={}[0], "
-            "col_num={}, m_idx={}, src={}, "
-            "mem_model, "
-            "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "col_num={}, m_idx={}, src={}, " "mem_model, " "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),
@@ -106,9 +101,7 @@ class Instruction(CInstruction):
         Raises:
             RuntimeError: Always, as `bload` does not have destination parameters.
         """
-        raise RuntimeError(
-            f"Instruction `{self.name}` does not have destination parameters."
-        )
+        raise RuntimeError(f"Instruction `{self.name}` does not have destination parameters.")
 
     def _set_sources(self, value):
         """
@@ -123,8 +116,7 @@ class Instruction(CInstruction):
         if len(value) != Instruction._OP_NUM_SOURCES:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Variable` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Variable` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_SOURCES, len(value)
                     )
                 )
@@ -148,28 +140,19 @@ class Instruction(CInstruction):
             int: The throughput for this instruction, i.e., the number of cycles by which to advance
             the current cycle counter.
         """
-        assert (
-            Instruction._OP_NUM_SOURCES > 0
-            and len(self.sources) == Instruction._OP_NUM_SOURCES
-        )
+        assert Instruction._OP_NUM_SOURCES > 0 and len(self.sources) == Instruction._OP_NUM_SOURCES
 
         variable: Variable = self.sources[0]  # expected sources to contain a Variable
         if variable.spad_address < 0:
-            raise RuntimeError(
-                f'Null Access Violation: Variable "{variable}" not allocated in SPAD.'
-            )
+            raise RuntimeError(f'Null Access Violation: Variable "{variable}" not allocated in SPAD.')
         if self.m_idx < 0:
             raise RuntimeError(f"Invalid negative index `m_idx`.")
         if self.col_num not in range(4):
-            raise RuntimeError(
-                f"Invalid `col_num`: {self.col_num}. Must be in range [0, 4)."
-            )
+            raise RuntimeError(f"Invalid `col_num`: {self.col_num}. Must be in range [0, 4).")
 
         retval = super()._schedule(cycle_count, schedule_id)
         # Track last access to SPAD address
-        spad_access_tracking = self.__mem_model.spad.getAccessTracking(
-            variable.spad_address
-        )
+        spad_access_tracking = self.__mem_model.spad.getAccessTracking(variable.spad_address)
         spad_access_tracking.last_cload = self
         # No need to sync to any previous MLoads after bload
         spad_access_tracking.last_mload = None

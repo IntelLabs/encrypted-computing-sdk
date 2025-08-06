@@ -9,7 +9,7 @@
 """
 
 import unittest
-from unittest.mock import patch, mock_open, MagicMock, call
+from unittest.mock import MagicMock, call, mock_open, patch
 
 from linker.loader import Loader
 
@@ -72,9 +72,7 @@ class TestLoader(unittest.TestCase):
         with self.assertRaises(RuntimeError) as context:
             Loader.load_minst_kernel(self.minst_lines)
 
-        self.assertIn(
-            f"Error parsing line 1: {self.minst_lines[0]}", str(context.exception)
-        )
+        self.assertIn(f"Error parsing line 1: {self.minst_lines[0]}", str(context.exception))
 
     @patch("builtins.open", new_callable=mock_open)
     @patch("linker.loader.Loader.load_minst_kernel")
@@ -110,9 +108,7 @@ class TestLoader(unittest.TestCase):
         with self.assertRaises(RuntimeError) as context:
             Loader.load_minst_kernel_from_file("test.minst")
 
-        self.assertIn(
-            'Error occurred loading file "test.minst"', str(context.exception)
-        )
+        self.assertIn('Error occurred loading file "test.minst"', str(context.exception))
 
     @patch("linker.instructions.create_from_str_line")
     @patch("linker.instructions.cinst.factory")
@@ -155,9 +151,7 @@ class TestLoader(unittest.TestCase):
         with self.assertRaises(RuntimeError) as context:
             Loader.load_cinst_kernel(self.cinst_lines)
 
-        self.assertIn(
-            f"Error parsing line 1: {self.cinst_lines[0]}", str(context.exception)
-        )
+        self.assertIn(f"Error parsing line 1: {self.cinst_lines[0]}", str(context.exception))
 
     @patch("builtins.open", new_callable=mock_open)
     @patch("linker.loader.Loader.load_cinst_kernel")
@@ -193,9 +187,7 @@ class TestLoader(unittest.TestCase):
         with self.assertRaises(RuntimeError) as context:
             Loader.load_cinst_kernel_from_file("test.cinst")
 
-        self.assertIn(
-            'Error occurred loading file "test.cinst"', str(context.exception)
-        )
+        self.assertIn('Error occurred loading file "test.cinst"', str(context.exception))
 
     @patch("linker.instructions.create_from_str_line")
     @patch("linker.instructions.xinst.factory")
@@ -238,9 +230,7 @@ class TestLoader(unittest.TestCase):
         with self.assertRaises(RuntimeError) as context:
             Loader.load_xinst_kernel(self.xinst_lines)
 
-        self.assertIn(
-            f"Error parsing line 1: {self.xinst_lines[0]}", str(context.exception)
-        )
+        self.assertIn(f"Error parsing line 1: {self.xinst_lines[0]}", str(context.exception))
 
     @patch("builtins.open", new_callable=mock_open)
     @patch("linker.loader.Loader.load_xinst_kernel")
@@ -276,9 +266,7 @@ class TestLoader(unittest.TestCase):
         with self.assertRaises(RuntimeError) as context:
             Loader.load_xinst_kernel_from_file("test.xinst")
 
-        self.assertIn(
-            'Error occurred loading file "test.xinst"', str(context.exception)
-        )
+        self.assertIn('Error occurred loading file "test.xinst"', str(context.exception))
 
     @patch("linker.instructions.dinst.create_from_mem_line")
     def test_load_dinst_kernel_success(self, mock_create):
@@ -295,9 +283,7 @@ class TestLoader(unittest.TestCase):
         # Verify the results
         self.assertEqual(result, self.mock_dinst)
         self.assertEqual(mock_create.call_count, 2)
-        mock_create.assert_has_calls(
-            [call(self.dinst_lines[0]), call(self.dinst_lines[1])]
-        )
+        mock_create.assert_has_calls([call(self.dinst_lines[0]), call(self.dinst_lines[1])])
 
     @patch("linker.instructions.dinst.create_from_mem_line")
     def test_load_dinst_kernel_failure(self, mock_create):
@@ -312,9 +298,7 @@ class TestLoader(unittest.TestCase):
         with self.assertRaises(RuntimeError) as context:
             Loader.load_dinst_kernel(self.dinst_lines)
 
-        self.assertIn(
-            f"Error parsing line 1: {self.dinst_lines[0]}", str(context.exception)
-        )
+        self.assertIn(f"Error parsing line 1: {self.dinst_lines[0]}", str(context.exception))
 
     @patch("builtins.open", new_callable=mock_open)
     @patch("linker.loader.Loader.load_dinst_kernel")
@@ -350,9 +334,7 @@ class TestLoader(unittest.TestCase):
         with self.assertRaises(RuntimeError) as context:
             Loader.load_dinst_kernel_from_file("test.dinst")
 
-        self.assertIn(
-            'Error occurred loading file "test.dinst"', str(context.exception)
-        )
+        self.assertIn('Error occurred loading file "test.dinst"', str(context.exception))
 
 
 if __name__ == "__main__":

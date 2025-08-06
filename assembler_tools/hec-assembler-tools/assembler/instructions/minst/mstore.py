@@ -91,11 +91,7 @@ class Instruction(MInstruction):
                  its type, name, memory address, ID, source, destination HBM address, throughput, and latency.
         """
         assert len(self.dests) > 0
-        retval = (
-            "<{}({}) object at {}>(id={}[0], "
-            "src={}, dst_hbm_addr={}, mem_model, "
-            "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "src={}, dst_hbm_addr={}, mem_model, " "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),
@@ -134,8 +130,7 @@ class Instruction(MInstruction):
         if len(value) != Instruction._OP_NUM_DESTS:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Variable` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Variable` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_SOURCES, len(value)
                     )
                 )
@@ -158,8 +153,7 @@ class Instruction(MInstruction):
         if len(value) != Instruction._OP_NUM_SOURCES:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Variable` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Variable` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_SOURCES, len(value)
                     )
                 )
@@ -189,14 +183,8 @@ class Instruction(MInstruction):
             int: The throughput for this instruction. i.e. the number of cycles by which to advance
                  the current cycle counter.
         """
-        assert (
-            Instruction._OP_NUM_SOURCES > 0
-            and len(self.sources) == Instruction._OP_NUM_SOURCES
-        )
-        assert (
-            Instruction._OP_NUM_DESTS > 0
-            and len(self.dests) == Instruction._OP_NUM_DESTS
-        )
+        assert Instruction._OP_NUM_SOURCES > 0 and len(self.sources) == Instruction._OP_NUM_SOURCES
+        assert Instruction._OP_NUM_DESTS > 0 and len(self.dests) == Instruction._OP_NUM_DESTS
         assert all(src == dst for src, dst in zip(self.sources, self.dests))
 
         hbm = self.__mem_model.hbm
@@ -208,23 +196,17 @@ class Instruction(MInstruction):
 
         if variable.hbm_address >= 0:
             if self.dst_hbm_addr != variable.hbm_address:
-                raise RuntimeError(
-                    "Source variable is already in different HBM location. Cannot store a variable into HBM more than once."
-                )
+                raise RuntimeError("Source variable is already in different HBM location. Cannot store a variable into HBM more than once.")
             assert hbm.buffer[variable.hbm_address] == variable
         if self.__source_spad_address < 0:
-            raise RuntimeError(
-                "Null reference exception: source variable is not in SPAD."
-            )
+            raise RuntimeError("Null reference exception: source variable is not in SPAD.")
 
         if self.comment:
             self.comment += ";"
         # self.comment += ' variable "{}": HBM({}) <- SPAD({})'.format(variable.name,
         #                                                              self.dst_hbm_addr,
         #                                                              variable.spad_address)
-        self.comment += ' variable "{}" <- SPAD({})'.format(
-            variable.name, variable.spad_address
-        )
+        self.comment += ' variable "{}" <- SPAD({})'.format(variable.name, variable.spad_address)
 
         retval = super()._schedule(cycle_count, schedule_id)
         # Perform the store
