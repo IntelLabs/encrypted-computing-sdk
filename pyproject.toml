@@ -74,6 +74,7 @@ ignore = [
     "TD002",  # Missing author in TODO
     "TD003",  # Missing issue link in TODO
     "B028",   # No explicit stacklevel keyword argument found
+    "UP038",  # Prefer Union Type in isinstance (deprecated, and breaks some of our mocking)
 ]
 
 # Exclude certain assembler files
