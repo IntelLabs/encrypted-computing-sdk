@@ -1,0 +1,116 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["assembler_tools", "p-isa_tools"]
+
+[tool.setuptools.package-dir]
+"" = "."
+
+[project]
+name = "encrypted-computing-sdk"
+version = "0.1.0"
+description = "Encrypted Computing SDK"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pre-commit>=3.5.0",
+    # pre-commit installs its own version of the tools below,
+    # but it is convenient to have them locally, too
+    "ruff>=0.8.0",
+    "mypy==1.17.0",
+    "cpplint>=1.6.0",
+    "pydantic>=2.0.0",
+    # Enables "doxygen" for python
+    "doxypypy>=0.8.8.7",
+    # For requirements generation
+    "pip-tools>=7.0.0",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 140
+
+[tool.ruff.lint]
+# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
+# Add other rule sets as needed: https://docs.astral.sh/ruff/rules/
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "C4",     # flake8-comprehensions
+    "B",      # flake8-bugbear
+    "A",      # flake8-builtins
+    "YTT",    # flake8-2020
+    "S",      # bandit
+    "BLE",    # flake8-blind-except
+    "FBT",    # flake8-boolean-trap
+    "C90",    # mccabe
+    "T",      # flake8-todos
+    "FIX",    # flake8-fixme
+]
+
+ignore = [
+    "S101",   # Use of assert detected (common in tests)
+    "S108",   # Probable insecure usage of temporary file or directory (allow use of `/tmp`)
+    "FBT001", # Boolean positional arg in function definition
+    "FBT002", # Boolean default arg in function definition
+    "FBT003", # Boolean positional value in function call
+    "A003",   # Class attribute shadows built-in
+    "N801",   # Class name should use CapWords convention (allow lowercase class names)
+    "N802",   # Function name should be lowercase (allow camelCase function names)
+    "N806",   # Variable in function should be lowercase (allows iN, logN style)
+    "N812",   # Lowercase imported as non-lowercase (allow cinst imported as ISACInst)
+    "N815",   # Variable in class scope should not be mixedCase (allow camelCase class variables)
+    "T201",   # print() statements allowed
+    "FIX002", # TODO comments allowed (equivalent to pylint W0511)
+    "TD002",  # Missing author in TODO
+    "TD003",  # Missing issue link in TODO
+    "B028",   # No explicit stacklevel keyword argument found
+]
+
+# Exclude certain assembler files
+exclude = [
+    "assembler_tools/hec-assembler-tools/assembler/common/run_config.py",
+    "assembler_tools/hec-assembler-tools/assembler/instructions/**",
+    "assembler_tools/hec-assembler-tools/assembler/memory_model/**",
+    "assembler_tools/hec-assembler-tools/assembler/stages/asm_scheduler.py",
+    "assembler_tools/hec-assembler-tools/assembler/stages/scheduler.py",
+    "assembler_tools/hec-assembler-tools/debug_tools/main.py",
+    "assembler_tools/hec-assembler-tools/debug_tools/xinst_timing_check/**",
+    "assembler_tools/hec-assembler-tools/he_as.py",
+    "assembler_tools/hec-assembler-tools/assembler/spec_config/isa_spec.py"
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.per-file-ignores]
+"assembler_tools/hec-assembler-tools/assembler/common/constants.py" = ["N805", "N802"] # do not force first arg to be called `self` here, allow camelCase function names
+
+[tool.ruff.lint.pep8-naming]
+extend-ignore-names = ["iN", "logN"]
+
+[tool.ruff.format]
+# Use double quotes (matches your existing style)
+quote-style = "double"
+# Indent with spaces, rather than tabs
+indent-style = "space"
+# Respect magic trailing commas
+skip-magic-trailing-comma = false
+# Automatically detect the appropriate line ending
+line-ending = "auto"
+
+[tool.mypy]
+python_version = "3.10"
+namespace_packages = true
+show_error_codes = true
+pretty = true
+files = ["p-isa_tools/"]
