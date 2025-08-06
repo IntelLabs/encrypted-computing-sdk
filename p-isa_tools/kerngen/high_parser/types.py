@@ -147,7 +147,7 @@ class Context(BaseModel):
     key_rns: int
     current_rns: int
     # optional vars for context
-    num_digits: int | None
+    num_digits: int | None = None
 
     # calculated based on required params
     max_rns: int

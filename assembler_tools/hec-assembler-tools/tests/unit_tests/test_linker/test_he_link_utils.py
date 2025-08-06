@@ -444,7 +444,7 @@ class TestHelperFunctions:
         mock_convert.assert_called_once_with(mock_config.hbm_size * constants.Constants.KILOBYTE)
 
         # Verify open was called with input_mem_file
-        mock_open_file.assert_called_once_with(mock_config.input_mem_file, "r", encoding="utf-8")
+        mock_open_file.assert_called_once_with(mock_config.input_mem_file, encoding="utf-8")
 
         # Verify from_file_iter was called
         assert mock_from_file_iter.called
