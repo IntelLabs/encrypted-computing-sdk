@@ -66,7 +66,7 @@ def parse_args():
         "--secondary",
         type=LoopKey,
         default=None,
-        choices=list(LoopKey) + list([None]),
+        choices=list(LoopKey) + [None],
         help="Secondary key for loop interchange (default: None, Options: RNS, PART)",
     )
     parsed_args = parser.parse_args()

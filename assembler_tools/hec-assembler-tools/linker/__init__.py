@@ -7,7 +7,6 @@
 """@brief linker/__init__.py contains classes to encapsulate the memory model used by the linker."""
 
 import collections.abc as collections
-from typing import Dict
 
 from assembler.common.config import GlobalConfig
 from assembler.memory_model import mem_info
@@ -241,8 +240,9 @@ class MemoryModel:
             self.hbm.allocate(var_info)
 
         assert var_info.hbm_address >= 0
-        assert (
-            self.hbm.buffer[var_info.hbm_address].var_name == var_info.var_name
-        ), f"Expected variable {var_info.var_name} in HBM {var_info.hbm_address}, but variable {self.hbm.buffer[var_info.hbm_address].var_name} found instead."
+        assert self.hbm.buffer[var_info.hbm_address].var_name == var_info.var_name, (
+            f"Expected variable {var_info.var_name} in HBM {var_info.hbm_address},"
+            f" but variable {self.hbm.buffer[var_info.hbm_address].var_name} found instead."
+        )
 
         return var_info.hbm_address

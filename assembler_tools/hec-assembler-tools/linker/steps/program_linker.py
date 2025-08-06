@@ -208,7 +208,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 # Idle cycles to account for the csyncm have been added
                 csyncm_count = 0
 
-            if isinstance(cinstr, (cinst.IFetch, cinst.NLoad, cinst.BLoad)):
+            if isinstance(cinstr, cinst.IFetch | cinst.NLoad | cinst.BLoad):
                 if csyncm_count > 0:
                     # Extra cycles needed before scheduling next bundle
                     # Subtract 1 because cnop n, waits for n+1 cycles
@@ -249,7 +249,8 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             #     # replace instruction by cnop
             #     kernel_cinstrs.pop(i)
             #     if current_bundle > 0:
-            #         cinstr_nop = cinst.CNop([i, cinst.CNop.name, str(ISACInst.CSyncm.get_throughput())]) # Subtract 1 because cnop n, waits for n+1 cycles
+            #          # Subtract 1 because cnop n, waits for n+1 cycles
+            #         cinstr_nop = cinst.CNop([i, cinst.CNop.name, str(ISACInst.CSyncm.get_throughput())])
             #         kernel_cinstrs.insert(i, cinstr_nop)
             #
             # i += 1 # next instruction
@@ -293,7 +294,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             if not GlobalConfig.hasHBM:
                 # update all SPAD instruction variable names to be SPAD addresses
                 # change xload variable names into SPAD addresses
-                if isinstance(cinstr, (cinst.BLoad, cinst.BOnes, cinst.CLoad, cinst.NLoad)):
+                if isinstance(cinstr, cinst.BLoad | cinst.BOnes | cinst.CLoad | cinst.NLoad):
                     var_name = cinstr.source
                     hbm_address = self.__mem_model.use_variable(var_name, self._kernel_count)
                     self._validate_spad_address(var_name, hbm_address)
@@ -426,7 +427,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                     carry_over_vars[key] = cur_dinst
                     continue
 
-                if isinstance(cur_dinst, (dinst.DLoad, dinst.DKeyGen)):
+                if isinstance(cur_dinst, dinst.DLoad | dinst.DKeyGen):
                     key = cur_dinst.var
                     # Skip if the input is already in carry-over from previous outputs
                     if key in carry_over_vars:

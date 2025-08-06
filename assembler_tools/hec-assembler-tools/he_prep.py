@@ -122,7 +122,10 @@ def parse_args():
         argparse.Namespace: Parsed command-line arguments.
     """
     parser = argparse.ArgumentParser(
-        description="HERACLES Assembling Pre-processor.\nThis program performs the preprocessing of P-ISA abstract kernels before further assembling."
+        description=(
+            "HERACLES Assembling Pre-processor.\n"
+            "This program performs the preprocessing of P-ISA abstract kernels before further assembling."
+        )
     )
     parser.add_argument(
         "input_file_name",

@@ -1,7 +1,7 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-from .decorators import *
+from .decorators import classproperty
 
 
 class Constants:
@@ -124,8 +124,7 @@ class Constants:
         """
         Returns hw configurable attributes as dictionary.
         """
-        dict = {"bytes_per_xinstruction": cls.XINSTRUCTION_SIZE_BYTES, "max_instructions_per_bundle": cls.MAX_BUNDLE_SIZE}
-        return dict
+        return {"bytes_per_xinstruction": cls.XINSTRUCTION_SIZE_BYTES, "max_instructions_per_bundle": cls.MAX_BUNDLE_SIZE}
 
     @classmethod
     def setMaxBundleSize(cls, val: int):
@@ -138,7 +137,7 @@ class Constants:
         cls.__XINSTRUCTION_SIZE_BYTES = val
 
 
-def convertBytes2Words(bytes: int) -> int:
+def convertBytes2Words(bytes_in: int) -> int:
     """
     Converts a size in bytes to the equivalent number of words.
 
@@ -148,7 +147,7 @@ def convertBytes2Words(bytes: int) -> int:
     Returns:
         int: The equivalent size in words.
     """
-    return int(bytes / Constants.WORD_SIZE)
+    return int(bytes_in / Constants.WORD_SIZE)
 
 
 def convertWords2Bytes(words: int) -> int:
@@ -465,7 +464,7 @@ class MemoryModel:
         """
         Returns hw configurable attributes as dictionary.
         """
-        dict = {
+        return {
             "max_xinst_queue_size_in_bytes": cls.__XINST_QUEUE_MAX_CAPACITY,
             "max_cinst_queue_size_in_bytes": cls.__CINST_QUEUE_MAX_CAPACITY,
             "max_minst_queue_size_in_bytes": cls.__MINST_QUEUE_MAX_CAPACITY,
@@ -480,7 +479,6 @@ class MemoryModel:
             "num_register_banks": cls.NUM_REGISTER_BANKS,
             "num_registers_per_bank": cls.NUM_REGISTERS_PER_BANK,
         }
-        return dict
 
     @classmethod
     def setMaxXInstQueueCapacity(cls, val: int):
@@ -597,8 +595,7 @@ class MemoryModel:
             """
             Returns hw configurable attributes as dictionary.
             """
-            dict = {"max_hbm_size_in_bytes": cls.__MAX_CAPACITY}
-            return dict
+            return {"max_hbm_size_in_bytes": cls.__MAX_CAPACITY}
 
         @classmethod
         def setMaxCapacity(cls, val: int):
@@ -634,8 +631,7 @@ class MemoryModel:
             """
             Returns hw configurable attributes as dictionary.
             """
-            dict = {"max_cache_size_in_bytes": cls.__MAX_CAPACITY}
-            return dict
+            return {"max_cache_size_in_bytes": cls.__MAX_CAPACITY}
 
         @classmethod
         def setMaxCapacity(cls, val: int):

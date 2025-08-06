@@ -79,16 +79,16 @@ if __name__ == "__main__":
     with open(pisa_prep_file) as f_in_pisa:
         pisa_file_contents = [line for line in f_in_pisa if line]
 
-    l = []
+    l = []  # noqa: E741
     set_updated = True
     while set_updated:
         set_updated = False
-        for line_idx, line in enumerate(pisa_file_contents):
+        for _, line in enumerate(pisa_file_contents):
             # Remove comment
             s_split = line.split("#")
             line = s_split[0]
             # Split into components
-            tmp_split = map(lambda s: s.strip(), line.split(","))
+            tmp_split = (s.strip() for s in line.split(","))
             s_split = []
             for component in tmp_split:
                 s_split.append(component.split("(")[0].strip())
@@ -99,11 +99,11 @@ if __name__ == "__main__":
                     s_split = s_split[2:-2]
                 else:
                     s_split = s_split[2:-1]
-                new_vars = set(v for v in s_split if re.search("^[A-Za-z_][A-Za-z0-9_]*", v))
+                new_vars = {v for v in s_split if re.search("^[A-Za-z_][A-Za-z0-9_]*", v)}
                 if "iN" in new_vars:
                     print("iN")
                 if new_vars - variables_set:
-                    l += [x for x in new_vars if x not in variables_set]
+                    l += [x for x in new_vars if x not in variables_set]  # noqa: E741
                     variables_set |= new_vars
                     set_updated = True
 
@@ -123,7 +123,7 @@ if __name__ == "__main__":
                 s_split = line.split("#")
                 s_line = s_split[0].strip()
                 # Split into components
-                s_split = list(map(lambda s: s.strip(), line.split(",")))
+                s_split = (s.strip() for s in line.split(","))
                 out_line = ""
                 if int(s_split[1]) in pisa_instr_num_set:
                     # Xinstruction is needed to complete p-isa instr

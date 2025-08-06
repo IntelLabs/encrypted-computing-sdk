@@ -7,13 +7,14 @@
 """A module to process optional key/value dictionary parameters"""
 
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class OptionsDict(ABC):
     """Abstract class to hold the options key/value pairs"""
 
     op_name: str = ""
-    op_value = None
+    op_value: Any = None
 
     @abstractmethod
     def validate(self, value):

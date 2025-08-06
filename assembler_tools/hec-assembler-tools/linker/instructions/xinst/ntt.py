@@ -22,7 +22,8 @@ class Instruction(XInstruction):
         @brief Gets the number of tokens required for the instruction.
 
         The `ntt` instruction requires 10 tokens:
-        F<bundle_idx: uint>, <info: str>, ntt, <dst_top: str>, <dest_bot: str>, <src_top: str>, <src_bot: str>, <src_tw: str>, <stage: uint>, <res: uint>
+        F<bundle_idx: uint>, <info: str>, ntt, <dst_top: str>, <dest_bot: str>,
+         <src_top: str>, <src_bot: str>, <src_tw: str>, <stage: uint>, <res: uint>
 
         @return The number of tokens, which is 10.
         """

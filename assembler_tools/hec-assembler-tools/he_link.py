@@ -7,7 +7,8 @@
 
 """
 @file he_link.py
-@brief This module provides functionality for linking assembled kernels into a full HERACLES program for execution queues: MINST, CINST, and XINST.
+@brief This module provides functionality for linking assembled kernels
+       into a full HERACLES program for execution queues: MINST, CINST, and XINST.
 
 @par Classes:
     - LinkerRunConfig: Maintains the configuration data for the run.
@@ -47,7 +48,7 @@ from linker.steps import program_linker
 from linker.steps.variable_discovery import check_unused_variables, scan_variables
 
 
-def main(run_config: LinkerRunConfig, verbose_stream=NullIO()):
+def main(run_config: LinkerRunConfig, verbose_stream=None):
     """
     @brief Executes the linking process using the provided configuration.
 
@@ -55,10 +56,12 @@ def main(run_config: LinkerRunConfig, verbose_stream=NullIO()):
     and links each kernel, writing the output to specified files.
 
     @param run_config The configuration object containing run parameters.
-    @param verbose_stream The stream to which verbose output is printed. Defaults to NullIO.
+    @param verbose_stream The stream to which verbose output is printed. Defaults to None.
 
     @return None
     """
+    if verbose_stream is None:
+        verbose_stream = NullIO()
     if run_config.use_xinstfetch:
         warnings.warn("Ignoring configuration flag 'use_xinstfetch'.")
 

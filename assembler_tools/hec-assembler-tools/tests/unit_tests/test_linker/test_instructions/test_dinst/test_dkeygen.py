@@ -80,7 +80,7 @@ class TestDKeygenInstruction(unittest.TestCase):
 
         @test Verifies extra tokens are preserved in the tokens property
         """
-        additional_token = "extra"
+        additional_token = "extra"  # noqa: S105 (allow hardcoded string)
         inst_with_extra = Instruction(
             [
                 Instruction.name,
