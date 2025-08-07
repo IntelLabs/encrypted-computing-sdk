@@ -7,9 +7,9 @@
 """@brief Module for parsing and analyzing trace files."""
 
 import os
-from typing import Optional
 
 from assembler.instructions import tokenize_from_line
+
 from linker.kern_trace.context_config import ContextConfig
 from linker.kern_trace.kernel_op import KernelOp
 
@@ -38,7 +38,7 @@ class KernelInfo:
     minst: str
     cinst: str
     xinst: str
-    mem: Optional[str] = None
+    mem: str | None = None
     remap_dict: dict[str, str] = {}
 
     def __init__(self, config: dict):
@@ -131,13 +131,9 @@ class TraceInfo:
             return name, context_config, kern_args
 
         except KeyError as e:
-            raise KeyError(
-                f"Missing required parameter in line {line_num} with tokens: {tokens}: {e}"
-            ) from e
+            raise KeyError(f"Missing required parameter in line {line_num} with tokens: {tokens}: {e}") from e
         except IndexError as e:
-            raise ValueError(
-                f"Invalid number of parameters in line {line_num}: {e}"
-            ) from e
+            raise ValueError(f"Invalid number of parameters in line {line_num}: {e}") from e
         except ValueError as e:
             raise ValueError(f"Invalid value in line {line_num}: {e}") from e
 
@@ -153,7 +149,7 @@ class TraceInfo:
 
         kernel_ops: list = []
 
-        with open(self._trace_file, "r", encoding="utf-8") as file:
+        with open(self._trace_file, encoding="utf-8") as file:
             lines = file.readlines()
 
             if not lines:
@@ -170,9 +166,7 @@ class TraceInfo:
                 if not tokens or not tokens[0]:  # Skip empty lines
                     continue
 
-                name, context_config, kern_args = self.extract_context_and_args(
-                    tokens, param_idxs, line_num
-                )
+                name, context_config, kern_args = self.extract_context_and_args(tokens, param_idxs, line_num)
 
                 # Create and add KernelOp with all arguments
                 kernel_op = KernelOp(name, context_config, kern_args)

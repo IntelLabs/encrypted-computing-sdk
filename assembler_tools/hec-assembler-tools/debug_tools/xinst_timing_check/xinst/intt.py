@@ -1,9 +1,13 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 from .xinstruction import XInstruction
+
 
 class Instruction(XInstruction):
     """
     Represents an `intt` instruction, inheriting from XInstruction.
-    
+
     The Inverse Number Theoretic Transform (iNTT), converts NTT form to positional form.
 
     For more information, check the specification:
@@ -29,16 +33,18 @@ class Instruction(XInstruction):
         if tokens:
             tokens, comment = tokens
             if len(tokens) < 3 or tokens[2] != cls.name:
-                raise ValueError('`line`: could not parse f{cls.name} from specified line.')
+                raise ValueError("`line`: could not parse f{cls.name} from specified line.")
             dst_src_map = XInstruction.parseASMISASourceDestsFromTokens(tokens, cls._OP_NUM_DESTS, cls._OP_NUM_SOURCES, 3)
-            retval = cls(int(tokens[0][1:]), # Bundle
-                         int(tokens[1]), # PISA instruction number
-                         dst_src_map['dst'],
-                         dst_src_map['src'],
-                         cls._OP_DEFAULT_THROUGHPUT,
-                         cls._OP_DEFAULT_LATENCY,
-                         tokens[3 + cls._OP_NUM_DESTS + cls._OP_NUM_SOURCES:],
-                         comment)
+            retval = cls(
+                int(tokens[0][1:]),  # Bundle
+                int(tokens[1]),  # PISA instruction number
+                dst_src_map["dst"],
+                dst_src_map["src"],
+                cls._OP_DEFAULT_THROUGHPUT,
+                cls._OP_DEFAULT_LATENCY,
+                tokens[3 + cls._OP_NUM_DESTS + cls._OP_NUM_SOURCES :],
+                comment,
+            )
         return retval
 
     @classmethod
@@ -51,15 +57,9 @@ class Instruction(XInstruction):
         """
         return "intt"
 
-    def __init__(self,
-                 bundle: int,
-                 pisa_instr: int,
-                 dsts: list,
-                 srcs: list,
-                 throughput: int,
-                 latency: int,
-                 other: list = [],
-                 comment: str = ""):
+    def __init__(
+        self, bundle: int, pisa_instr: int, dsts: list, srcs: list, throughput: int, latency: int, other: list = [], comment: str = ""
+    ):
         """
         Constructs a new Instruction object.
 

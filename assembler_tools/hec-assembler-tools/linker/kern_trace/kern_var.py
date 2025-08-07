@@ -40,9 +40,7 @@ class KernVar:
         if len(parts) != 3:
             raise ValueError(f"Invalid kernel variable string format: {var_str}")
         if not parts[1].isdigit() or not parts[2].isdigit():
-            raise ValueError(
-                f"Invalid degree or level in kernel variable string: {var_str}"
-            )
+            raise ValueError(f"Invalid degree or level in kernel variable string: {var_str}")
         if not parts[0]:
             raise ValueError(f"Invalid label in kernel variable string: {var_str}")
 

@@ -22,7 +22,8 @@ class Instruction(XInstruction):
         @brief Gets the number of tokens required for the instruction.
 
         The `twintt` instruction requires 10 tokens:
-        F<bundle_idx: uint>, <info: str>, twintt, <dst_tw: str>, <src_tw: str>, <tw_meta: uint>, <stage: uint>, <block: uint>, <ring_dim: uint>, <res: uint>
+        F<bundle_idx: uint>, <info: str>, twintt, <dst_tw: str>, <src_tw: str>,
+        <tw_meta: uint>, <stage: uint>, <block: uint>, <ring_dim: uint>, <res: uint>
 
         @return The number of tokens, which is 10.
         """

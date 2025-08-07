@@ -4,20 +4,21 @@
 """Module containing conversions or operations from isa to p-isa."""
 
 import itertools as it
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import ClassVar, Iterable, Tuple
 from string import ascii_letters
+from typing import ClassVar
 
 import high_parser.pisa_operations as pisa_op
-from high_parser.pisa_operations import PIsaOp
 from high_parser import (
-    Immediate,
     HighOp,
-    expand_ios,
-    Polys,
-    KeyPolys,
+    Immediate,
     KernelContext,
+    KeyPolys,
+    Polys,
+    expand_ios,
 )
+from high_parser.pisa_operations import PIsaOp
 
 
 # TODO move this to kernel utils
@@ -62,22 +63,14 @@ class CartesianOp(HighOp):
         if self.input0.parts == self.input1.parts:
             return [
                 self.op(self.context.label, *expand_io, rns)
-                for expand_io, rns in expand_ios(
-                    self.context, self.output, self.input0, self.input1
-                )
+                for expand_io, rns in expand_ios(self.context, self.output, self.input0, self.input1)
             ]
 
         # Not the same number of parts
-        first, second = (
-            (self.input0, self.input1)
-            if self.input0.parts < self.input1.parts
-            else (self.input1, self.input0)
-        )
+        first, second = (self.input0, self.input1) if self.input0.parts < self.input1.parts else (self.input1, self.input0)
 
         ls: list[PIsaOp] = []
-        for unit, q in it.product(
-            range(self.context.units), range(self.input0.start_rns, self.input0.rns)
-        ):
+        for unit, q in it.product(range(self.context.units), range(self.input0.start_rns, self.input0.rns)):
             ls.extend(
                 self.op(
                     self.context.label,
@@ -118,9 +111,7 @@ def convolution_indices(input0: Polys, input1: Polys) -> list[InIdxs]:
     """Helper gives convolution of parts indices"""
     # start_* is the deg + 1 of a polynomial (the vector)
     idxs: list[InIdxs] = [[] for _ in range(input0.parts + input1.parts - 1)]
-    for t in it.product(
-        range(input0.start_parts, input0.parts), range(input1.start_parts, input1.parts)
-    ):
+    for t in it.product(range(input0.start_parts, input0.parts), range(input1.start_parts, input1.parts)):
         idxs[sum(t)].append(t)
     return idxs
 
@@ -142,7 +133,7 @@ class Mul(HighOp):
         out_idx: int,
         in_idxs: InIdxs,
         *,
-        digit: int | None = None
+        digit: int | None = None,
     ):
         """Helper for a given unit and q generate the p-isa ops for a multiplication"""
 
@@ -155,14 +146,10 @@ class Mul(HighOp):
                 self.context.label,
                 self.output(out_idx, q, unit),
                 self.input0(in0_idx, q, unit),
-                (
-                    self.input1(in1_idx, q, unit)
-                    if digit is None
-                    else self.input1(digit, in1_idx, q, unit)
-                ),
+                (self.input1(in1_idx, q, unit) if digit is None else self.input1(digit, in1_idx, q, unit)),
                 q,
             )
-            for (in0_idx, in1_idx), op in zip(in_idxs, get_pisa_op(len(in_idxs)))
+            for (in0_idx, in1_idx), op in zip(in_idxs, get_pisa_op(len(in_idxs)), strict=False)
         ]
 
     def _keypolys_to_pisa(self, all_idxs: list[InIdxs]) -> list[PIsaOp]:
@@ -179,9 +166,7 @@ class Mul(HighOp):
 
     def _polys_to_pisa(self, all_idxs: list[InIdxs]) -> list[PIsaOp]:
         ls = []
-        for unit, q in it.product(
-            range(self.context.units), range(self.input0.start_rns, self.input0.rns)
-        ):
+        for unit, q in it.product(range(self.context.units), range(self.input0.start_rns, self.input0.rns)):
             for out_idx, in_idxs in enumerate(all_idxs):
                 ls.extend(self.generate_unit(unit, q, out_idx, in_idxs))
 
@@ -236,10 +221,7 @@ class Copy(HighOp):
 
     def to_pisa(self) -> list[PIsaOp]:
         """Return the p-isa equivalent of a Copy"""
-        return [
-            pisa_op.Copy(self.context.label, *expand_io)
-            for expand_io, _ in expand_ios(self.context, self.output, self.input0)
-        ]
+        return [pisa_op.Copy(self.context.label, *expand_io) for expand_io, _ in expand_ios(self.context, self.output, self.input0)]
 
 
 @dataclass
@@ -297,7 +279,7 @@ class KeyMul(HighOp):
         return ls
 
 
-def extract_last_part_polys(input0: Polys, rns: int) -> Tuple[Polys, Polys, Polys]:
+def extract_last_part_polys(input0: Polys, rns: int) -> tuple[Polys, Polys, Polys]:
     """Split and extract the last part of input0 with a change of rns"""
     input_last_part = Polys.from_polys(input0, mode="last_part")
     input_last_part.name = input0.name
@@ -313,12 +295,10 @@ def extract_last_part_polys(input0: Polys, rns: int) -> Tuple[Polys, Polys, Poly
     return input_last_part, last_coeff, upto_last_coeffs
 
 
-def split_last_rns_polys(input0: Polys, current_rns) -> Tuple[Polys, Polys]:
+def split_last_rns_polys(input0: Polys, current_rns) -> tuple[Polys, Polys]:
     """Split and extract last RNS of input0"""
     if input0.rns <= current_rns:
-        return Polys.from_polys(input0, mode="last_rns"), Polys.from_polys(
-            input0, mode="drop_last_rns"
-        )
+        return Polys.from_polys(input0, mode="last_rns"), Polys.from_polys(input0, mode="drop_last_rns")
 
     # do not include consumed rns
     remaining = Polys.from_polys(input0)
@@ -331,9 +311,7 @@ def duplicate_polys(input0: Polys, name: str) -> Polys:
     return Polys(name, input0.parts, input0.rns, input0.start_parts, input0.start_rns)
 
 
-def common_immediates(
-    r2_rns=None, iq_rns=None, iq_suffix=""
-) -> Tuple[Immediate, Immediate, Immediate]:
+def common_immediates(r2_rns=None, iq_rns=None, iq_suffix="") -> tuple[Immediate, Immediate, Immediate]:
     """Generate commonly used immediates"""
     return (
         Immediate(name="one"),

@@ -29,27 +29,20 @@ Example:
     $ cat bgv.add.high | ./kerngen.py | ./kerngraph.py
 """
 
-
 import argparse
 import sys
-from kernel_parser.parser import KernelParser
-from kernel_optimization.loops import (
-    loop_interchange,
-    split_by_reorderable,
-    reuse_rns_label,
-)
 from const.options import LoopKey
-from pisa_generators.basic import mixed_to_pisa_ops
 from high_parser.config import Config
+from kernel_optimization.loops import loop_interchange, split_by_reorderable, reuse_rns_label
+from kernel_parser.parser import KernelParser
+from pisa_generators.basic import mixed_to_pisa_ops
 
 
 def parse_args():
     """Parse arguments from the commandline"""
     parser = argparse.ArgumentParser(description="Kernel Graph Parser")
     parser.add_argument("-d", "--debug", action="store_true", help="Enable Debug Print")
-    parser.add_argument(
-        "-l", "--legacy", action="store_true", help="Enable Legacy Mode"
-    )
+    parser.add_argument("-l", "--legacy", action="store_true", help="Enable Legacy Mode")
     parser.add_argument(
         "-t",
         "--target",
@@ -72,7 +65,7 @@ def parse_args():
         "--secondary",
         type=LoopKey,
         default=None,
-        choices=list(LoopKey) + list([None]),
+        choices=list(LoopKey) + [None],
         help="Secondary key for loop interchange (default: None, Options: RNS, PART)",
     )
     parsed_args = parser.parse_args()
@@ -135,9 +128,7 @@ def main(args):
         return
 
     if args.debug:
-        print(
-            f"# Reordered targets {args.target} with primary key {args.primary} and secondary key {args.secondary}"
-        )
+        print(f"# Reordered targets {args.target} with primary key {args.primary} and secondary key {args.secondary}")
 
     for kernel in valid_kernels:
         if should_apply_reordering(kernel, args.target):

@@ -8,9 +8,9 @@
 @brief Base class for all instructions in the linker.
 """
 
-from assembler.common.decorators import classproperty
-from assembler.common.counter import Counter
 from assembler.common.config import GlobalConfig
+from assembler.common.counter import Counter
+from assembler.common.decorators import classproperty
 
 
 class BaseInstruction:
@@ -28,9 +28,7 @@ class BaseInstruction:
     @fn to_line Retrieves the string form of the instruction to write to the instruction file.
     """
 
-    __id_count = Counter.count(
-        0
-    )  # Internal unique sequence counter to generate unique IDs
+    __id_count = Counter.count(0)  # Internal unique sequence counter to generate unique IDs
 
     # Class methods and properties
     # ----------------------------
@@ -147,9 +145,7 @@ class BaseInstruction:
             )
 
         if tokens[self.name_token_index] != self.name:  # pylint: disable=W0143
-            raise ValueError(
-                f"`tokens`: invalid name. Expected {self.name}, but {tokens[self.name_token_index]} received"
-            )
+            raise ValueError(f"`tokens`: invalid name. Expected {self.name}, but {tokens[self.name_token_index]} received")
 
     def __repr__(self):
         retval = f"<{type(self).__name__}({self.name}, id={self.id}) object at {hex(id(self))}>(tokens={self.tokens})"

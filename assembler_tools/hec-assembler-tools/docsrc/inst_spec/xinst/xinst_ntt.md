@@ -34,4 +34,4 @@ Performs one-stage of NTT on an input positional polynomial.
 
 Both NTT and inverse NTT instructions are defined as one-stage of the transformation. A complete NTT/iNTT transformation is composed of LOG_N such one-stage instructions.
 
-This instruction matches to HERACLES ISA `ntt` with `store_local` bit set. i.e. it requires a subsequent, matching [`rmove`](xinst_rmove.md) to shuffle the output bits into correct tile-pairs.
+This instruction matches to HERACLES ISA `ntt` with `store_local` bit set. i.e. it requires a subsequent, matching [`remove`](xinst_remove.md) to shuffle the output bits into correct tile-pairs.

@@ -8,12 +8,13 @@
 @file test_kernel_op.py
 @brief Unit tests for the KernelOp class
 """
-from unittest.mock import patch
-import pytest
 
-from linker.kern_trace.kernel_op import KernelOp
+from unittest.mock import patch
+
+import pytest
 from linker.kern_trace.context_config import ContextConfig
 from linker.kern_trace.kern_var import KernVar
+from linker.kern_trace.kernel_op import KernelOp
 
 
 class TestKernelOp:
@@ -73,9 +74,7 @@ class TestKernelOp:
         @brief Test initialization with invalid encryption scheme
         """
         # Arrange
-        invalid_context = ContextConfig(
-            scheme="INVALID", poly_mod_degree=8192, keyrns_terms=2
-        )
+        invalid_context = ContextConfig(scheme="INVALID", poly_mod_degree=8192, keyrns_terms=2)
         kern_args = self._create_test_kern_args()
 
         # Act & Assert
@@ -99,15 +98,11 @@ class TestKernelOp:
         @brief Test get_kern_var_objs method
         """
         # Arrange
-        kernel_op = KernelOp(
-            "add", self._create_test_context_config(), self._create_test_kern_args()
-        )
+        kernel_op = KernelOp("add", self._create_test_context_config(), self._create_test_kern_args())
         test_var_strs = ["var1-1024-1", "var2-2048-2"]
 
         # Act - Using the private method for testing
-        with patch(
-            "linker.kern_trace.kern_var.KernVar.from_string"
-        ) as mock_from_string:
+        with patch("linker.kern_trace.kern_var.KernVar.from_string") as mock_from_string:
             mock_from_string.side_effect = [
                 KernVar("var1", 1024, 1),
                 KernVar("var2", 2048, 2),
@@ -126,9 +121,7 @@ class TestKernelOp:
         @brief Test get_level method
         """
         # Arrange
-        kernel_op = KernelOp(
-            "add", self._create_test_context_config(), self._create_test_kern_args()
-        )
+        kernel_op = KernelOp("add", self._create_test_context_config(), self._create_test_kern_args())
 
         # Create test KernVar objects
         test_vars = [KernVar("var1", 1024, 1), KernVar("var2", 2048, 3)]
@@ -144,9 +137,7 @@ class TestKernelOp:
         @brief Test get_level method with a single variable
         """
         # Arrange
-        kernel_op = KernelOp(
-            "add", self._create_test_context_config(), self._create_test_kern_args()
-        )
+        kernel_op = KernelOp("add", self._create_test_context_config(), self._create_test_kern_args())
 
         # Create test KernVar objects
         test_vars = [KernVar("var1", 1024, 2)]
@@ -162,9 +153,7 @@ class TestKernelOp:
         @brief Test get_level method with empty variables list
         """
         # Arrange
-        kernel_op = KernelOp(
-            "add", self._create_test_context_config(), self._create_test_kern_args()
-        )
+        kernel_op = KernelOp("add", self._create_test_context_config(), self._create_test_kern_args())
 
         # Act & Assert
         with pytest.raises(ValueError, match="at least one variable"):
@@ -175,9 +164,7 @@ class TestKernelOp:
         @brief Test string representation of KernelOp
         """
         # Arrange
-        kernel_op = KernelOp(
-            "add", self._create_test_context_config(), self._create_test_kern_args()
-        )
+        kernel_op = KernelOp("add", self._create_test_context_config(), self._create_test_kern_args())
 
         # Act
         result = str(kernel_op)
@@ -191,9 +178,7 @@ class TestKernelOp:
         @brief Test kern_vars property
         """
         # Arrange
-        kernel_op = KernelOp(
-            "add", self._create_test_context_config(), self._create_test_kern_args()
-        )
+        kernel_op = KernelOp("add", self._create_test_context_config(), self._create_test_kern_args())
 
         # Act
         result = kernel_op.kern_vars
@@ -210,9 +195,7 @@ class TestKernelOp:
         @brief Test name property
         """
         # Arrange
-        kernel_op = KernelOp(
-            "mul", self._create_test_context_config(), self._create_test_kern_args()
-        )
+        kernel_op = KernelOp("mul", self._create_test_context_config(), self._create_test_kern_args())
 
         # Act
         result = kernel_op.name
@@ -267,9 +250,7 @@ class TestKernelOp:
         @brief Test level property
         """
         # Arrange
-        kernel_op = KernelOp(
-            "add", self._create_test_context_config(), ["var1-8192-4", "var2-8192-4"]
-        )
+        kernel_op = KernelOp("add", self._create_test_context_config(), ["var1-8192-4", "var2-8192-4"])
 
         # Act
         result = kernel_op.level
@@ -300,24 +281,18 @@ class TestKernelOp:
         kern_args = self._create_test_kern_args()
 
         # Act
-        kernel_op = KernelOp(
-            "ADD", context_config, kern_args
-        )  # Uppercase operation name
+        kernel_op = KernelOp("ADD", context_config, kern_args)  # Uppercase operation name
 
         # Assert
         assert kernel_op.name == "ADD"
-        assert (
-            kernel_op.expected_in_kern_file_name == "ckks_add_8192_l2_m2"
-        )  # Note: lowercase in file name
+        assert kernel_op.expected_in_kern_file_name == "ckks_add_8192_l2_m2"  # Note: lowercase in file name
 
     def test_case_insensitivity_of_scheme(self):
         """
         @brief Test that scheme names are case-insensitive
         """
         # Arrange
-        context = ContextConfig(
-            scheme="ckks", poly_mod_degree=8192, keyrns_terms=2
-        )  # Lowercase scheme
+        context = ContextConfig(scheme="ckks", poly_mod_degree=8192, keyrns_terms=2)  # Lowercase scheme
         kern_args = self._create_test_kern_args()
 
         # Act

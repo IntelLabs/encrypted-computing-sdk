@@ -28,9 +28,7 @@ class Instruction(CInstruction):
 
     @classmethod
     def set_num_sources(cls, val):
-        cls._OP_NUM_SOURCES = (
-            val + 1
-        )  # Adding the keygen variable (since the actual instruction needs no sources)
+        cls._OP_NUM_SOURCES = val + 1  # Adding the keygen variable (since the actual instruction needs no sources)
 
     @classmethod
     def _get_op_name_asm(cls) -> str:
@@ -86,12 +84,7 @@ class Instruction(CInstruction):
                  its type, name, memory address, ID, column number, memory index, source, throughput, and latency.
         """
         assert len(self.sources) > 0
-        retval = (
-            "<{}({}) object at {}>(id={}[0], "
-            "col_num={}, m_idx={}, src={}, "
-            "mem_model, "
-            "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "col_num={}, m_idx={}, src={}, " "mem_model, " "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),
@@ -118,8 +111,7 @@ class Instruction(CInstruction):
         if len(value) != Instruction._OP_NUM_DESTS:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Register` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Register` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_DESTS, len(value)
                     )
                 )
@@ -142,8 +134,7 @@ class Instruction(CInstruction):
         if len(value) != Instruction._OP_NUM_SOURCES:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Variable` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Variable` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_SOURCES, len(value)
                     )
                 )
@@ -170,14 +161,8 @@ class Instruction(CInstruction):
             int: The throughput for this instruction. i.e. the number of cycles by which to advance
                  the current cycle counter.
         """
-        assert (
-            Instruction._OP_NUM_DESTS > 0
-            and len(self.dests) == Instruction._OP_NUM_DESTS
-        )
-        assert (
-            Instruction._OP_NUM_SOURCES > 0
-            and len(self.sources) == Instruction._OP_NUM_SOURCES
-        )
+        assert Instruction._OP_NUM_DESTS > 0 and len(self.dests) == Instruction._OP_NUM_DESTS
+        assert Instruction._OP_NUM_SOURCES > 0 and len(self.sources) == Instruction._OP_NUM_SOURCES
 
         variable: Variable = self.sources[0]  # Expected sources to contain a Variable
         target_register: Register = self.dests[0]
@@ -187,13 +172,9 @@ class Instruction(CInstruction):
         # Cannot allocate variable to more than one register (memory coherence)
         # and must not overwrite a register that already contains a variable.
         if variable.register:
-            raise RuntimeError(
-                f"Variable `{variable}` already allocated in register `{variable.register}`."
-            )
+            raise RuntimeError(f"Variable `{variable}` already allocated in register `{variable.register}`.")
         if target_register.contained_variable:
-            raise RuntimeError(
-                f"Register `{target_register}` already contains a Variable object."
-            )
+            raise RuntimeError(f"Register `{target_register}` already contains a Variable object.")
 
         retval = super()._schedule(cycle_count, schedule_id)
         # Variable generated, reflect the load

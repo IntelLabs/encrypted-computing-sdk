@@ -1,7 +1,8 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-"""@brief This module implements the maci X-instruction which performs element-wise polynomial scaling by an immediate value and accumulation."""
+"""@brief This module implements the maci X-instruction which performs
+element-wise polynomial scaling by an immediate value and accumulation."""
 
 from .xinstruction import XInstruction
 

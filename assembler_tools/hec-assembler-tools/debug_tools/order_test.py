@@ -1,6 +1,10 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import argparse
-import re
 import os
+import re
+
 
 # Tests all registers in an XInstQ for whether a register is used out of order based on P-ISA instruction order.
 # This only works for kernels without evictions.
@@ -15,16 +19,28 @@ def parse_args():
         argparse.Namespace: Parsed command-line arguments.
     """
     parser = argparse.ArgumentParser(
-        description=("Order Test.\n"
-                     "Tests all registers in an XInstQ for whether a register is used out of order based on P-ISA instruction order.\n"
-                     "This only works for kernels without evictions."))
-    parser.add_argument("--input_file", required= True, help="Input (.xinst) file.")
-    parser.add_argument("-v", "--verbose", dest="verbose", action="count", default=0,
-                        help=("If enabled, extra information and progress reports are printed to stdout. "
-                              "Increase level of verbosity by specifying flag multiple times, e.g. -vv"))
+        description=(
+            "Order Test.\n"
+            "Tests all registers in an XInstQ for whether a register is used out of order based on P-ISA instruction order.\n"
+            "This only works for kernels without evictions."
+        )
+    )
+    parser.add_argument("--input_file", required=True, help="Input (.xinst) file.")
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        dest="verbose",
+        action="count",
+        default=0,
+        help=(
+            "If enabled, extra information and progress reports are printed to stdout. "
+            "Increase level of verbosity by specifying flag multiple times, e.g. -vv"
+        ),
+    )
     args = parser.parse_args()
 
     return args
+
 
 def convertRegNameToTuple(reg_name) -> tuple:
     """
@@ -40,6 +56,7 @@ def convertRegNameToTuple(reg_name) -> tuple:
     tmp_s = tmp_s.split("b")
     return (int(tmp_s[1]), int(tmp_s[0]))
 
+
 if __name__ == "__main__":
     module_name = os.path.basename(__file__)
 
@@ -49,7 +66,7 @@ if __name__ == "__main__":
     if args.verbose > 0:
         print(module_name)
         print()
-        print("Xinst File: {0}".format(input_file))
+        print(f"Xinst File: {input_file}")
         print()
         print("Starting")
 
@@ -58,8 +75,8 @@ if __name__ == "__main__":
     my_rx = "r[0-9]+b[0-3]"
     prev_pisa_inst = 0
     instr_counter = 0
-    with open(input_file, 'r') as f_in:
-        for line_idx, s_line in enumerate(f_in):
+    with open(input_file) as f_in:
+        for _, s_line in enumerate(f_in):
             instr_regs = set()
             s_split = s_line.split("#")
             s_split = s_split[0].split(",")
@@ -67,7 +84,7 @@ if __name__ == "__main__":
             for s in s_split:
                 match = re.search(my_rx, s)
                 if match:
-                    reg_name = s[match.start():match.end()]
+                    reg_name = s[match.start() : match.end()]
                     if reg_name not in instr_regs:
                         instr_regs.add(reg_name)
                         reg = convertRegNameToTuple(reg_name)
@@ -75,12 +92,12 @@ if __name__ == "__main__":
                             register_map[reg] = []
                         register_map[reg].append(pisa_instr_num)
 
-    sorted_keys = [x for x in register_map]
+    sorted_keys = list(register_map)
     sorted_keys.sort()
     error_map = set()
 
     for reg in sorted_keys:
-        reg_name = f'r{reg[1]}b{reg[0]}'
+        reg_name = f"r{reg[1]}b{reg[0]}"
         print(reg_name, register_map[reg])
         reg_lst = register_map[reg]
         inverted_map = {}
@@ -91,10 +108,10 @@ if __name__ == "__main__":
             else:
                 inverted_map[idx] = (prev_in, reg_lst[idx])
         if inverted_map:
-            print('*** Ahead:', inverted_map)
+            print("*** Ahead:", inverted_map)
             error_map.add(reg_name)
 
     if error_map:
-        raise RuntimeError(f'Registers used out of order: {error_map}')
+        raise RuntimeError(f"Registers used out of order: {error_map}")
 
     print("Done")

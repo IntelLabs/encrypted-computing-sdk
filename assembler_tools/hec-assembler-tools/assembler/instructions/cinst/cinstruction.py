@@ -25,9 +25,7 @@ class CInstruction(BaseInstruction):
     # Constructor
     # -----------
 
-    def __init__(
-        self, instruction_id: int, throughput: int, latency: int, comment: str = ""
-    ):
+    def __init__(self, instruction_id: int, throughput: int, latency: int, comment: str = ""):
         """
         Constructs a new CInstruction.
 
@@ -49,9 +47,7 @@ class CInstruction(BaseInstruction):
         Returns:
             str: The ASM name for the operation.
         """
-        raise NotImplementedError(
-            "Derived CInstruction must implement _get_op_name_asm."
-        )
+        raise NotImplementedError("Derived CInstruction must implement _get_op_name_asm.")
 
     # Methods and properties
     # ----------------------

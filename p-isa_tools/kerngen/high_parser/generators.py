@@ -33,9 +33,7 @@ class Generators:
             try:
                 return cls(dirpath, manifest[scheme.upper()])
             except KeyError as e:
-                raise GeneratorError(
-                    f"Scheme `{scheme.upper()}` not found in manifest file"
-                ) from e
+                raise GeneratorError(f"Scheme `{scheme.upper()}` not found in manifest file") from e
 
     def available_kernels(self) -> str:
         """Returns a list of available pisa ops."""
@@ -55,8 +53,6 @@ class Generators:
         except KeyError as e:
             raise GeneratorError(f"Op not found in available pisa ops: {opname}") from e
         except AttributeError as e:
-            raise GeneratorError(
-                f"Class for op `{opname}` name not found: {class_name}"
-            ) from e
+            raise GeneratorError(f"Class for op `{opname}` name not found: {class_name}") from e
         except ImportError as e:
             raise GeneratorError(f"Unable to import module: {module_path}") from e

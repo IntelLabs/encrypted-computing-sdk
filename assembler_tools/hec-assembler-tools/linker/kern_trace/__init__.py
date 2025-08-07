@@ -7,12 +7,11 @@
 This package provides utilities for parsing trace files and extracting kernel operation information.
 """
 
-from linker.kern_trace.kern_var import KernVar
 from linker.kern_trace.context_config import ContextConfig
-from linker.kern_trace.kernel_op import KernelOp
-from linker.kern_trace.trace_info import TraceInfo
 from linker.kern_trace.kern_remap import remap_dinstrs_vars, remap_m_c_instrs_vars
-from linker.kern_trace.trace_info import KernelInfo
+from linker.kern_trace.kern_var import KernVar
+from linker.kern_trace.kernel_op import KernelOp
+from linker.kern_trace.trace_info import KernelInfo, TraceInfo
 
 __all__ = [
     "KernVar",

@@ -75,7 +75,5 @@ class XInstruction(BaseInstruction):
         @throws ValueError If the value is negative.
         """
         if value < 0:
-            raise ValueError(
-                f"`value`: expected non-negative bundle index, but {value} received."
-            )
+            raise ValueError(f"`value`: expected non-negative bundle index, but {value} received.")
         self.tokens[0] = f"F{value}"

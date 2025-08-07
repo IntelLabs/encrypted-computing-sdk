@@ -66,12 +66,8 @@ class Instruction(XInstruction):
         if not latency:
             latency = Instruction._OP_DEFAULT_LATENCY
         if any(isinstance(v, DummyVariable) or not v.name for v in src):
-            raise ValueError(
-                f"{Instruction.op_name_asm} cannot have dummy variable as source."
-            )
-        if dst.contained_variable and not isinstance(
-            dst.contained_variable, DummyVariable
-        ):
+            raise ValueError(f"{Instruction.op_name_asm} cannot have dummy variable as source.")
+        if dst.contained_variable and not isinstance(dst.contained_variable, DummyVariable):
             raise ValueError(
                 "{}: destination register must be empty, but variable {}.{} found.".format(
                     Instruction.op_name_asm,
@@ -92,11 +88,7 @@ class Instruction(XInstruction):
         Returns:
             str: A string representation of the object.
         """
-        retval = (
-            "<{}({}) object at {}>(id={}[0], "
-            "dst={}, src={}, "
-            "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "dst={}, src={}, " "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),
@@ -122,8 +114,7 @@ class Instruction(XInstruction):
         if len(value) != Instruction._OP_NUM_DESTS:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Register` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Register` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_DESTS, len(value)
                     )
                 )
@@ -145,8 +136,7 @@ class Instruction(XInstruction):
         if len(value) != Instruction._OP_NUM_SOURCES:
             raise ValueError(
                 (
-                    "`value`: Expected list of {} `Variable` objects, "
-                    "but list with {} elements received.".format(
+                    "`value`: Expected list of {} `Variable` objects, " "but list with {} elements received.".format(
                         Instruction._OP_NUM_SOURCES, len(value)
                     )
                 )
@@ -174,14 +164,8 @@ class Instruction(XInstruction):
             int: The throughput for this instruction, i.e., the number of cycles by which to advance
                 the current cycle counter.
         """
-        assert (
-            Instruction._OP_NUM_DESTS > 0
-            and len(self.dests) == Instruction._OP_NUM_DESTS
-        )
-        assert (
-            Instruction._OP_NUM_SOURCES > 0
-            and len(self.sources) == Instruction._OP_NUM_SOURCES
-        )
+        assert Instruction._OP_NUM_DESTS > 0 and len(self.dests) == Instruction._OP_NUM_DESTS
+        assert Instruction._OP_NUM_SOURCES > 0 and len(self.sources) == Instruction._OP_NUM_SOURCES
 
         variable = self.sources[0]  # Expected sources to contain a Variable
         target_register = self.dests[0]
@@ -189,13 +173,9 @@ class Instruction(XInstruction):
             # Source and target types are swapped after scheduling
             # Instruction already scheduled: can only schedule once
             assert isinstance(target_register, Variable)
-            raise RuntimeError(
-                f"Instruction `{self.name}` (id = {self.id}) already scheduled."
-            )
+            raise RuntimeError(f"Instruction `{self.name}` (id = {self.id}) already scheduled.")
 
-        if target_register.contained_variable and not isinstance(
-            target_register.contained_variable, DummyVariable
-        ):
+        if target_register.contained_variable and not isinstance(target_register.contained_variable, DummyVariable):
             raise RuntimeError(
                 (
                     "Instruction `{}` (id = {}) "
@@ -209,17 +189,12 @@ class Instruction(XInstruction):
                 )
             )
 
-        assert (
-            not target_register.contained_variable
-            or self.__dummy_var == target_register.contained_variable
-        )
+        assert not target_register.contained_variable or self.__dummy_var == target_register.contained_variable
         # Perform the move
         register_dirty = variable.register_dirty
         source_register = variable.register
         target_register.allocateVariable(variable)
-        source_register.allocateVariable(
-            self.__dummy_var
-        )  # Mark source register as free for next bundle
+        source_register.allocateVariable(self.__dummy_var)  # Mark source register as free for next bundle
         assert source_register.bank.bank_index == 0
         # Swap source and dest to keep the output format of the string instruction consistent
         self.sources[0] = source_register

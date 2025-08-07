@@ -31,12 +31,8 @@ class Instruction(XInstruction):
     _OP_REMOVE_LATENCY_MAX: int
     _OP_REMOVE_LATENCY_INC: int
 
-    __rshuffle_global_cycle_ready = CycleType(
-        0, 0
-    )  # Private class attribute to track cycle ready among rshuffles
-    __irshuffle_global_cycle_ready = CycleType(
-        0, 0
-    )  # Private class attribute to track the cycle ready based on last irshuffle
+    __rshuffle_global_cycle_ready = CycleType(0, 0)  # Private class attribute to track cycle ready among rshuffles
+    __irshuffle_global_cycle_ready = CycleType(0, 0)  # Private class attribute to track the cycle ready based on last irshuffle
 
     @classmethod
     def isa_spec_as_dict(cls) -> dict:
@@ -152,9 +148,7 @@ class Instruction(XInstruction):
             retval["op_name"] = instr_tokens[1]
             params_start = 2
             params_end = params_start + cls._OP_NUM_DESTS + cls._OP_NUM_SOURCES
-            dst_src = cls.parsePISASourceDestsFromTokens(
-                instr_tokens, cls._OP_NUM_DESTS, cls._OP_NUM_SOURCES, params_start
-            )
+            dst_src = cls.parsePISASourceDestsFromTokens(instr_tokens, cls._OP_NUM_DESTS, cls._OP_NUM_SOURCES, params_start)
             retval.update(dst_src)
             # Ignore "res", but make sure it exists (syntax)
             assert instr_tokens[params_end] is not None
@@ -206,10 +200,7 @@ class Instruction(XInstruction):
             latency = Instruction._OP_DEFAULT_LATENCY
         if latency < Instruction._OP_REMOVE_LATENCY:
             raise ValueError(
-                (
-                    f"`latency`: expected a value greater than or equal to "
-                    "{Instruction._OP_REMOVE_LATENCY}, but {latency} received."
-                )
+                (f"`latency`: expected a value greater than or equal to " "{Instruction._OP_REMOVE_LATENCY}, but {latency} received.")
             )
 
         super().__init__(id, N, throughput, latency, comment=comment)
@@ -226,9 +217,7 @@ class Instruction(XInstruction):
             str: A string representation of the Instruction object, including
                  its type, name, memory address, ID, destinations, sources, and wait cycles.
         """
-        retval = (
-            "<{}({}) object at {}>(id={}[0], " "dst={}, src={}, " "wait_cyc={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "dst={}, src={}, " "wait_cyc={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),
@@ -357,15 +346,9 @@ class Instruction(XInstruction):
         original_throughput = super()._schedule(cycle_count, schedule_id)
         retval = self.throughput + self.wait_cyc
         assert original_throughput <= retval
-        Instruction.__set_rshuffleGlobalCycleReady(
-            CycleType(
-                cycle_count.bundle, cycle_count.cycle + Instruction._OP_REMOVE_LATENCY
-            )
-        )
+        Instruction.__set_rshuffleGlobalCycleReady(CycleType(cycle_count.bundle, cycle_count.cycle + Instruction._OP_REMOVE_LATENCY))
         # Avoid rshuffles and irshuffles in the same bundle
-        irshuffle.Instruction.set_rshuffleGlobalCycleReady(
-            CycleType(cycle_count.bundle + 1, 0)
-        )
+        irshuffle.Instruction.set_rshuffleGlobalCycleReady(CycleType(cycle_count.bundle + 1, 0))
         return retval
 
     def _to_pisa_format(self, *extra_args) -> str:
