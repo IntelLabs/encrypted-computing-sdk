@@ -3,17 +3,15 @@
 
 """Module for parsing isa commands"""
 
-import math
 import itertools as it
+import math
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-
 from pydantic import BaseModel
 
-from .pisa_operations import PIsaOp
-
 from .options_handler import OptionsDictParser
+from .pisa_operations import PIsaOp
 
 
 class PolyOutOfBoundsError(Exception):
@@ -36,9 +34,7 @@ class Polys:
         part, q, unit = args
         # Sanity bounds checks
         if self.start_parts > part >= self.parts or self.start_rns > q >= self.rns:
-            raise PolyOutOfBoundsError(
-                f"part `{part}` or q `{q}` are not within the poly's range `{self!r}`"
-            )
+            raise PolyOutOfBoundsError(f"part `{part}` or q `{q}` are not within the poly's range `{self!r}`")
         return f"{self.name}_{part}_{q}_{unit}"
 
     def __call__(self, *args) -> str:
@@ -84,14 +80,8 @@ class KeyPolys(Polys):
         """Returns a string of the expanded symbol w.r.t. digit, rns, part, and unit"""
         digit, part, q, unit = args
         # Sanity bounds checks
-        if (
-            self.start_parts > part >= self.parts
-            or self.start_rns > q >= self.rns
-            or digit > self.digits
-        ):
-            raise PolyOutOfBoundsError(
-                f"part `{digit}` or `{part}` or q `{q}` are not within the key poly's range `{self!r}`"
-            )
+        if self.start_parts > part >= self.parts or self.start_rns > q >= self.rns or digit > self.digits:
+            raise PolyOutOfBoundsError(f"part `{digit}` or `{part}` or q `{q}` are not within the key poly's range `{self!r}`")
         return f"{self.name}_{part}_{digit}_{q}_{unit}"
 
 
@@ -154,7 +144,7 @@ class Context(BaseModel):
     key_rns: int
     current_rns: int
     # optional vars for context
-    num_digits: int | None
+    num_digits: int | None = None
 
     # calculated based on required params
     max_rns: int
@@ -165,23 +155,15 @@ class Context(BaseModel):
         scheme, poly_order, key_rns, current_rns, *optionals = line.split()
         optional_dict = OptionsDictParser.parse(optionals)
         int_poly_order = int(poly_order)
-        if (
-            int_poly_order < MIN_POLY_SIZE
-            or int_poly_order > MAX_POLY_SIZE
-            or not math.log2(int_poly_order).is_integer()
-        ):
-            raise ValueError(
-                f"Poly order `{int_poly_order}` must be power of two >= {MIN_POLY_SIZE} and < {MAX_POLY_SIZE}"
-            )
+        if int_poly_order < MIN_POLY_SIZE or int_poly_order > MAX_POLY_SIZE or not math.log2(int_poly_order).is_integer():
+            raise ValueError(f"Poly order `{int_poly_order}` must be power of two >= {MIN_POLY_SIZE} and < {MAX_POLY_SIZE}")
 
         int_key_rns = int(key_rns)
         int_current_rns = int(current_rns)
         int_max_rns = int_key_rns - 1
 
         if int_key_rns <= int_current_rns:
-            raise ValueError(
-                f"Current RNS must be less than Key RNS: current_rns={current_rns}, key_rns={key_rns}"
-            )
+            raise ValueError(f"Current RNS must be less than Key RNS: current_rns={current_rns}, key_rns={key_rns}")
 
         return cls(
             scheme=scheme.upper(),
@@ -211,7 +193,7 @@ class KernelContext(Context):
 
     @classmethod
     def from_context(cls, context: Context, label: str = "0") -> "KernelContext":
-        """Create a kernel context froma  context (and optionally a label)"""
+        """Create a kernel context from  context (and optionally a label)"""
         return cls(label=label, **vars(context))
 
 
@@ -243,9 +225,7 @@ class Immediate(BaseModel):
         # Sanity bounds checks
         q = args[1]
         if q > self.rns:
-            raise PolyOutOfBoundsError(
-                f"q `{q}` is more than the immediate with RNS `{self!r}`"
-            )
+            raise PolyOutOfBoundsError(f"q `{q}` is more than the immediate with RNS `{self!r}`")
         return f"{self.name}_{q}"
 
     @classmethod

@@ -66,9 +66,7 @@ __PISA_INSTRUCTIONS = (
 GLOBAL_CYCLE_TRACKING_INSTRUCTIONS = (rShuffle, irShuffle, XStore)
 
 
-def createFromParsedObj(
-    mem_model: MemoryModel, inst_type, parsed_op, new_id: int = 0
-) -> XInstruction:
+def createFromParsedObj(mem_model: MemoryModel, inst_type, parsed_op, new_id: int = 0) -> XInstruction:
     """
     Creates an XInstruction object XInst from the specified namespace data.
 
@@ -123,9 +121,7 @@ def createFromParsedObj(
     return inst_type(new_id, **parsed_op)
 
 
-def createFromPISALine(
-    mem_model: MemoryModel, line: str, line_no: int = 0
-) -> XInstruction:
+def createFromPISALine(mem_model: MemoryModel, line: str, line_no: int = 0) -> XInstruction:
     """
     Parses an XInst from the specified string (in P-ISA kernel input format) and returns a
     XInstruction object encapsulating the resulting instruction.
@@ -156,7 +152,6 @@ def createFromPISALine(
     retval = None
 
     try:
-
         for inst_type in __PISA_INSTRUCTIONS:
             parsed_op = inst_type.parseFromPISALine(line)
             if parsed_op:

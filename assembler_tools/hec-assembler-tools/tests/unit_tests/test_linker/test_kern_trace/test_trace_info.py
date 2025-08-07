@@ -8,12 +8,13 @@
 @file test_trace_info.py
 @brief Unit tests for the TraceInfo module and related classes
 """
-from unittest.mock import patch, mock_open
-import pytest
 
-from linker.kern_trace.trace_info import KernelInfo, TraceInfo
+from unittest.mock import mock_open, patch
+
+import pytest
 from linker.kern_trace.context_config import ContextConfig
 from linker.kern_trace.kernel_op import KernelOp
+from linker.kern_trace.trace_info import KernelInfo, TraceInfo
 
 
 class TestKernelInfo:
@@ -145,9 +146,7 @@ class TestTraceInfo:
         }
 
         # Act
-        name, context_config, kern_args = trace_info.extract_context_and_args(
-            tokens, param_idxs, 1
-        )
+        name, context_config, kern_args = trace_info.extract_context_and_args(tokens, param_idxs, 1)
 
         # Assert
         assert name == "kernel1"
@@ -210,10 +209,11 @@ class TestTraceInfo:
         )
 
         # Act
-        with patch("os.path.isfile", return_value=True), patch(
-            "builtins.open", mock_open(read_data=trace_content)
-        ), patch("linker.kern_trace.trace_info.tokenize_from_line") as mock_tokenize:
-
+        with (
+            patch("os.path.isfile", return_value=True),
+            patch("builtins.open", mock_open(read_data=trace_content)),
+            patch("linker.kern_trace.trace_info.tokenize_from_line") as mock_tokenize,
+        ):
             # Mock the tokenize_from_line function to return expected tokens
             mock_tokenize.side_effect = [
                 (
@@ -257,10 +257,7 @@ class TestTraceInfo:
         trace_file = "/path/to/empty_trace.txt"
 
         # Act
-        with patch("os.path.isfile", return_value=True), patch(
-            "builtins.open", mock_open(read_data="")
-        ):
-
+        with patch("os.path.isfile", return_value=True), patch("builtins.open", mock_open(read_data="")):
             trace_info = TraceInfo(trace_file)
             result = trace_info.parse_kernel_ops()
 
@@ -296,10 +293,11 @@ class TestTraceInfo:
         )
 
         # Act
-        with patch("os.path.isfile", return_value=True), patch(
-            "builtins.open", mock_open(read_data=trace_content)
-        ), patch("linker.kern_trace.trace_info.tokenize_from_line") as mock_tokenize:
-
+        with (
+            patch("os.path.isfile", return_value=True),
+            patch("builtins.open", mock_open(read_data=trace_content)),
+            patch("linker.kern_trace.trace_info.tokenize_from_line") as mock_tokenize,
+        ):
             # Mock the tokenize_from_line function to return expected tokens
             mock_tokenize.side_effect = [
                 (

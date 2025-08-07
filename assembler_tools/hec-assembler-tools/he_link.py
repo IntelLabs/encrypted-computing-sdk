@@ -7,7 +7,8 @@
 
 """
 @file he_link.py
-@brief This module provides functionality for linking assembled kernels into a full HERACLES program for execution queues: MINST, CINST, and XINST.
+@brief This module provides functionality for linking assembled kernels
+       into a full HERACLES program for execution queues: MINST, CINST, and XINST.
 
 @par Classes:
     - LinkerRunConfig: Maintains the configuration data for the run.
@@ -21,32 +22,33 @@
     This script is intended to be run as a standalone program. It requires specific command-line arguments
     to specify input and output files and configuration options for the linking process.
 """
+
 import argparse
 import os
 import sys
 import warnings
 
-from assembler.common.counter import Counter
 from assembler.common.config import GlobalConfig
-from assembler.spec_config.mem_spec import MemSpecConfig
+from assembler.common.counter import Counter
 from assembler.spec_config.isa_spec import ISASpecConfig
-from linker.instructions import BaseInstruction
-from linker.linker_run_config import LinkerRunConfig
-from linker.steps.variable_discovery import scan_variables, check_unused_variables
-from linker.steps import program_linker
-from linker.kern_trace.trace_info import TraceInfo
-from linker.loader import Loader
+from assembler.spec_config.mem_spec import MemSpecConfig
 from linker.he_link_utils import (
     NullIO,
-    prepare_output_files,
-    prepare_input_files,
-    update_input_prefixes,
-    remap_vars,
     initialize_memory_model,
+    prepare_input_files,
+    prepare_output_files,
+    remap_vars,
+    update_input_prefixes,
 )
+from linker.instructions import BaseInstruction
+from linker.kern_trace.trace_info import TraceInfo
+from linker.linker_run_config import LinkerRunConfig
+from linker.loader import Loader
+from linker.steps import program_linker
+from linker.steps.variable_discovery import check_unused_variables, scan_variables
 
 
-def main(run_config: LinkerRunConfig, verbose_stream=NullIO()):
+def main(run_config: LinkerRunConfig, verbose_stream=None):
     """
     @brief Executes the linking process using the provided configuration.
 
@@ -54,10 +56,12 @@ def main(run_config: LinkerRunConfig, verbose_stream=NullIO()):
     and links each kernel, writing the output to specified files.
 
     @param run_config The configuration object containing run parameters.
-    @param verbose_stream The stream to which verbose output is printed. Defaults to NullIO.
+    @param verbose_stream The stream to which verbose output is printed. Defaults to None.
 
     @return None
     """
+    if verbose_stream is None:
+        verbose_stream = NullIO()
     if run_config.use_xinstfetch:
         warnings.warn("Ignoring configuration flag 'use_xinstfetch'.")
 
@@ -101,9 +105,7 @@ def main(run_config: LinkerRunConfig, verbose_stream=NullIO()):
         remap_vars(kernels_info, dinstrs_per_kernel, kernel_ops, verbose_stream)
 
         # Concatenate all mem info objects into one
-        program_dinstrs = program_linker.LinkedProgram.join_dinst_kernels(
-            dinstrs_per_kernel
-        )
+        program_dinstrs = program_linker.LinkedProgram.join_dinst_kernels(dinstrs_per_kernel)
 
         # Write new program memory model to an output file
         if program_info.mem is None:
@@ -117,9 +119,7 @@ def main(run_config: LinkerRunConfig, verbose_stream=NullIO()):
     print("  Finding all program variables...", file=verbose_stream)
     print("  Scanning", file=verbose_stream)
 
-    scan_variables(
-        kernels_info=kernels_info, mem_model=mem_model, verbose_stream=verbose_stream
-    )
+    scan_variables(kernels_info=kernels_info, mem_model=mem_model, verbose_stream=verbose_stream)
 
     check_unused_variables(mem_model)
 
@@ -127,9 +127,7 @@ def main(run_config: LinkerRunConfig, verbose_stream=NullIO()):
     print("Linking started", file=verbose_stream)
 
     # Link kernels and generate outputs
-    program_linker.LinkedProgram.link_kernels_to_files(
-        kernels_info, program_info, mem_model, verbose_stream=verbose_stream
-    )
+    program_linker.LinkedProgram.link_kernels_to_files(kernels_info, program_info, mem_model, verbose_stream=verbose_stream)
 
     # Flush cached kernels
     Loader.flush_cache()
@@ -281,23 +279,15 @@ def parse_args():
     # Enforce only if use_trace_file is not set
     if not p_args.using_trace_file:
         if p_args.input_mem_file == "":
-            parser.error(
-                "the following arguments are required: -im/--input_mem_file (unless --use_trace_file is set)"
-            )
+            parser.error("the following arguments are required: -im/--input_mem_file (unless --use_trace_file is set)")
         if not p_args.input_prefixes:
-            parser.error(
-                "the following arguments are required: -ip/--input_prefixes (unless --use_trace_file is set)"
-            )
+            parser.error("the following arguments are required: -ip/--input_prefixes (unless --use_trace_file is set)")
     else:
         # If using trace file, input_mem_file and input_prefixes are ignored
         if p_args.input_mem_file != "":
-            warnings.warn(
-                "Ignoring input_mem_file argument because --use_trace_file is set."
-            )
+            warnings.warn("Ignoring input_mem_file argument because --use_trace_file is set.")
         if p_args.input_prefixes:
-            warnings.warn(
-                "Ignoring input_prefixes argument because --use_trace_file is set."
-            )
+            warnings.warn("Ignoring input_prefixes argument because --use_trace_file is set.")
 
     return p_args
 
@@ -307,12 +297,8 @@ if __name__ == "__main__":
     module_name = os.path.basename(__file__)
 
     args = parse_args()
-    args.mem_spec_file = MemSpecConfig.initialize_mem_spec(
-        module_dir, args.mem_spec_file
-    )
-    args.isa_spec_file = ISASpecConfig.initialize_isa_spec(
-        module_dir, args.isa_spec_file
-    )
+    args.mem_spec_file = MemSpecConfig.initialize_mem_spec(module_dir, args.mem_spec_file)
+    args.isa_spec_file = ISASpecConfig.initialize_isa_spec(module_dir, args.isa_spec_file)
     config = LinkerRunConfig(**vars(args))  # convert argsparser into a dictionary
 
     if args.verbose > 0:

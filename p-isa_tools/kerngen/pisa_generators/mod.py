@@ -5,20 +5,20 @@
 
 from dataclasses import dataclass
 
-from high_parser.pisa_operations import PIsaOp, Comment
-from high_parser import KernelContext, Immediate, HighOp, Polys
+from high_parser import HighOp, Immediate, KernelContext, Polys
+from high_parser.pisa_operations import Comment, PIsaOp
 
 from .basic import (
-    Copy,
     Add,
-    Sub,
+    Copy,
     Muli,
-    mixed_to_pisa_ops,
-    split_last_rns_polys,
-    duplicate_polys,
-    common_immediates,
-    muli_last_half,
+    Sub,
     add_last_half,
+    common_immediates,
+    duplicate_polys,
+    mixed_to_pisa_ops,
+    muli_last_half,
+    split_last_rns_polys,
     sub_last_half,
 )
 from .ntt import INTT, NTT
@@ -50,15 +50,11 @@ class Mod(HighOp):
         )
 
         # Drop down input rns
-        input_last_rns, input_remaining_rns = split_last_rns_polys(
-            self.input0, self.context.current_rns
-        )
+        input_last_rns, input_remaining_rns = split_last_rns_polys(self.input0, self.context.current_rns)
 
         # For CKKS and standalone mod switch down, we can reduce the RNS by one and copy to output, no need to rescale
         if self.context.scheme == "CKKS" and self.var_suffix == self.MOD_QLAST:
-            return mixed_to_pisa_ops(
-                [Copy(self.context, self.output, input_remaining_rns)]
-            )
+            return mixed_to_pisa_ops([Copy(self.context, self.output, input_remaining_rns)])
 
         # Temp.
         temp_input_last_rns = duplicate_polys(input_last_rns, "y")
@@ -140,9 +136,7 @@ class Mod(HighOp):
                                 temp_input_last_rns,
                                 temp_input_last_rns,
                                 p_half,
-                                Polys.from_polys(
-                                    input_remaining_rns, mode="single_rns"
-                                ),
+                                Polys.from_polys(input_remaining_rns, mode="single_rns"),
                                 last_q,
                             ),
                             sub_last_half(

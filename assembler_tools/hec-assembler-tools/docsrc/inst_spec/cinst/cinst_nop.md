@@ -32,4 +32,4 @@ Note that this instruction will cause the compute flow to stall for `1 + cycles`
 cnop, 0
 ```
 
-Parameter `cycles` is encoded into a 10 bits field, and thus, its value must be less than 1024. If more thatn 1024 idle cycles is required, multiple `cnop` instructions must be scheduled back to back.
+Parameter `cycles` is encoded into a 10 bits field, and thus, its value must be less than 1024. If more than 1024 idle cycles is required, multiple `cnop` instructions must be scheduled back to back.

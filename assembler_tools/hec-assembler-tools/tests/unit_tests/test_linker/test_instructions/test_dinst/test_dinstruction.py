@@ -9,7 +9,7 @@ serves as the base for all data instructions.
 """
 
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from linker.instructions.dinst.dinstruction import DInstruction
 
@@ -28,9 +28,7 @@ class TestDInstruction(unittest.TestCase):
         self.mock_miv.as_dict.return_value = {"var_name": "var1", "hbm_address": 123}
 
         # Patch the MemInfo.get_meminfo_var_from_tokens method
-        self.mem_info_patcher = patch(
-            "linker.instructions.dinst.dinstruction.MemInfo.get_meminfo_var_from_tokens"
-        )
+        self.mem_info_patcher = patch("linker.instructions.dinst.dinstruction.MemInfo.get_meminfo_var_from_tokens")
         self.mock_get_meminfo = self.mem_info_patcher.start()
         self.mock_get_meminfo.return_value = (self.mock_miv, 1)
 
@@ -65,9 +63,7 @@ class TestDInstruction(unittest.TestCase):
 
         @test Verifies the name token is at index 0
         """
-        self.assertEqual(
-            self.d_instruction_class.name_token_index, 0
-        )  # Updated reference
+        self.assertEqual(self.d_instruction_class.name_token_index, 0)  # Updated reference
 
     def test_num_tokens_property(self):
         """@brief Test num_tokens property returns expected value

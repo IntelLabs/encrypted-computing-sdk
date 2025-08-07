@@ -1,3 +1,6 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 import math
 import pathlib
@@ -13,6 +16,7 @@ from .variable import Variable
 from .variable import findVarByName
 from pickle import NONE
 
+
 class MemoryModel:
     """
     Represents a memory model with various components such as HBM, SPAD, and register banks.
@@ -20,6 +24,7 @@ class MemoryModel:
     This class provides methods and properties to manage and interact with different parts
     of the memory model, including metadata variables and output variables.
     """
+
     class StoreBufferValueType(NamedTuple):
         """
         Represents a value type for the store buffer.
@@ -28,6 +33,7 @@ class MemoryModel:
             variable (Variable): The variable associated with the store buffer entry.
             dest_spad_address (int): The destination SPAD address for the variable.
         """
+
         variable: Variable
         dest_spad_address: int
 
@@ -39,18 +45,16 @@ class MemoryModel:
         Returns:
             int: The number of variables per segment.
         """
-        return math.ceil(constants.MemoryModel.NUM_TWIDDLE_META_REGISTERS * \
-                         constants.MemoryModel.TWIDDLE_META_REGISTER_SIZE_BYTES / \
-                         constants.Constants.WORD_SIZE)
+        return math.ceil(
+            constants.MemoryModel.NUM_TWIDDLE_META_REGISTERS
+            * constants.MemoryModel.TWIDDLE_META_REGISTER_SIZE_BYTES
+            / constants.Constants.WORD_SIZE
+        )
 
     # Constructor
     # -----------
 
-    def __init__(self,
-                 hbm_capacity_words: int,
-                 spad_capacity_words: int,
-                 num_register_banks: int,
-                 register_range: range = None):
+    def __init__(self, hbm_capacity_words: int, spad_capacity_words: int, num_register_banks: int, register_range: range = None):
         """
         Initializes a new MemoryModel object.
 
@@ -68,27 +72,30 @@ class MemoryModel:
         assert self.MAX_TWIDDLE_META_VARS_PER_SEGMENT == 8
 
         if num_register_banks < constants.MemoryModel.NUM_REGISTER_BANKS:
-            raise ValueError(('`num_register_banks`: there must be at least {} register banks, '
-                              'but {} requested.').format(constants.MemoryModel.NUM_REGISTER_BANKS,
-                                                          num_register_banks))
+            raise ValueError(
+                ("`num_register_banks`: there must be at least {} register banks, " "but {} requested.").format(
+                    constants.MemoryModel.NUM_REGISTER_BANKS, num_register_banks
+                )
+            )
         self.__register_range = range(constants.MemoryModel.NUM_REGISTERS_PER_BANK) if not register_range else register_range
         # initialize members
-        self.__store_buffer = QueueDict() # QueueDict(var_name: str, StoreBufferValueType)
-        self.__variables = {} # dict(var_name, Variable)
-        self.__meta_ones_vars = [] # list(QueueDict())
-        self.meta_ntt_aux_table: str = "" # var name
-        self.meta_ntt_routing_table: str = "" # var name
-        self.meta_intt_aux_table: str = "" # var name
-        self.meta_intt_routing_table: str = "" # var name
-        self.__meta_twiddle_vars = [] # list(QueueDict())
-        self.__meta_keygen_seed_vars = QueueDict() # QueueDict(var_name: str, None): set of variables that are seeds to this operation
-        self.__keygen_vars = dict() # dict(var_name: str, tuple(seed_idx: int, key_idx: int)): set of variables that are output to this operation
-        self.__output_vars = QueueDict() # QueueDict(var_name: str, None): set of variables that are output to this operation
-        self.__last_keygen_order = (0, -1) # tracks the generation order of last keygen variable; next must be 1 above this order.
+        self.__store_buffer = QueueDict()  # QueueDict(var_name: str, StoreBufferValueType)
+        self.__variables = {}  # dict(var_name, Variable)
+        self.__meta_ones_vars = []  # list(QueueDict())
+        self.meta_ntt_aux_table: str = ""  # var name
+        self.meta_ntt_routing_table: str = ""  # var name
+        self.meta_intt_aux_table: str = ""  # var name
+        self.meta_intt_routing_table: str = ""  # var name
+        self.__meta_twiddle_vars = []  # list(QueueDict())
+        self.__meta_keygen_seed_vars = QueueDict()  # QueueDict(var_name: str, None): set of variables that are seeds to this operation
+        self.__keygen_vars = (
+            dict()
+        )  # dict(var_name: str, tuple(seed_idx: int, key_idx: int)): set of variables that are output to this operation
+        self.__output_vars = QueueDict()  # QueueDict(var_name: str, None): set of variables that are output to this operation
+        self.__last_keygen_order = (0, -1)  # tracks the generation order of last keygen variable; next must be 1 above this order.
         self.__hbm = hbm.HBM(hbm_capacity_words)
         self.__spad = spad.SPAD(spad_capacity_words)
-        self.__register_file = tuple([register_file.RegisterBank(idx, self.__register_range) \
-            for idx in range(num_register_banks)])
+        self.__register_file = tuple([register_file.RegisterBank(idx, self.__register_range) for idx in range(num_register_banks)])
 
     # Special Methods
     # ---------------
@@ -100,17 +107,17 @@ class MemoryModel:
         Returns:
             str: The string representation.
         """
-        retval = ('<{} object at {}>(hbm_capacity_words={}, '
-                  'spad_capacity_words={}, '
-                  'num_register_banks={}, '
-                  'register_range={})').format(type(self).__name__,
-                                               hex(id(self)),
-                                               self.spad.CAPACITY_WORDS,
-                                               self.hbm.CAPACITY_WORDS,
-                                               len(self.reister_banks),
-                                               self.__register_range)
+        retval = (
+            "<{} object at {}>(hbm_capacity_words={}, " "spad_capacity_words={}, " "num_register_banks={}, " "register_range={})"
+        ).format(
+            type(self).__name__,
+            hex(id(self)),
+            self.spad.CAPACITY_WORDS,
+            self.hbm.CAPACITY_WORDS,
+            len(self.register_banks),
+            self.__register_range,
+        )
         return retval
-
 
     # Methods and properties
     # ----------------------
@@ -188,13 +195,13 @@ class MemoryModel:
     def meta_ones_vars_segments(self) -> list:
         """
         Retrieves the set of variable names that have been marked as Metadata Ones variables.
-            
-        A list of segments (list[QueueDict(str, None)]), where each segment is 
-        the set of variable names that have been marked as Metadata Ones variables. 
-        The size of each set is given by the number of variables needed to fill up 
+
+        A list of segments (list[QueueDict(str, None)]), where each segment is
+        the set of variable names that have been marked as Metadata Ones variables.
+        The size of each set is given by the number of variables needed to fill up
         the ones metadata registers (see constants.MemoryModel.NUM_ONES_META_REGISTERS).
         Clients should not change these values. Use add_meta_ones_var() to add new ones metadata.
-        
+
         Returns:
             list: A list of segments, each containing variable names.
 
@@ -214,8 +221,7 @@ class MemoryModel:
         if var_name not in self.variables:
             raise RuntimeError(f'Variable "{var_name}" is not in memory model.')
         # Twiddle metadata variables are grouped in segments of 8
-        if len(self.__meta_twiddle_vars) <= 0 \
-           or len(self.__meta_twiddle_vars[-1]) >= self.MAX_TWIDDLE_META_VARS_PER_SEGMENT:
+        if len(self.__meta_twiddle_vars) <= 0 or len(self.__meta_twiddle_vars[-1]) >= self.MAX_TWIDDLE_META_VARS_PER_SEGMENT:
             self.__meta_twiddle_vars.append(QueueDict())
         self.__meta_twiddle_vars[-1].push(var_name, None)
 
@@ -226,7 +232,7 @@ class MemoryModel:
 
         Clients should not change these values. Use meta_twiddle_vars_segments() to add
         new twiddle metadata.
-        
+
         A list of segments (list[QueueDict(str, None)]), where each segment is a set of
         variable names that have been marked as Metadata Twiddle variables. The size
         of each set is given by the number of variables needed to fill up the twiddle
@@ -247,12 +253,13 @@ class MemoryModel:
         Returns:
             bool: True if the variable is a meta variable, False otherwise.
         """
-        return bool(var_name) and \
-           (var_name in self.meta_keygen_seed_vars \
-         or any(var_name in meta_twiddle_vars for meta_twiddle_vars in self.meta_twiddle_vars_segments) \
-         or any(var_name in meta_ones_vars for meta_ones_vars in self.meta_ones_vars_segments) \
-         or var_name in set((self.meta_ntt_aux_table, self.meta_ntt_routing_table,
-                             self.meta_intt_aux_table, self.meta_intt_routing_table)))
+        return bool(var_name) and (
+            var_name in self.meta_keygen_seed_vars
+            or any(var_name in meta_twiddle_vars for meta_twiddle_vars in self.meta_twiddle_vars_segments)
+            or any(var_name in meta_ones_vars for meta_ones_vars in self.meta_ones_vars_segments)
+            or var_name
+            in set((self.meta_ntt_aux_table, self.meta_ntt_routing_table, self.meta_intt_aux_table, self.meta_intt_routing_table))
+        )
 
     @property
     def output_variables(self) -> QueueDict:
@@ -325,11 +332,14 @@ class MemoryModel:
         if var_name in self.output_variables:
             raise RuntimeError(f'Variable "{var_name}" is marked as output and cannot be marked as key material.')
         if key_index < 0:
-            raise IndexError('`key_index` must be a valid zero-based index.')
+            raise IndexError("`key_index` must be a valid zero-based index.")
         if seed_index < 0 or seed_index >= len(self.meta_keygen_seed_vars):
-            raise IndexError(('`seed_index` must be a valid index into the existing keygen seeds. '
-                              'Expected value in range [0, {}), but {} received.').format(len(self.meta_keygen_seed_vars),
-                                                                                          seed_index))
+            raise IndexError(
+                (
+                    "`seed_index` must be a valid index into the existing keygen seeds. "
+                    "Expected value in range [0, {}), but {} received."
+                ).format(len(self.meta_keygen_seed_vars), seed_index)
+            )
 
         self.keygen_variables[var_name] = (seed_index, key_index)
 
@@ -353,9 +363,7 @@ class MemoryModel:
         variable: Variable = self.variables[var_name]
         return variable.hbm_address >= 0 or variable.spad_address >= 0 or variable.register is not None
 
-    def retrieveVarAdd(self,
-                       var_name: str,
-                       suggested_bank: int = -1) -> Variable:
+    def retrieveVarAdd(self, var_name: str, suggested_bank: int = -1) -> Variable:
         """
         Retrieves a Variable object from the global list of variables or add a new variable if not found.
 
@@ -378,10 +386,11 @@ class MemoryModel:
             retval.suggested_bank = suggested_bank
         elif suggested_bank >= 0:
             if retval.suggested_bank != suggested_bank:
-                raise ValueError(('`suggested_bank`: value {} does not match existing variable "{}" '
-                                  'suggested bank of {}.').format(suggested_bank,
-                                                                  var_name,
-                                                                  retval.suggested_bank))
+                raise ValueError(
+                    ('`suggested_bank`: value {} does not match existing variable "{}" ' "suggested bank of {}.").format(
+                        suggested_bank, var_name, retval.suggested_bank
+                    )
+                )
         return retval
 
     def findUniqueVarName(self) -> str:
@@ -407,46 +416,49 @@ class MemoryModel:
         """
         print("name, hbm, spad, spad dirty, suggested bank, register, register_dirty, last xinst use, pending xinst use", file=ostream)
         for _, variable in self.variables.items():
-            print('{}, {}, {}, {}, {}, {}, {}'.format(variable.name,
-                                                      variable.hbm_address,
-                                                      variable.spad_address,
-                                                      variable.spad_dirty,
-                                                      variable.suggested_bank,
-                                                      variable.register,
-                                                      variable.register_dirty,
-                                                      repr(variable.last_x_access),
-                                                      repr(variable.accessed_by_xinsts)),
-                  file = ostream)
+            print(
+                "{}, {}, {}, {}, {}, {}, {}".format(
+                    variable.name,
+                    variable.hbm_address,
+                    variable.spad_address,
+                    variable.spad_dirty,
+                    variable.suggested_bank,
+                    variable.register,
+                    variable.register_dirty,
+                    repr(variable.last_x_access),
+                    repr(variable.accessed_by_xinsts),
+                ),
+                file=ostream,
+            )
 
-    def dump(self,
-             output_dir = ''):
+    def dump(self, output_dir=""):
         """
         Dump the memory model information to files in the specified output directory.
 
         Args:
-            output_dir (str, optional): 
-                The directory to write the dump files to. 
+            output_dir (str, optional):
+                The directory to write the dump files to.
                 Defaults to the current working directory.
         """
         if not output_dir:
             output_dir = os.path.join(pathlib.Path.cwd(), "tmp")
-        pathlib.Path(output_dir).mkdir(exist_ok = True, parents=True)
-        print('******************')
-        print(f'Dumping to: {output_dir}')
+        pathlib.Path(output_dir).mkdir(exist_ok=True, parents=True)
+        print("******************")
+        print(f"Dumping to: {output_dir}")
 
         vars_filename = os.path.join(output_dir, "variables.dump.csv")
         hbm_filename = os.path.join(output_dir, "hbm.dump.csv")
         spad_filename = os.path.join(output_dir, "spad.dump.csv")
 
-        with open(vars_filename, 'w') as outnum:
+        with open(vars_filename, "w") as outnum:
             self.__dumpVariables(outnum)
-        with open(hbm_filename, 'w') as outnum:
+        with open(hbm_filename, "w") as outnum:
             self.hbm.dump(outnum)
-        with open(spad_filename, 'w') as outnum:
+        with open(spad_filename, "w") as outnum:
             self.spad.dump(outnum)
         for idx, rb in enumerate(self.register_banks):
             register_filename = os.path.join(output_dir, f"register_bank_{idx}.dump.csv")
-            with open(register_filename, 'w') as outnum:
+            with open(register_filename, "w") as outnum:
                 rb.dump(outnum)
 
-        print('******************')
+        print("******************")

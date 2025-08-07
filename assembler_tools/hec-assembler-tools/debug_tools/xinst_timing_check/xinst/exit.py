@@ -1,15 +1,19 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 from .xinstruction import XInstruction
+
 
 class Instruction(XInstruction):
     """
     Represents an `bexit` instruction, inheriting from XInstruction.
-    
+
     This instruction terminates execution of an instruction bundle.
 
     For more information, check the specification:
         https://github.com/IntelLabs/hec-assembler-tools/blob/master/docsrc/inst_spec/xinst/xinst_exit.md
     """
-    
+
     @classmethod
     def fromASMISALine(cls, line: str) -> list:
         """
@@ -29,15 +33,17 @@ class Instruction(XInstruction):
         if tokens:
             tokens, comment = tokens
             if len(tokens) < 3 or tokens[2] != cls.name:
-                raise ValueError('`line`: could not parse f{cls.name} from specified line.')
-            retval = cls(int(tokens[0][1:]),  # Bundle
-                         int(tokens[1]),  # PISA instruction number
-                         [],
-                         [],
-                         cls._OP_DEFAULT_THROUGHPUT,
-                         cls._OP_DEFAULT_LATENCY,
-                         tokens[3 + cls._OP_NUM_DESTS + cls._OP_NUM_SOURCES:],
-                         comment)
+                raise ValueError("`line`: could not parse f{cls.name} from specified line.")
+            retval = cls(
+                int(tokens[0][1:]),  # Bundle
+                int(tokens[1]),  # PISA instruction number
+                [],
+                [],
+                cls._OP_DEFAULT_THROUGHPUT,
+                cls._OP_DEFAULT_LATENCY,
+                tokens[3 + cls._OP_NUM_DESTS + cls._OP_NUM_SOURCES :],
+                comment,
+            )
         return retval
 
     @classmethod
@@ -50,15 +56,9 @@ class Instruction(XInstruction):
         """
         return "bexit"
 
-    def __init__(self,
-                 bundle: int,
-                 pisa_instr: int,
-                 dsts: list,
-                 srcs: list,
-                 throughput: int,
-                 latency: int,
-                 other: list = [],
-                 comment: str = ""):
+    def __init__(
+        self, bundle: int, pisa_instr: int, dsts: list, srcs: list, throughput: int, latency: int, other: list = [], comment: str = ""
+    ):
         """
         Constructs a new Instruction object.
 

@@ -1,10 +1,13 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
 
-from .decorators import *
+from .decorators import classproperty
+
 
 class Constants:
     """
     Contains project level and global constants that won't fit logically into any other category.
-    
+
     Attributes:
         KILOBYTE (int): Number of bytes in a kilobyte (2^10).
         MEGABYTE (int): Number of bytes in a megabyte (2^20).
@@ -64,8 +67,8 @@ class Constants:
 
     @classproperty
     def REPLACEMENT_POLICIES(cls) -> tuple:
-       """Tuple containing all replacement policy identifiers."""
-       return ( cls.REPLACEMENT_POLICY_FTBU, cls.REPLACEMENT_POLICY_LRU )
+        """Tuple containing all replacement policy identifiers."""
+        return (cls.REPLACEMENT_POLICY_FTBU, cls.REPLACEMENT_POLICY_LRU)
 
     # Misc Constants
     # --------------
@@ -97,18 +100,31 @@ class Constants:
     @classproperty
     def OPERATIONS(cls) -> list:
         """List of high-level operations supported by the system."""
-        return [ "add", "mul", "ntt", "intt", "relin", "mod_switch", "rotate",
-                 "square", "add_plain", "add_corrected", "mul_plain", "rescale",
-                 "boot_dot_prod", "boot_mod_drop_scale", "boot_mul_const", "boot_galois_plain" ]
+        return [
+            "add",
+            "mul",
+            "ntt",
+            "intt",
+            "relin",
+            "mod_switch",
+            "rotate",
+            "square",
+            "add_plain",
+            "add_corrected",
+            "mul_plain",
+            "rescale",
+            "boot_dot_prod",
+            "boot_mod_drop_scale",
+            "boot_mul_const",
+            "boot_galois_plain",
+        ]
 
     @classmethod
     def hw_spec_as_dict(cls) -> dict:
         """
         Returns hw configurable attributes as dictionary.
         """
-        dict = {"bytes_per_xinstruction": cls.XINSTRUCTION_SIZE_BYTES,
-                "max_instructions_per_bundle": cls.MAX_BUNDLE_SIZE}
-        return dict
+        return {"bytes_per_xinstruction": cls.XINSTRUCTION_SIZE_BYTES, "max_instructions_per_bundle": cls.MAX_BUNDLE_SIZE}
 
     @classmethod
     def setMaxBundleSize(cls, val: int):
@@ -120,7 +136,8 @@ class Constants:
         """Updates size of single XInstruction"""
         cls.__XINSTRUCTION_SIZE_BYTES = val
 
-def convertBytes2Words(bytes: int) -> int:
+
+def convertBytes2Words(bytes_in: int) -> int:
     """
     Converts a size in bytes to the equivalent number of words.
 
@@ -130,7 +147,8 @@ def convertBytes2Words(bytes: int) -> int:
     Returns:
         int: The equivalent size in words.
     """
-    return int(bytes / Constants.WORD_SIZE)
+    return int(bytes_in / Constants.WORD_SIZE)
+
 
 def convertWords2Bytes(words: int) -> int:
     """
@@ -143,6 +161,7 @@ def convertWords2Bytes(words: int) -> int:
         int: The equivalent size in bytes.
     """
     return words * Constants.WORD_SIZE
+
 
 class MemInfo:
     """
@@ -160,6 +179,7 @@ class MemInfo:
         These keywords are used to identify different operations and data types
         within the memory file.
         """
+
         @classproperty
         def KEYGEN(cls):
             """Keyword for key generation."""
@@ -219,6 +239,7 @@ class MemInfo:
         """
         Names of different metadata fields.
         """
+
         @classproperty
         def FIELD_KEYGEN_SEED(cls):
             return MemInfo.Keyword.LOAD_KEYGEN_SEED
@@ -266,18 +287,21 @@ class MemInfo:
     @classproperty
     def FIELD_METADATA_SUBFIELDS(cls):
         """Tuple of subfield names for metadata."""
-        return ( cls.MetaFields.FIELD_KEYGEN_SEED,
-                 cls.MetaFields.FIELD_TWIDDLE,
-                 cls.MetaFields.FIELD_ONES,
-                 cls.MetaFields.FIELD_NTT_AUX_TABLE,
-                 cls.MetaFields.FIELD_NTT_ROUTING_TABLE,
-                 cls.MetaFields.FIELD_iNTT_AUX_TABLE,
-                 cls.MetaFields.FIELD_iNTT_ROUTING_TABLE )
+        return (
+            cls.MetaFields.FIELD_KEYGEN_SEED,
+            cls.MetaFields.FIELD_TWIDDLE,
+            cls.MetaFields.FIELD_ONES,
+            cls.MetaFields.FIELD_NTT_AUX_TABLE,
+            cls.MetaFields.FIELD_NTT_ROUTING_TABLE,
+            cls.MetaFields.FIELD_iNTT_AUX_TABLE,
+            cls.MetaFields.FIELD_iNTT_ROUTING_TABLE,
+        )
 
     class MetaTargets:
         """
         Targets for different metadata.
         """
+
         @classproperty
         def TARGET_ONES(cls):
             """Special target register for Ones."""
@@ -302,6 +326,7 @@ class MemInfo:
         def TARGET_iNTT_ROUTING_TABLE(cls):
             """Special target register for rshuffle iNTT routing table."""
             return 3
+
 
 class MemoryModel:
     """
@@ -332,30 +357,37 @@ class MemoryModel:
     def XINST_QUEUE_MAX_CAPACITY(cls):
         """Maximum capacity of the XINST queue in bytes."""
         return cls.__XINST_QUEUE_MAX_CAPACITY
+
     @classproperty
     def XINST_QUEUE_MAX_CAPACITY_WORDS(cls):
         """Maximum capacity of the XINST queue in words."""
         return convertBytes2Words(cls.__XINST_QUEUE_MAX_CAPACITY)
+
     @classproperty
     def CINST_QUEUE_MAX_CAPACITY(cls):
         """Maximum capacity of the CINST queue in bytes."""
         return cls.__CINST_QUEUE_MAX_CAPACITY
+
     @classproperty
     def CINST_QUEUE_MAX_CAPACITY_WORDS(cls):
         """Maximum capacity of the CINST queue in words."""
         return convertBytes2Words(cls.__CINST_QUEUE_MAX_CAPACITY)
+
     @classproperty
     def MINST_QUEUE_MAX_CAPACITY(cls):
         """Maximum capacity of the MINST queue in bytes."""
         return cls.__MINST_QUEUE_MAX_CAPACITY
+
     @classproperty
     def MINST_QUEUE_MAX_CAPACITY_WORDS(cls):
         """Maximum capacity of the MINST queue in words."""
         return convertBytes2Words(cls.__MINST_QUEUE_MAX_CAPACITY)
+
     @classproperty
     def STORE_BUFFER_MAX_CAPACITY(cls):
         """Maximum capacity of the store buffer in bytes."""
         return cls.__STORE_BUFFER_MAX_CAPACITY
+
     @classproperty
     def STORE_BUFFER_MAX_CAPACITY_WORDS(cls):
         """Maximum capacity of the store buffer in words."""
@@ -432,20 +464,21 @@ class MemoryModel:
         """
         Returns hw configurable attributes as dictionary.
         """
-        dict = {"max_xinst_queue_size_in_bytes": cls.__XINST_QUEUE_MAX_CAPACITY,
-                "max_cinst_queue_size_in_bytes": cls.__CINST_QUEUE_MAX_CAPACITY,
-                "max_minst_queue_size_in_bytes": cls.__MINST_QUEUE_MAX_CAPACITY,
-                "max_store_buffer_size_in_bytes": cls.__STORE_BUFFER_MAX_CAPACITY,
-                "num_blocks_per_twid_meta_word": cls.NUM_BLOCKS_PER_TWID_META_WORD,
-                "num_blocks_per_kgseed_meta_word": cls.NUM_BLOCKS_PER_KGSEED_META_WORD,
-                "num_routing_table_registers": cls.NUM_ROUTING_TABLE_REGISTERS,
-                "num_ones_meta_registers": cls.NUM_ONES_META_REGISTERS,
-                "num_twiddle_meta_registers": cls.NUM_TWIDDLE_META_REGISTERS,
-                "twiddle_meta_register_size_in_bytes": cls.TWIDDLE_META_REGISTER_SIZE_BYTES,
-                "max_residuals": cls.MAX_RESIDUALS,
-                "num_register_banks": cls.NUM_REGISTER_BANKS,
-                "num_registers_per_bank": cls.NUM_REGISTERS_PER_BANK}
-        return dict
+        return {
+            "max_xinst_queue_size_in_bytes": cls.__XINST_QUEUE_MAX_CAPACITY,
+            "max_cinst_queue_size_in_bytes": cls.__CINST_QUEUE_MAX_CAPACITY,
+            "max_minst_queue_size_in_bytes": cls.__MINST_QUEUE_MAX_CAPACITY,
+            "max_store_buffer_size_in_bytes": cls.__STORE_BUFFER_MAX_CAPACITY,
+            "num_blocks_per_twid_meta_word": cls.NUM_BLOCKS_PER_TWID_META_WORD,
+            "num_blocks_per_kgseed_meta_word": cls.NUM_BLOCKS_PER_KGSEED_META_WORD,
+            "num_routing_table_registers": cls.NUM_ROUTING_TABLE_REGISTERS,
+            "num_ones_meta_registers": cls.NUM_ONES_META_REGISTERS,
+            "num_twiddle_meta_registers": cls.NUM_TWIDDLE_META_REGISTERS,
+            "twiddle_meta_register_size_in_bytes": cls.TWIDDLE_META_REGISTER_SIZE_BYTES,
+            "max_residuals": cls.MAX_RESIDUALS,
+            "num_register_banks": cls.NUM_REGISTER_BANKS,
+            "num_registers_per_bank": cls.NUM_REGISTERS_PER_BANK,
+        }
 
     @classmethod
     def setMaxXInstQueueCapacity(cls, val: int):
@@ -544,6 +577,7 @@ class MemoryModel:
 
         This class defines the maximum capacity of HBM in both bytes and words.
         """
+
         __MAX_CAPACITY: int
 
         @classproperty
@@ -561,8 +595,7 @@ class MemoryModel:
             """
             Returns hw configurable attributes as dictionary.
             """
-            dict = {"max_hbm_size_in_bytes": cls.__MAX_CAPACITY}
-            return dict
+            return {"max_hbm_size_in_bytes": cls.__MAX_CAPACITY}
 
         @classmethod
         def setMaxCapacity(cls, val: int):
@@ -577,6 +610,7 @@ class MemoryModel:
 
         This class defines the maximum capacity of SPAD in both bytes and words.
         """
+
         __MAX_CAPACITY: int
 
         # Class methods and properties
@@ -591,14 +625,13 @@ class MemoryModel:
         def MAX_CAPACITY_WORDS(cls) -> int:
             """Total capacity of SPAD in Words"""
             return convertBytes2Words(cls.__MAX_CAPACITY)
-        
+
         @classmethod
         def hw_spec_as_dict(cls) -> dict:
             """
             Returns hw configurable attributes as dictionary.
             """
-            dict = {"max_cache_size_in_bytes": cls.__MAX_CAPACITY}
-            return dict
+            return {"max_cache_size_in_bytes": cls.__MAX_CAPACITY}
 
         @classmethod
         def setMaxCapacity(cls, val: int):

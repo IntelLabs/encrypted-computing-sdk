@@ -5,10 +5,10 @@
 
 from dataclasses import dataclass
 
-from high_parser.pisa_operations import PIsaOp, Comment
-from high_parser import KernelContext, HighOp, Polys, KeyPolys
+from high_parser import HighOp, KernelContext, KeyPolys, Polys
+from high_parser.pisa_operations import Comment, PIsaOp
 
-from .basic import Add, KeyMul, mixed_to_pisa_ops, extract_last_part_polys
+from .basic import Add, KeyMul, extract_last_part_polys, mixed_to_pisa_ops
 from .decomp import DigitDecompExtend
 from .mod import Mod
 from .ntt import INTT, NTT
@@ -29,17 +29,13 @@ class Rotate(HighOp):
         self.output.parts = 2
         self.input0.parts = 2
 
-        relin_key = KeyPolys(
-            "gk", parts=2, rns=self.context.key_rns, digits=self.input0.rns
-        )
+        relin_key = KeyPolys("gk", parts=2, rns=self.context.key_rns, digits=self.input0.rns)
         mul_by_rlk = Polys("c2_gk", parts=2, rns=self.context.key_rns)
         mul_by_rlk_modded_down = Polys.from_polys(mul_by_rlk)
         mul_by_rlk_modded_down.rns = self.input0.rns
         mul_by_rlk_modded_down.name = self.output.name
 
-        input_last_part, last_coeff, upto_last_coeffs = extract_last_part_polys(
-            self.input0, self.context.key_rns
-        )
+        input_last_part, last_coeff, upto_last_coeffs = extract_last_part_polys(self.input0, self.context.key_rns)
 
         cd = Polys.from_polys(self.input0)
         cd.name = "cd"

@@ -56,9 +56,7 @@ class Instruction(MInstruction):
         if not latency:
             latency = Instruction._OP_DEFAULT_LATENCY
         super().__init__(id, throughput, latency, comment=comment)
-        self.cinstr = (
-            cinstr  # Instruction number from the MINST queue for which to wait
-        )
+        self.cinstr = cinstr  # Instruction number from the MINST queue for which to wait
 
     def __repr__(self):
         """
@@ -69,11 +67,7 @@ class Instruction(MInstruction):
                  its type, name, memory address, ID, cinstr, throughput, and latency.
         """
         assert len(self.dests) > 0
-        retval = (
-            "<{}({}) object at {}>(id={}[0], "
-            "cinstr={}, "
-            "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "cinstr={}, " "throughput={}, latency={})").format(
             type(self).__name__,
             self.op_name_pisa,
             hex(id(self)),

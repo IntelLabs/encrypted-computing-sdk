@@ -121,7 +121,7 @@ kernel instructions given in the manifest file, see
 - second field defines the polynomial size for the `DATA`. This is required by
 the generating kernels to define how many units (multiples of the native polynomial
 size, 8192 in HERACLES silicon case) are required and handled.
-- third field defines the key RNS, i.e. the total max RNS of the relinearization key, typically the global max number of how many 32 bit prime number moduli (HERACLES silicon case) are in the modulus chain that the kernels can have or need to handle + 1. 
+- third field defines the key RNS, i.e. the total max RNS of the relinearization key, typically the global max number of how many 32 bit prime number moduli (HERACLES silicon case) are in the modulus chain that the kernels can have or need to handle + 1.
 - fourth field defines the number of RNS terms in the current polynomial.
 
 ## DATA

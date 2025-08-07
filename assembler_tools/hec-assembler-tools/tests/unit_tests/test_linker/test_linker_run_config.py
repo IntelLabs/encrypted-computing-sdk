@@ -8,13 +8,14 @@
 @file test_linker_run_config.py
 @brief Unit tests for the LinkerRunConfig class
 """
-import os
-from unittest.mock import patch, PropertyMock
-import pytest
 
-from linker.linker_run_config import LinkerRunConfig
-from assembler.common.run_config import RunConfig
+import os
+from unittest.mock import PropertyMock, patch
+
+import pytest
 from assembler.common.config import GlobalConfig
+from assembler.common.run_config import RunConfig
+from linker.linker_run_config import LinkerRunConfig
 
 
 class TestLinkerRunConfig:
@@ -144,16 +145,12 @@ class TestLinkerRunConfig:
         RunConfig.reset_class_state()
 
         # Act
-        with patch(
-            "assembler.common.makeUniquePath", side_effect=lambda x: x
-        ), patch.object(
-            RunConfig, "DEFAULT_HBM_SIZE_KB", new_callable=PropertyMock
-        ) as mock_hbm_size, patch.object(
-            GlobalConfig, "suppress_comments", new_callable=PropertyMock
-        ) as mock_suppress_comments, patch.object(
-            GlobalConfig, "useXInstFetch", new_callable=PropertyMock
-        ) as mock_use_xinstfetch:
-
+        with (
+            patch("assembler.common.makeUniquePath", side_effect=lambda x: x),
+            patch.object(RunConfig, "DEFAULT_HBM_SIZE_KB", new_callable=PropertyMock) as mock_hbm_size,
+            patch.object(GlobalConfig, "suppress_comments", new_callable=PropertyMock) as mock_suppress_comments,
+            patch.object(GlobalConfig, "useXInstFetch", new_callable=PropertyMock) as mock_use_xinstfetch,
+        ):
             # Mock the default HBM size
             mock_suppress_comments.return_value = False
             mock_use_xinstfetch.return_value = False

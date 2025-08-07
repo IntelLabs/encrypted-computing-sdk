@@ -1,24 +1,21 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-# Copyright (C) 2024 Intel Corporation
-
 """Module containing conversions or operations from isa to p-isa."""
 
 from dataclasses import dataclass
 
-from high_parser.pisa_operations import PIsaOp, Comment
-
-from high_parser import KernelContext, HighOp, Polys
+from high_parser import HighOp, KernelContext, Polys
+from high_parser.pisa_operations import Comment, PIsaOp
 
 from .basic import (
     Muli,
-    mixed_to_pisa_ops,
     Sub,
-    split_last_rns_polys,
-    duplicate_polys,
-    common_immediates,
     add_last_half,
+    common_immediates,
+    duplicate_polys,
+    mixed_to_pisa_ops,
+    split_last_rns_polys,
     sub_last_half,
 )
 from .ntt import INTT, NTT
@@ -43,18 +40,14 @@ class Rescale(HighOp):
         one, r2, iq = common_immediates(
             r2_rns=last_q,
             iq_rns=last_q,
-            iq_suffix=self.var_suffix + f"_{self.context.current_rns}"
+            iq_suffix=self.var_suffix + f"_{self.context.current_rns}",
         )
 
         q_last_half = Polys("qLastHalf", 1, self.input0.rns)
-        q_i_last_half = Polys(
-            "qiLastHalf" + f"_{self.context.current_rns}", 1, rns=last_q
-        )
+        q_i_last_half = Polys("qiLastHalf" + f"_{self.context.current_rns}", 1, rns=last_q)
 
         # split input
-        input_last_rns, input_remaining_rns = split_last_rns_polys(
-            self.input0, self.context.current_rns
-        )
+        input_last_rns, input_remaining_rns = split_last_rns_polys(self.input0, self.context.current_rns)
 
         # Create temp vars for input_last/remaining
         temp_input_last_rns = duplicate_polys(input_last_rns, "y")
@@ -86,9 +79,7 @@ class Rescale(HighOp):
                     input_remaining_rns,
                     last_q,
                 ),
-                Muli(
-                    self.context, temp_input_remaining_rns, temp_input_remaining_rns, r2
-                ),
+                Muli(self.context, temp_input_remaining_rns, temp_input_remaining_rns, r2),
                 NTT(self.context, temp_input_remaining_rns, temp_input_remaining_rns),
                 Sub(
                     self.context,

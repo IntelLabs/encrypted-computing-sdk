@@ -9,12 +9,12 @@ understands the grammar of the HERACLES Kernel Language.
 
 ## Installation
 
-A pre-packaged version of this extension '.vsix' file is avialble in the
+A pre-packaged version of this extension '.vsix' file is available in the
 current folder.
 You can manually install using the Install from VSIX command in the Extensions
-view command dropdown. For an alternative way to install a local VS Code 
+view command dropdown. For an alternative way to install a local VS Code
 extensions, please check the
-[VS Code documentaiton](https://code.visualstudio.com/docs/editor/extension-marketplace#_install-from-a-vsix).
+[VS Code documentation](https://code.visualstudio.com/docs/editor/extension-marketplace#_install-from-a-vsix).
 
 ## Features
 

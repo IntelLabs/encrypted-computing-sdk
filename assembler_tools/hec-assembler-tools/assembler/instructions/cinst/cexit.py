@@ -24,9 +24,7 @@ class Instruction(CInstruction):
         """
         return "cexit"
 
-    def __init__(
-        self, id: int, throughput: int = None, latency: int = None, comment: str = ""
-    ):
+    def __init__(self, id: int, throughput: int = None, latency: int = None, comment: str = ""):
         """
         Constructs a new `cexit` CInstruction.
 
@@ -49,9 +47,7 @@ class Instruction(CInstruction):
         Returns:
             str: A string representation of the Instruction object.
         """
-        retval = (
-            "<{}({}) object at {}>(id={}[0], " "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),

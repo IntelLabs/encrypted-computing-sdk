@@ -30,9 +30,7 @@ class Instruction(CInstruction):
         """
         return "kg_start"
 
-    def __init__(
-        self, id: int, throughput: int = None, latency: int = None, comment: str = ""
-    ):
+    def __init__(self, id: int, throughput: int = None, latency: int = None, comment: str = ""):
         """
         Constructs a new `kg_start` CInstruction.
 
@@ -59,9 +57,7 @@ class Instruction(CInstruction):
             str: A string representation of the Instruction object, including
                  its type, name, memory address, ID, throughput, and latency.
         """
-        retval = (
-            "<{}({}) object at {}>(id={}[0], " "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),

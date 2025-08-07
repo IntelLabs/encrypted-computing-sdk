@@ -25,11 +25,12 @@ Test Cases:
 - `test_parse_args_invalid_primary_secondary`: Ensures error is raised for invalid primary or secondary key values.
 """
 
-from argparse import Namespace
 import sys
+from argparse import Namespace
+
 import pytest
-from kerngraph import parse_args
 from const.options import LoopKey
+from kerngraph import parse_args
 
 
 def run_parse_args_with_args(args):
@@ -74,9 +75,7 @@ def test_parse_args_primary_secondary_same():
     """Test that primary and secondary keys cannot be the same."""
     sys_argv_backup = sys.argv
     sys.argv = ["kerngraph.py", "-p", "rns", "-s", "rns"]
-    with pytest.raises(
-        ValueError, match="Primary and secondary keys cannot be the same."
-    ):
+    with pytest.raises(ValueError, match="Primary and secondary keys cannot be the same."):
         parse_args()
     sys.argv = sys_argv_backup
 

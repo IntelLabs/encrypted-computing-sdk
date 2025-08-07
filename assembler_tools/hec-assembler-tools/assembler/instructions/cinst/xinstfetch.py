@@ -76,11 +76,7 @@ class Instruction(CInstruction):
                  its type, name, memory address, ID, xq_dst, hbm_src, throughput, and latency.
         """
         assert len(self.dests) > 0
-        retval = (
-            "<{}({}) object at {}>(id={}[0], "
-            "xq_dst={}, hbm_src={},"
-            "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "xq_dst={}, hbm_src={}," "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),
@@ -133,14 +129,10 @@ class Instruction(CInstruction):
             int: The throughput for this instruction. i.e. the number of cycles by which to advance
                  the current cycle counter.
         """
-        if (
-            self.xq_dst < 0
-            or self.xq_dst >= constants.MemoryModel.XINST_QUEUE_MAX_CAPACITY_WORDS
-        ):
+        if self.xq_dst < 0 or self.xq_dst >= constants.MemoryModel.XINST_QUEUE_MAX_CAPACITY_WORDS:
             raise RuntimeError(
                 (
-                    "Invalid `xq_dst` XINST queue destination address. Expected value in range "
-                    "[0, {}), but received {}.".format(
+                    "Invalid `xq_dst` XINST queue destination address. Expected value in range " "[0, {}), but received {}.".format(
                         constants.MemoryModel.XINST_QUEUE_MAX_CAPACITY_WORDS,
                         self.xq_dst,
                     )

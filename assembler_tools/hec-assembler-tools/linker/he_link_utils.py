@@ -8,13 +8,14 @@
 @file he_link_utils.py
 @brief Utility functions for the he_link module
 """
+
 import os
 import pathlib
 
-import linker
-from assembler.common import constants
-from assembler.common import makeUniquePath
+from assembler.common import constants, makeUniquePath
 from assembler.memory_model import mem_info
+
+import linker
 from linker.kern_trace import KernelInfo, remap_dinstrs_vars
 
 
@@ -44,9 +45,7 @@ def prepare_output_files(run_config) -> KernelInfo:
     """
     path_prefix = os.path.join(run_config.output_dir, run_config.output_prefix)
     pathlib.Path(run_config.output_dir).mkdir(exist_ok=True, parents=True)
-    out_mem_file = (
-        makeUniquePath(path_prefix + ".mem") if run_config.using_trace_file else None
-    )
+    out_mem_file = makeUniquePath(path_prefix + ".mem") if run_config.using_trace_file else None
     return KernelInfo(
         {
             "directory": run_config.output_dir,
@@ -72,11 +71,7 @@ def prepare_input_files(run_config, output_files) -> list:
     input_files = []
     for file_prefix in run_config.input_prefixes:
         path_prefix = os.path.join(run_config.input_dir, file_prefix)
-        mem_file = (
-            makeUniquePath(path_prefix + ".mem")
-            if run_config.using_trace_file
-            else None
-        )
+        mem_file = makeUniquePath(path_prefix + ".mem") if run_config.using_trace_file else None
         kernel_info = KernelInfo(
             {
                 "directory": run_config.input_dir,
@@ -92,9 +87,7 @@ def prepare_input_files(run_config, output_files) -> list:
             if not os.path.isfile(input_filename):
                 raise FileNotFoundError(input_filename)
             if input_filename in output_files.files:
-                raise RuntimeError(
-                    f'Input files cannot match output files: "{input_filename}"'
-                )
+                raise RuntimeError(f'Input files cannot match output files: "{input_filename}"')
     return input_files
 
 
@@ -115,9 +108,7 @@ def update_input_prefixes(kernel_ops, run_config):
     run_config.input_prefixes = prefixes
 
 
-def remap_vars(
-    kernels_info: list[KernelInfo], kernels_dinstrs, kernel_ops, verbose_stream
-):
+def remap_vars(kernels_info: list[KernelInfo], kernels_dinstrs, kernel_ops, verbose_stream):
     """
     @brief Process kernel DInstructions to remap variables based on kernel operations
     and update KernelInfo with remap_dict.
@@ -127,22 +118,15 @@ def remap_vars(
     @param kernel_ops List of kernel operations.
     @param verbose_stream Stream for verbose output.
     """
-    assert len(kernels_info) == len(
-        kernel_ops
-    ), "Number of kernels_files must match number of kernel operations."
-    assert len(kernels_dinstrs) == len(
-        kernel_ops
-    ), "Number of kernel_dinstrs must match number of kernel operations."
+    assert len(kernels_info) == len(kernel_ops), "Number of kernels_files must match number of kernel operations."
+    assert len(kernels_dinstrs) == len(kernel_ops), "Number of kernel_dinstrs must match number of kernel operations."
 
-    for kernel_info, kernel_op, kernel_dinstrs in zip(
-        kernels_info, kernel_ops, kernels_dinstrs
-    ):
+    for kernel_info, kernel_op, kernel_dinstrs in zip(kernels_info, kernel_ops, kernels_dinstrs, strict=False):
         print(f"\tProcessing kernel: {kernel_info.prefix}", file=verbose_stream)
 
         expected_prefix = f"{kernel_op.expected_in_kern_file_name}_pisa.tw"
         assert expected_prefix in kernel_info.prefix, (
-            f"Kernel operation prefix {expected_prefix} does not match "
-            f"kernel file prefix {kernel_info.prefix}"
+            f"Kernel operation prefix {expected_prefix} does not match " f"kernel file prefix {kernel_info.prefix}"
         )
 
         # Remap dintrs' variables in kernel_dinstrs and return a mapping dict
@@ -159,15 +143,13 @@ def initialize_memory_model(run_config, kernel_dinstrs=None, verbose_stream=None
     @param verbose_stream Stream for verbose output.
     @return MemoryModel instance.
     """
-    hbm_capacity_words = constants.convertBytes2Words(
-        run_config.hbm_size * constants.Constants.KILOBYTE
-    )
+    hbm_capacity_words = constants.convertBytes2Words(run_config.hbm_size * constants.Constants.KILOBYTE)
 
     # Parse memory information
     if kernel_dinstrs:
         mem_meta_info = mem_info.MemInfo.from_dinstrs(kernel_dinstrs)
     else:
-        with open(run_config.input_mem_file, "r", encoding="utf-8") as mem_ifnum:
+        with open(run_config.input_mem_file, encoding="utf-8") as mem_ifnum:
             mem_meta_info = mem_info.MemInfo.from_file_iter(mem_ifnum)
 
     # Initialize memory model

@@ -50,9 +50,7 @@ class Instruction(CInstruction):
         @throws ValueError If the number of tokens is invalid or the instruction name is incorrect.
         """
         super().__init__(tokens, comment=comment)
-        raise NotImplementedError(
-            "`xinstfetch` CInstruction is not currently supported in linker."
-        )
+        raise NotImplementedError("`xinstfetch` CInstruction is not currently supported in linker.")
 
     @property
     def dst_x_queue(self) -> int:
@@ -72,9 +70,7 @@ class Instruction(CInstruction):
         @throws ValueError If the value is negative.
         """
         if value < 0:
-            raise ValueError(
-                f"`value`: expected non-negative value, but {value} received."
-            )
+            raise ValueError(f"`value`: expected non-negative value, but {value} received.")
         self.tokens[2] = str(value)
 
     @property
@@ -95,7 +91,5 @@ class Instruction(CInstruction):
         @throws ValueError If the value is negative.
         """
         if value < 0:
-            raise ValueError(
-                f"`value`: expected non-negative value, but {value} received."
-            )
+            raise ValueError(f"`value`: expected non-negative value, but {value} received.")
         self.tokens[3] = str(value)

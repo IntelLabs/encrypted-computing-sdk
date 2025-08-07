@@ -69,7 +69,5 @@ class Instruction(MInstruction):
         @throws ValueError If the value is negative.
         """
         if value < 0:
-            raise ValueError(
-                f"`value`: expected non-negative target, but {value} received."
-            )
+            raise ValueError(f"`value`: expected non-negative target, but {value} received.")
         self.tokens[2] = str(value)
