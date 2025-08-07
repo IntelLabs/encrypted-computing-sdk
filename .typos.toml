@@ -8,8 +8,6 @@
 # variation of params
 parms = "parms"
 bload = "bload"
-ser = "ser"
-SerType = "SerType"
 
 [files]
 extend-exclude = [
