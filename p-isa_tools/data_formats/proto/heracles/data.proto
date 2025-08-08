@@ -1,0 +1,196 @@
+syntax = "proto3";
+
+import "common.proto";
+
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.EnumValueOptions {
+    optional string datatype_name = 123456787;
+}
+
+package heracles.data;
+
+// COMMON NAMES & NAMING CONVENTIONS
+//=================================
+
+// - N : degree of polynomial
+// - t : plaintext modulus
+// - q_i: i-th (rns) prime ciphertext modulus, with i=0 the lowest level and the maximal i corresponding to the number of rns terms of a key
+// - k: digit size of key-switch keys; 1 initially in SEAL until we add large-digit decomposition to SEAL
+// - p : special prime, i.e., q_{rns-num-1}. Note this assumes single-prime-as-digit (i.e., k=1) as in SEAL, will have to extended for large-digit keyswitch as in OpenFHE
+// - q_last : last prime at _current_ level of a ciphertext, not the really last one (which would be p)
+// - psi_i: 2N-th root of unity of Z_q_i
+// - omega_i = psi^2 = Nth root of unity of Z_q_i
+// - ...
+
+// MAIN INTERFACE FOR PRODUCERS
+//=================================
+
+// Note: These types are mostly HEC agnostic and all HEC specific
+//   expansion & transformation (e.g., bit-reversal, montgomery ..) happens
+//   in the extraction functions (see transform.h).  The exception being that
+//   primes must be HEC ntt-friendly and RNS-32  ...
+
+// FHE context of a particular program, to be provided by a library or alike, covering mostly only minimally required information.
+// Additional information & transformations required for HEC is handled in ExtendedFHEContext
+// - filename:  <some-user-chosen-prefix>"hec_context.bin"
+message FHEContext {
+    heracles.common.Scheme scheme      = 1;
+    uint32                 N           = 2;  // polynomial degree, must be power-of-two
+    uint32                 key_rns_num = 3;  // number of rns-terms of a key-switch key (and an upper-bound of number of rns-terms of any ciphertext)
+    uint32                 digit_size  = 4;  // number of rns terms per digit for key switching, for SEAL initially always 1, OpenFHE = GetNumPerPartQ
+    repeated uint32        q_i         = 5;  // i-th (rns) prime ciphertext modulus, with first "composite_degree" the lowest level and last "few" used only in keys and during key-switch
+    repeated uint32        psi         = 6;  // 2n-th root of Z_{q_i}, implies elsewhere used n-th root omega = psi^2
+    uint32                 q_size      = 7;  // n(Q), for SEAL it is always ( key_rns_num - 1 ), OpenFHE (cc->GetElementParams()->GetParams().size())
+    uint32                 alpha       = 8;  // ceil(q_size/dnum)
+    oneof                  scheme_specific {
+        CKKSSpecific ckks_info = 9;
+        BGVSpecific  bgv_info  = 10;
+    }
+}
+
+// TODO: to be implemented
+enum DataType {
+    TYPE_UNSPECIFIED = 0;
+
+    TYPE_CIPHERTEXT = 1 [
+        (datatype_name) = "ciphertext"
+    ];
+    TYPE_PLAINTEXT = 2 [
+        (datatype_name) = "plaintext"
+    ];
+    // unneeded.. we only care about ciphertext and plaintext
+    TYPE_DCRTPOLY = 3 [
+        (datatype_name) = "dcrtpoly"
+    ];
+    TYPE_KEYSWITCH = 4 [
+        (datatype_name) = "keyswitch"
+    ];
+}
+
+// Test Vector data, i.e., input and golden outputvalues in original form
+// - filename:  <some-user-chosen-prefix>"hec_testvec.bin"
+message TestVector {
+    map<string, Data> sym_data_map = 1;  //
+}
+
+// TODO: merge this with above
+message Data {
+    DCRTPoly dcrtpoly = 1;  // this is only used for v2
+}
+
+// MAIN INTERFACE FOR CONSUMERs &
+// ROOT TYPES FOR SERIALIZATIONS
+//=================================
+
+// Map from symbols of inputs and output to a computation to their value
+message DataPolynomials {
+    PolySymbols data = 1;
+}
+
+// Map from symbols of metadata polynomials to their value
+message MetadataPolynomials {
+    PolySymbols metadata = 1;
+}
+
+// Map from symbols of metadata twiddles to their value
+message MetadataTwiddles {
+    bool only_power_of_two = 1;
+    // depending on above, below are either N/2 powers omega^i
+    // or only the power of twos of omega (starting with power 0!)
+    // In either case it's not a "true" polynomial as for ciphertext, plaintext or keys
+    map<string, Polynomial> twiddles_ntt  = 2;
+    map<string, Polynomial> twiddles_intt = 3;
+    // string index is the twiddle type, as e.g., returned by `map_twiddle_type`
+}
+
+// Map from symbols of metadata immediates to their value
+message MetadataImmediates {
+    map<string, uint32> sym_immediate_map = 1;
+}
+
+// Map from metadata parameters - avoids storing context
+message MetadataParams {
+    map<string, uint32> sym_param_map = 1;
+}
+//=================================
+// AUXILIARY TYPES
+//=================================
+
+message BGVSpecific {
+    repeated BGVPlaintextSpecific plaintext_specific = 1;  // the index in this list (with initial element having index 0) will be the index used in 'plaintext_index' field of `heracles.fhe_trace.Instruction` field.
+    Ciphertext                    recrypt_key        = 2;
+}
+
+message BGVPlaintextSpecific {
+    Keys   keys              = 1;
+    uint64 plaintext_modulus = 2;
+}
+
+message CKKSSpecific {
+    Keys   keys             = 1;
+    uint32 composite_degree = 2;  // BASE_NUM_LEVELS_TO_DROP
+    // Scaling factors
+    repeated double     scaling_factor_real     = 3;  // size: q_size (CryptoParametersRNS->GetScalingFactorReal())
+    repeated double     scaling_factor_real_big = 4;  // size: q_size - 1(CryptoParametersRNS->GetScalingFactorRealBig())
+    map<string, uint32> metadata_extra          = 5;
+}
+
+message Keys {
+    KeySwitch              relin_key     = 1;
+    map<uint32, KeySwitch> rotation_keys = 2;
+}
+
+message KeySwitch {
+    uint32              k      = 1;  // number of rns terms forming a digit, for SEAL initially always 1.
+    repeated Ciphertext digits = 2;  // the digits which should have FHEContext.key_rns_num rns terms and of which there should be ceil(FHEContext.key_rns_num/k) many
+    // Polynomial          ipsi   = 3;
+}
+
+message Ciphertext {
+    repeated Polynomial polys            = 1;  // usually repetition is 2, although can be 3 (although that is supported only as input for add* and relin)
+    bool                in_ntt_form      = 2;
+    uint32              level            = 3;
+    uint32              depth            = 4;
+    double              scalingFactor    = 5;
+    uint32              scalingFactorInt = 6;
+}
+
+message Plaintext {
+    Polynomial poly             = 1;  // if not in_ntt_form this is only a single RNSPolynomial (and only possible if plaintext modulus is < 2^32)
+    bool       in_ntt_form      = 2;
+    uint32     level            = 3;
+    uint32     depth            = 4;
+    double     scalingFactor    = 5;
+    uint32     scalingFactorInt = 6;
+}
+
+// DCRTPoly form
+message DCRTPoly {
+    repeated Polynomial polys       = 1;  // size = order
+    bool                in_ntt_form = 2;
+}
+
+message Polynomial {
+    // typically ~10 for OpenFHE (size = curr_rns)
+    repeated RNSPolynomial rns_polys             = 1;
+    bool                   in_OpenFHE_EVALUATION = 3;
+}
+
+message RNSPolynomial {
+    repeated uint32 coeffs  = 1;  // repeated a power-of-two times with power-of-two
+    uint32          modulus = 2;  // need modulus in case curr_rns < max_rns, as it will use part of Q and all of P
+}
+
+message HECRNSPolynomial {
+    repeated HECBasePolynomial base_polys = 1;
+}
+
+message HECBasePolynomial {
+    repeated uint32 coeffs = 1;  // repeated exactly 8192 times
+}
+
+message PolySymbols {
+    map<string, RNSPolynomial> sym_poly_map = 1;  //
+    // name: keys -> { name_c : ctxt} -> { name_c_d : Poly } -> { name_c_d_r : RNS32Poly } -> { name_c_d_r_i : RNS32_8kPoly
+}

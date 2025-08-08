@@ -3,20 +3,26 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["assembler_tools", "p-isa_tools"]
+packages = ["assembler_tools", "p-isa_tools", "heracles"]
 
 [tool.setuptools.package-dir]
 "" = "."
+"heracles" = "p-isa_tools/data_formats/python/heracles"
 
 [project]
 name = "encrypted-computing-sdk"
 version = "0.1.0"
 description = "Encrypted Computing SDK"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "protobuf==4.23.4",
+    "regex-spm",
+    "numpy",
+]
 
 [project.optional-dependencies]
 dev = [
+    "grpcio-tools==1.56.2",  # needed for compiling protos from python directly
     "pytest>=7.4.0",
     "pre-commit>=3.5.0",
     # pre-commit installs its own version of the tools below,
@@ -110,7 +116,7 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.pytest.ini_options]
-pythonpath = ["p-isa_tools/kerngen", "assembler_tools/hec-assembler-tools"]
+pythonpath = ["p-isa_tools/kerngen", "assembler_tools/hec-assembler-tools", "p-isa_tools/data_formats/python"]
 
 [tool.mypy]
 python_version = "3.10"
@@ -118,3 +124,6 @@ namespace_packages = true
 show_error_codes = true
 pretty = true
 files = ["p-isa_tools/"]
+exclude = [
+    "p-isa_tools/data_formats/python/heracles/proto/.*_pb2\\.py$",
+]
