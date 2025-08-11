@@ -116,9 +116,9 @@ pluggy==1.6.0 \
     --hash=sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3 \
     --hash=sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746
     # via pytest
-pre-commit==4.2.0 \
-    --hash=sha256:601283b9757afd87d40c4c4a9b2b5de9637a8ea02eaff7adc2d0fb4e04841146 \
-    --hash=sha256:a009ca7205f1eb497d10b845e52c838a98b6cdd2102a6c8e4540e94ee75c58bd
+pre-commit==4.3.0 \
+    --hash=sha256:2b0747ad7e6e967169136edffee14c16e148a778a54e4f967921aa1ebf2308d8 \
+    --hash=sha256:499fe450cc9d42e9d58e606262795ecb64dd05438943c62b66f6a8673da30b16
     # via encrypted-computing-sdk (pyproject.toml)
 pydantic==2.11.7 \
     --hash=sha256:d989c3c6cb79469287b1569f7447a17848c998458d49ebe294e975b9baf0f0db \
