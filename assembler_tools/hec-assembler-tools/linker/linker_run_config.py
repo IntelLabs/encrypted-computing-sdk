@@ -82,6 +82,7 @@ class LinkerRunConfig(RunConfig):
         # class members based on configuration
         for config_name, default_value in self.__default_config.items():
             value = kwargs.get(config_name, default_value)
+            print(f"Config: {config_name} = {value} default: {default_value}")
             if value is not None:
                 setattr(self, config_name, value)
             else:
@@ -114,6 +115,8 @@ class LinkerRunConfig(RunConfig):
             cls.__default_config["output_dir"] = os.getcwd()
             cls.__default_config["input_dir"] = os.getcwd()
             cls.__default_config["output_prefix"] = None
+            cls.__default_config["keep_spad_boundary"] = False
+            cls.__default_config["keep_hbm_boundary"] = False
 
             cls.__initialized = True
 

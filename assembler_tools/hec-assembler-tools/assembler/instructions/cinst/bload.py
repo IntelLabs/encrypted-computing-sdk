@@ -22,6 +22,10 @@ class Instruction(CInstruction):
     """
 
     @classmethod
+    def get_latency(cls) -> int:
+        return cls._OP_DEFAULT_LATENCY
+
+    @classmethod
     def _get_op_name_asm(cls) -> str:
         """
         Returns the ASM name for the operation.

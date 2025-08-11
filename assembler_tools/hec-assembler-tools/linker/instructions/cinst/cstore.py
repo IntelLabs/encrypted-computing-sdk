@@ -50,22 +50,43 @@ class Instruction(CInstruction):
         @throws ValueError If the number of tokens is invalid or the instruction name is incorrect.
         """
         super().__init__(tokens, comment=comment)
+        self._var_name = tokens[2]
+        if not tokens[2].isdigit():
+            self.tokens[2] = "0"  # Should be set to SPAD address to write back.
 
     @property
-    def dest(self) -> str:
+    def var_name(self) -> str:
+        """
+        @brief Gets the name of the variable.
+
+        @return The name of the variable.
+        """
+        return self._var_name
+
+    @var_name.setter
+    def var_name(self, value: str):
+        """
+        @brief Sets the name of the variable.
+
+        @param value The name of the variable to set.
+        """
+        self._var_name = value
+
+    @property
+    def spad_address(self) -> int:
         """
         @brief Name of the destination.
-        This is a Variable name when loaded. Should be set to HBM address to write back.
+        Should be set to HBM address to write back.
 
-        @return The destination variable name or address.
+        @return The destination variable address.
         """
-        return self.tokens[2]
+        return int(self.tokens[2])
 
-    @dest.setter
-    def dest(self, value: str):
+    @spad_address.setter
+    def spad_address(self, value: int):
         """
         @brief Sets the destination of the instruction.
 
         @param value The new destination value to set.
         """
-        self.tokens[2] = value
+        self.tokens[2] = str(value)

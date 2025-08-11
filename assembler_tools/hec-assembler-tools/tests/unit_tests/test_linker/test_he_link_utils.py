@@ -20,7 +20,7 @@ from linker.he_link_utils import (
     remap_vars,
     update_input_prefixes,
 )
-from linker.kern_trace.trace_info import KernelInfo
+from linker.kern_trace.kernel_info import KernelInfo
 
 
 class TestHelperFunctions:
@@ -102,7 +102,10 @@ class TestHelperFunctions:
         )
 
         # Act
-        with patch("os.path.isfile", return_value=True), patch("assembler.common.makeUniquePath", side_effect=lambda x: x):
+        with (
+            patch("os.path.isfile", return_value=True),
+            patch("assembler.common.makeUniquePath", side_effect=lambda x: x),
+        ):
             result = prepare_input_files(mock_config, mock_output_files)
 
         # Assert
@@ -137,7 +140,10 @@ class TestHelperFunctions:
         )
 
         # Act & Assert
-        with patch("os.path.isfile", return_value=False), patch("assembler.common.makeUniquePath", side_effect=lambda x: x):
+        with (
+            patch("os.path.isfile", return_value=False),
+            patch("assembler.common.makeUniquePath", side_effect=lambda x: x),
+        ):
             with pytest.raises(FileNotFoundError):
                 prepare_input_files(mock_config, mock_output_files)
 
@@ -164,7 +170,10 @@ class TestHelperFunctions:
         )
 
         # Act & Assert
-        with patch("os.path.isfile", return_value=True), patch("assembler.common.makeUniquePath", side_effect=lambda x: x):
+        with (
+            patch("os.path.isfile", return_value=True),
+            patch("assembler.common.makeUniquePath", side_effect=lambda x: x),
+        ):
             with pytest.raises(RuntimeError):
                 prepare_input_files(mock_config, output_files)
 
@@ -300,9 +309,9 @@ class TestHelperFunctions:
         # Second call
         mock_remap_vars.assert_any_call(test_data["kernel_dinstrs"][1], test_data["kernel_ops"][1])
 
-        # Verify the remap_dict was set on each kernel file
-        assert test_data["files"][0].remap_dict == test_data["expected_dicts"]
-        assert test_data["files"][1].remap_dict == test_data["expected_dicts"]
+        # Verify the hbm_remap_dict was set on each kernel file
+        assert test_data["files"][0].hbm_remap_dict == test_data["expected_dicts"]
+        assert test_data["files"][1].hbm_remap_dict == test_data["expected_dicts"]
 
     def test_remap_vars_with_mismatched_prefixes(self):
         """
@@ -379,7 +388,10 @@ class TestHelperFunctions:
 
         # Act
         with (
-            patch("assembler.common.constants.convertBytes2Words", return_value=1024 * 1024) as mock_convert,
+            patch(
+                "assembler.common.constants.convertBytes2Words",
+                return_value=1024 * 1024,
+            ) as mock_convert,
             patch(
                 "assembler.memory_model.mem_info.MemInfo.from_dinstrs",
                 return_value=mock_mem_info,
@@ -424,7 +436,10 @@ class TestHelperFunctions:
 
         # Act
         with (
-            patch("assembler.common.constants.convertBytes2Words", return_value=2048 * 1024) as mock_convert,
+            patch(
+                "assembler.common.constants.convertBytes2Words",
+                return_value=2048 * 1024,
+            ) as mock_convert,
             patch("builtins.open", mock_open()) as mock_open_file,
             patch(
                 "assembler.memory_model.mem_info.MemInfo.from_file_iter",

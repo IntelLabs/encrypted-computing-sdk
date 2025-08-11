@@ -75,26 +75,25 @@ def remap_dinstrs_vars(kernel_dinstrs: list[DInstruction], kernel_op: KernelOp) 
     return var_mapping
 
 
-def remap_m_c_instrs_vars(kernel_instrs: list, remap_dict: dict[str, str]) -> None:
+def remap_m_c_instrs_vars(kernel_instrs: list, hbm_remap_dict: dict[str, str]) -> None:
     """
     @brief Remaps variable names in M or C Instructions based on a provided remap dictionary.
 
     This function updates the variable names in each Instruction by replacing them
     with their corresponding values from the remap dictionary.
 
-    @param kernel_instrs: List of M or M Instruction objects to process
-    @param remap_dict: Dictionary mapping old variable names to new variable names
+    @param kernel_minstrs: List of M or C Instruction objects to process
+    @param hbm_remap_dict: Dictionary mapping old variable names to new variable names
     """
-    if remap_dict:
+    if hbm_remap_dict:
         for instr in kernel_instrs:
             if not isinstance(instr, MInstruction | CInstruction):
                 raise TypeError(f"Item {instr} is not a valid M or C Instruction.")
 
-            if isinstance(instr, minst.MLoad | cinst.BLoad | cinst.CLoad | cinst.BOnes | cinst.NLoad):
-                if instr.source in remap_dict:
-                    instr.comment = instr.comment.replace(instr.source, remap_dict[instr.source])
-                    instr.source = remap_dict[instr.source]
-            elif isinstance(instr, minst.MStore | cinst.CStore):
-                if instr.dest in remap_dict:
-                    instr.comment = instr.comment.replace(instr.dest, remap_dict[instr.dest])
-                    instr.dest = remap_dict[instr.dest]
+            if isinstance(instr, (minst.MLoad, minst.MStore, cinst.CLoad, cinst.CStore)):
+                if instr.var_name in hbm_remap_dict:
+                    instr.comment = instr.comment.replace(instr.var_name, hbm_remap_dict[instr.var_name])
+                    instr.var_name = hbm_remap_dict[instr.var_name]
+                else:
+                    for key, value in hbm_remap_dict.items():
+                        instr.comment = instr.comment.replace(key, value)

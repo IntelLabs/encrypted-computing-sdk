@@ -111,7 +111,7 @@ def update_input_prefixes(kernel_ops, run_config):
 def remap_vars(kernels_info: list[KernelInfo], kernels_dinstrs, kernel_ops, verbose_stream):
     """
     @brief Process kernel DInstructions to remap variables based on kernel operations
-    and update KernelInfo with remap_dict.
+    and update KernelInfo with hbm_remap_dict.
 
     @param kernels_info List of input KernelInfo.
     @param kernels_dinstrs List of kernel DInstructions.
@@ -131,7 +131,7 @@ def remap_vars(kernels_info: list[KernelInfo], kernels_dinstrs, kernel_ops, verb
 
         # Remap dintrs' variables in kernel_dinstrs and return a mapping dict
         var_map = remap_dinstrs_vars(kernel_dinstrs, kernel_op)
-        kernel_info.remap_dict = var_map
+        kernel_info.hbm_remap_dict = var_map
 
 
 def initialize_memory_model(run_config, kernel_dinstrs=None, verbose_stream=None):

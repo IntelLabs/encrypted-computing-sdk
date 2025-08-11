@@ -14,54 +14,6 @@ from linker.kern_trace.context_config import ContextConfig
 from linker.kern_trace.kernel_op import KernelOp
 
 
-class KernelInfo:
-    """
-    @class KernelInfo
-    @brief Structure for kernel files.
-
-    @details This class holds information about the kernel files used in the linker.
-
-    @var directory
-    @var prefix
-    @var minst
-    @var cinst
-    @var xinst
-    @var mem
-
-    @var remap_dict
-    @brief Dictionary for remapping variable names in DInstructions.
-
-    """
-
-    directory: str
-    prefix: str
-    minst: str
-    cinst: str
-    xinst: str
-    mem: str | None = None
-    remap_dict: dict[str, str] = {}
-
-    def __init__(self, config: dict):
-        """
-        @brief Initializes KernelInfo with a configuration dictionary.
-
-        @param config: Dictionary with keys 'directory', 'prefix', 'minst', 'cinst', 'xinst', and optional 'mem'.
-        """
-        self.directory = config["directory"]
-        self.prefix = config["prefix"]
-        self.minst = config["minst"]
-        self.cinst = config["cinst"]
-        self.xinst = config["xinst"]
-        self.mem = config.get("mem")
-
-    @property
-    def files(self) -> list[str]:
-        """
-        @brief Returns a list of file names associated with the kernel.
-        """
-        return [self.minst, self.cinst, self.xinst] + ([self.mem] if self.mem else [])
-
-
 class TraceInfo:
     """
     @brief Class for handling trace files.

@@ -49,23 +49,65 @@ class Instruction(MInstruction):
         @throws ValueError If the number of tokens is invalid or the instruction name is incorrect.
         """
         super().__init__(tokens, comment=comment)
+        self._var_name = tokens[3]
+        self.tokens[3] = "0"  # Should be set to HBM address to write back.
 
     @property
-    def source(self) -> str:
+    def var_name(self) -> str:
+        """
+        @brief Gets the name of the source variable.
+
+        This is a Variable name.
+
+        @return The name of the variable.
+        """
+        return self._var_name
+
+    @var_name.setter
+    def var_name(self, value: str):
+        """
+        @brief Sets the name of the variable.
+
+        @param value The name of the variable to set.
+        """
+        self._var_name = value
+
+    @property
+    def hbm_address(self) -> int:
         """
         @brief Gets the name of the source.
 
-        This is a Variable name when loaded. Should be set to HBM address to write back.
+        Should be set to HBM address to write back.
 
         @return The name of the source.
         """
-        return self.tokens[3]
+        return int(self.tokens[3])
 
-    @source.setter
-    def source(self, value: str):
+    @hbm_address.setter
+    def hbm_address(self, value: int):
         """
-        @brief Sets the name of the source.
+        @brief Sets the address of the source.
 
-        @param value The name of the source to set.
+        @param value The address of the source to set.
         """
-        self.tokens[3] = value
+        self.tokens[3] = str(value)
+
+    @property
+    def spad_address(self) -> int:
+        """
+        @brief Gets the destination index.
+
+        This is the index in the scratchpad where the data will be loaded.
+
+        @return The destination index.
+        """
+        return int(self.tokens[2])
+
+    @spad_address.setter
+    def spad_address(self, value: int):
+        """
+        @brief Sets the destination index.
+
+        @param value The destination index to set.
+        """
+        self.tokens[2] = str(value)

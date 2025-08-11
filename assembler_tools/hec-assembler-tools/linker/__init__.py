@@ -214,8 +214,14 @@ class MemoryModel:
                 # with predefined HBM address
                 if var_name in self.__mem_info_fixed_addr_vars:
                     var_info.uses = float("inf")
+                else:
+                    var_info.uses = 0
                 self.hbm.force_allocate(var_info, self.__mem_info_vars[var_name].hbm_address)
+            else:
+                # Variables not explicitly marked in mem file are allocated on demand
+                var_info.hbm_address = -1
             self.variables[var_name] = var_info
+
         var_info.uses += 1
 
     def use_variable(self, var_name: str, kernel: int) -> int:
@@ -234,7 +240,6 @@ class MemoryModel:
 
         var_info.uses -= 1  # Mark the usage
         var_info.last_kernel_used = kernel
-
         if var_info.hbm_address < 0:
             # Find HBM address for variable
             self.hbm.allocate(var_info)

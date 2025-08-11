@@ -303,6 +303,10 @@ class BaseInstruction(CycleTracker):
 
         Returns:
             int: The latency.
+
+        Note:
+            Accessing `latency` as a property on the class (e.g., `MyInst.latency`) returns a property object,
+            not an integer. Use an instance (e.g., `my_inst.latency`) or the class variable `_OP_DEFAULT_LATENCY`.
         """
         return self.__latency
 

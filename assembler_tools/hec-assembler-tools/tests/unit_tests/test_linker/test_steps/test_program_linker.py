@@ -10,12 +10,12 @@
 
 import io
 import unittest
-from collections import namedtuple
 from unittest.mock import MagicMock, call, mock_open, patch
 
 from assembler.common.config import GlobalConfig
 from linker import MemoryModel
 from linker.instructions import cinst, dinst, minst
+from linker.kern_trace import InstrAct
 from linker.steps.program_linker import LinkedProgram
 
 
@@ -41,7 +41,9 @@ class TestLinkedProgram(unittest.TestCase):
         self.suppress_comments_patcher = patch.object(GlobalConfig, "suppress_comments", False)
         self.mock_suppress_comments = self.suppress_comments_patcher.start()
 
-        self.program = LinkedProgram(
+        self.program = LinkedProgram()
+
+        self.program.initialize(
             self.streams["minst"],
             self.streams["cinst"],
             self.streams["xinst"],
@@ -103,7 +105,8 @@ class TestLinkedProgram(unittest.TestCase):
 
         # Test closing the program with comments suppressed.
         with patch.object(GlobalConfig, "suppress_comments", True):
-            program = LinkedProgram(
+            program = LinkedProgram()
+            program.initialize(
                 self.streams["minst"],
                 self.streams["cinst"],
                 self.streams["xinst"],
@@ -124,12 +127,14 @@ class TestLinkedProgram(unittest.TestCase):
         mock_msyncc.target = 5
 
         mock_mload = MagicMock(spec=minst.MLoad)
-        mock_mload.source = "input_var"
+        mock_mload.var_name = "input_var"
+        mock_mload.hbm_address = 0
         mock_mload.comment = "original comment"
 
         mock_mstore = MagicMock(spec=minst.MStore)
-        mock_mstore.dest = "output_var"
-        mock_mstore.comment = None
+        mock_mstore.var_name = "output_var"
+        mock_mstore.hbm_address = 0
+        mock_mstore.comment = ""
 
         # Set up memory model mock
         self.mem_model.use_variable.side_effect = [
@@ -137,19 +142,36 @@ class TestLinkedProgram(unittest.TestCase):
             20,
         ]  # Return different addresses for different vars
 
+        # Create mock CInstr for cinstrs_map
+        mock_cinstr = MagicMock()
+        mock_cinstr.idx = 5  # Same as msyncc.target
+
+        # Create mock CinstrMapEntry
+        mock_cinstr_map_entry = MagicMock()
+        mock_cinstr_map_entry.cinstr = mock_cinstr
+
+        # Create mock KernelInfo
+        mock_kernel_info = MagicMock()
+        mock_kernel_info.minstrs = [mock_msyncc, mock_mload, mock_mstore]
+        mock_kernel_info.cinstrs_map = {5: mock_cinstr_map_entry}  # Map target 5 to mock entry
+        mock_kernel_info.minstrs_map = [MagicMock(), MagicMock(), MagicMock()]
+
+        # Configure minstrs_map actions
+        for minstr_map in mock_kernel_info:
+            minstr_map.action = MagicMock()  # Mock the action attribute
+
         # Execute the update
-        kernel_minstrs = [mock_msyncc, mock_mload, mock_mstore]
         self.program._cinst_line_offset = 10  # Set initial offset
         self.program._kernel_count = 1  # Set kernel count
-        self.program._update_minsts(kernel_minstrs)
+        self.program._update_minsts(mock_kernel_info)
 
         # Verify results
         self.assertEqual(mock_msyncc.target, 15)  # 5 + 10
-        self.assertEqual(mock_mload.source, "10")  # Replaced with HBM address
+        self.assertEqual(mock_mload.hbm_address, 10)  # Replaced with HBM address
         self.assertIn("input_var", mock_mload.comment)  # Comment updated
         self.assertIn("original comment", mock_mload.comment)  # Original comment preserved
 
-        self.assertEqual(mock_mstore.dest, "20")  # Replaced with HBM address
+        self.assertEqual(mock_mstore.hbm_address, 20)  # Replaced with HBM address
 
         # Verify the memory model was used correctly
         self.mem_model.use_variable.assert_has_calls([call("input_var", 1), call("output_var", 1)])
@@ -178,29 +200,41 @@ class TestLinkedProgram(unittest.TestCase):
         mock_cnop2.cycles = 3
         mock_cnop2.tokens = [0]
 
+        # Create mock KernelInfo
+        mock_kernel_info = MagicMock()
+        mock_kernel_info.cinstrs = [
+            mock_ifetch,
+            mock_csyncm1,
+            mock_cnop1,
+            mock_csyncm2,
+            mock_cnop2,
+        ]
+
+        # Create mock cinstrs_map entries
+        mock_kernel_info.cinstrs_map = []
+        for cinstr in mock_kernel_info.cinstrs:
+            mock_entry = MagicMock()
+            mock_entry.action = MagicMock()  # Mock the action attribute
+            mock_entry.cinstr = cinstr
+            mock_kernel_info.cinstrs_map.append(mock_entry)
+
         # Set up ISACInst.CSyncm.get_throughput
         with patch("assembler.instructions.cinst.CSyncm.get_throughput", return_value=2):
             # Execute the method
-            kernel_cinstrs = [
-                mock_ifetch,
-                mock_csyncm1,
-                mock_cnop1,
-                mock_csyncm2,
-                mock_cnop2,
-            ]
-            self.program._remove_and_merge_csyncm_cnop(kernel_cinstrs)
+            self.program._remove_and_merge_csyncm_cnop(mock_kernel_info)
 
-            # Verify CSyncm instructions were removed
-            self.assertNotIn(mock_csyncm1, kernel_cinstrs)
-            self.assertNotIn(mock_csyncm2, kernel_cinstrs)
+            # Verify CSyncm instructions' actions were marked as SKIP
+            # CSyncm1 is at index 1, CSyncm2 is at index 3
+            self.assertEqual(mock_kernel_info.cinstrs_map[1].action, InstrAct.SKIP)
+            self.assertEqual(mock_kernel_info.cinstrs_map[3].action, InstrAct.SKIP)
 
             # Verify CNop cycles were updated (should have added 2 for each CSyncm)
             # First CNop gets 2 cycles added from first CSyncm
             self.assertEqual(mock_cnop1.cycles, 4)  # 2 + 2
 
             # Verify the line numbers were updated
-            for i, instr in enumerate(kernel_cinstrs):
-                self.assertEqual(instr.tokens[0], str(i))
+            for i, instr in enumerate(mock_kernel_info.cinstrs):
+                self.assertEqual(instr.idx, str(i))
 
     def test_update_cinsts_addresses_and_offsets(self):
         """@brief Test updating CInst addresses and offsets.
@@ -218,11 +252,13 @@ class TestLinkedProgram(unittest.TestCase):
 
         # Create SPAD instructions for no-HBM case
         mock_bload = MagicMock(spec=cinst.BLoad)
-        mock_bload.source = "var1"
+        mock_bload.var_name = "var1"
+        mock_bload.spad_address = 0
         mock_bload.comment = "original comment"
 
         mock_cstore = MagicMock(spec=cinst.CStore)
-        mock_cstore.dest = "var2"
+        mock_cstore.var_name = "var2"
+        mock_cstore.spad_address = 0
         mock_cstore.comment = None
 
         # Execute the method with HBM enabled
@@ -248,11 +284,11 @@ class TestLinkedProgram(unittest.TestCase):
             self.program._update_cinsts_addresses_and_offsets(kernel_cinstrs)
 
             # Verify SPAD instructions were updated
-            self.assertEqual(mock_bload.source, "30")
+            self.assertEqual(mock_bload.spad_address, 30)
             self.assertIn("var1", mock_bload.comment)
             self.assertIn("original comment", mock_bload.comment)
 
-            self.assertEqual(mock_cstore.dest, "40")
+            self.assertEqual(mock_cstore.spad_address, 40)
 
             # Verify the memory model was used correctly
             self.mem_model.use_variable.assert_has_calls([call("var1", 2), call("var2", 2)])
@@ -271,13 +307,18 @@ class TestLinkedProgram(unittest.TestCase):
             patch.object(LinkedProgram, "_remove_and_merge_csyncm_cnop") as mock_remove,
             patch.object(LinkedProgram, "_update_cinsts_addresses_and_offsets") as mock_update,
         ):
-            # Execute the method with HBM enabled
-            kernel_cinstrs = ["cinst1", "cinst2"]
-            self.program._update_cinsts(kernel_cinstrs)
+            mock_cinst1 = MagicMock()
+            mock_cinst2 = MagicMock()
+
+            # Create mock KernelInfo
+            mock_kernel_info = MagicMock()
+            mock_kernel_info.cinstrs = [mock_cinst1, mock_cinst2]
+
+            self.program._update_cinsts(mock_kernel_info)
 
             # Verify that only _update_cinsts_addresses_and_offsets was called
             mock_remove.assert_not_called()
-            mock_update.assert_called_once_with(kernel_cinstrs)
+            mock_update.assert_called_once_with(mock_kernel_info.cinstrs)
 
             # Reset mocks
             mock_remove.reset_mock()
@@ -285,11 +326,11 @@ class TestLinkedProgram(unittest.TestCase):
 
             # Execute the method with HBM disabled
             with patch.object(GlobalConfig, "hasHBM", False):
-                self.program._update_cinsts(kernel_cinstrs)
+                self.program._update_cinsts(mock_kernel_info)
 
                 # Verify that both methods were called
-                mock_remove.assert_called_once_with(kernel_cinstrs)
-                mock_update.assert_called_once_with(kernel_cinstrs)
+                mock_remove.assert_called_once_with(mock_kernel_info)
+                mock_update.assert_called_once_with(mock_kernel_info.cinstrs)
 
     def test_update_xinsts(self):
         """@brief Test updating XInsts.
@@ -338,31 +379,45 @@ class TestLinkedProgram(unittest.TestCase):
             # Setup mock_update_xinsts to return a bundle offset
             mock_update_xinsts.return_value = 5
 
-            # Create mock instruction lists
-            kernel_minstrs = [MagicMock(), MagicMock()]
-            kernel_cinstrs = [MagicMock(), MagicMock()]
-            kernel_xinstrs = [MagicMock(), MagicMock()]
+            # Create mock KernelInfo
+            mock_kernel_info = MagicMock()
+            mock_kernel_info.minstrs = [MagicMock(), MagicMock()]
+            mock_kernel_info.cinstrs = [MagicMock(), MagicMock()]
+            mock_kernel_info.xinstrs = [MagicMock(), MagicMock()]
+            mock_kernel_info.spad_size = 0
 
             # Configure the mocks for to_line method
-            for i, xinstr in enumerate(kernel_xinstrs):
+            for i, xinstr in enumerate(mock_kernel_info.xinstrs):
                 xinstr.to_line.return_value = f"xinst{i}"
-                xinstr.comment = f"xinst_comment{i}" if i % 2 == 0 else None
+                xinstr.comment = f"xinst_comment{i}"
 
-            for i, cinstr in enumerate(kernel_cinstrs[:-1]):  # Skip the last one (cexit)
-                cinstr.to_line.return_value = f"cinst{i}"
-                cinstr.comment = f"cinst_comment{i}" if i % 2 == 0 else None
-
-            for i, minstr in enumerate(kernel_minstrs[:-1]):  # Skip the last one (msyncc)
+            # Create proper minstrs_map entries with references to mocked instructions
+            mock_kernel_info.minstrs_map = []
+            for i, minstr in enumerate(mock_kernel_info.minstrs):
                 minstr.to_line.return_value = f"minst{i}"
-                minstr.comment = f"minst_comment{i}" if i % 2 == 0 else None
+                minstr.comment = f"minst_comment{i}"
+                minstr_map_entry = MagicMock()
+                minstr_map_entry.minstr = minstr
+                minstr_map_entry.action = InstrAct.KEEP_HBM
+                mock_kernel_info.minstrs_map.append(minstr_map_entry)
+
+            # Create proper cinstrs_map entries with references to mocked instructions
+            mock_kernel_info.cinstrs_map = []
+            for i, cinstr in enumerate(mock_kernel_info.cinstrs):
+                cinstr.to_line.return_value = f"cinst{i}"
+                cinstr.comment = f"cinst_comment{i}"
+                cinstr_map_entry = MagicMock()
+                cinstr_map_entry.cinstr = cinstr
+                cinstr_map_entry.action = InstrAct.KEEP_SPAD
+                mock_kernel_info.cinstrs_map.append(cinstr_map_entry)
 
             # Execute the method
-            self.program.link_kernel(kernel_minstrs, kernel_cinstrs, kernel_xinstrs)
+            self.program.link_kernel(mock_kernel_info)
 
             # Verify update methods were called
-            mock_update_minsts.assert_called_once_with(kernel_minstrs)
-            mock_update_cinsts.assert_called_once_with(kernel_cinstrs)
-            mock_update_xinsts.assert_called_once_with(kernel_xinstrs)
+            mock_update_minsts.assert_called_once_with(mock_kernel_info)
+            mock_update_cinsts.assert_called_once_with(mock_kernel_info)
+            mock_update_xinsts.assert_called_once_with(mock_kernel_info.xinstrs)
 
             # Verify bundle offset was updated
             self.assertEqual(self.program._bundle_offset, 6)  # 5 + 1
@@ -413,16 +468,25 @@ class TestLinkedProgram(unittest.TestCase):
                     xinstr.to_line.return_value = "xinst"
                     xinstr.comment = None
 
-                for cinstr in kernel_cinstrs[:-1]:  # Skip the last one (cexit)
+                for cinstr in kernel_cinstrs:
                     cinstr.to_line.return_value = "cinst"
                     cinstr.comment = None
 
+                # Create mock KernelInfo
+                mock_kernel_info = MagicMock()
+                mock_kernel_info.minstrs = kernel_minstrs
+                mock_kernel_info.cinstrs = kernel_cinstrs
+                mock_kernel_info.xinstrs = kernel_xinstrs
+                mock_kernel_info.minstrs_map = [MagicMock(), MagicMock()]
+                mock_kernel_info.cinstrs_map = [MagicMock(), MagicMock()]
+                mock_kernel_info.spad_size = 0
+
                 # Execute the method
-                self.program.link_kernel(kernel_minstrs, kernel_cinstrs, kernel_xinstrs)
+                self.program.link_kernel(mock_kernel_info)
 
                 # Verify update methods were called
                 # No minsts should be processed when HBM is disabled
-                mock_update_cinsts.assert_called_once_with(kernel_cinstrs)
+                mock_update_cinsts.assert_called_once_with(mock_kernel_info)
                 mock_update_xinsts.assert_called_once_with(kernel_xinstrs)
 
                 # Verify bundle offset was updated
@@ -442,7 +506,7 @@ class TestLinkedProgram(unittest.TestCase):
 
         # Try to link a kernel
         with self.assertRaises(RuntimeError):
-            self.program.link_kernel([], [], [])
+            self.program.link_kernel([])
 
     def test_link_kernel_with_suppress_comments(self):
         """@brief Test linking a kernel with comments suppressed.
@@ -471,8 +535,17 @@ class TestLinkedProgram(unittest.TestCase):
                 kernel_minstrs[0].to_line.return_value = "minst"
                 kernel_minstrs[0].comment = "minst_comment"
 
+                # Create mock KernelInfo
+                mock_kernel_info = MagicMock()
+                mock_kernel_info.minstrs = kernel_minstrs
+                mock_kernel_info.cinstrs = kernel_cinstrs
+                mock_kernel_info.xinstrs = kernel_xinstrs
+                mock_kernel_info.minstrs_map = [MagicMock(), MagicMock()]
+                mock_kernel_info.cinstrs_map = [MagicMock(), MagicMock()]
+                mock_kernel_info.spad_size = 0
+
                 # Execute the method
-                self.program.link_kernel(kernel_minstrs, kernel_cinstrs, kernel_xinstrs)
+                self.program.link_kernel(mock_kernel_info)
 
                 # Verify comments were suppressed
                 xinst_output = self.streams["xinst"].getvalue()
@@ -489,29 +562,27 @@ class TestLinkedProgram(unittest.TestCase):
 
         @test Verifies that kernels are correctly linked and written to output files
         """
-        # Create a namedtuple similar to KernelInfo for testing
-        KernelInfo = namedtuple("KernelInfo", ["prefix", "minst", "cinst", "xinst", "mem", "remap_dict"])
+        program = LinkedProgram()
 
-        # Arrange
-        input_files = [
-            KernelInfo(
-                prefix="/tmp/input1",
-                minst="/tmp/input1.minst",
-                cinst="/tmp/input1.cinst",
-                xinst="/tmp/input1.xinst",
-                mem=None,
-                remap_dict={},
-            )
-        ]
+        # Create mock KernelInfo objects
+        mock_input_kernel = MagicMock()
+        mock_input_kernel.prefix = "/tmp/input1"
+        mock_input_kernel.minst = "/tmp/input1.minst"
+        mock_input_kernel.cinst = "/tmp/input1.cinst"
+        mock_input_kernel.xinst = "/tmp/input1.xinst"
+        mock_input_kernel.mem = None
+        mock_input_kernel.hbm_remap_dict = {}
 
-        output_files = KernelInfo(
-            prefix="/tmp/output",
-            minst="/tmp/output.minst",
-            cinst="/tmp/output.cinst",
-            xinst="/tmp/output.xinst",
-            mem=None,
-            remap_dict=None,
-        )
+        mock_output_kernel = MagicMock()
+        mock_output_kernel.prefix = "/tmp/output"
+        mock_output_kernel.minst = "/tmp/output.minst"
+        mock_output_kernel.cinst = "/tmp/output.cinst"
+        mock_output_kernel.xinst = "/tmp/output.xinst"
+        mock_output_kernel.mem = None
+        mock_output_kernel.hbm_remap_dict = None
+
+        kernels_info = [mock_input_kernel]
+        program_info = mock_output_kernel
 
         mock_mem_model = MagicMock()
         mock_verbose = MagicMock()
@@ -531,15 +602,15 @@ class TestLinkedProgram(unittest.TestCase):
                 "linker.steps.program_linker.Loader.load_xinst_kernel_from_file",
                 return_value=[],
             ),
-            patch.object(LinkedProgram, "__init__", return_value=None) as mock_init,
+            patch.object(LinkedProgram, "initialize", return_value=None) as mock_init,
             patch.object(LinkedProgram, "link_kernel") as mock_link_kernel,
             patch.object(LinkedProgram, "close") as mock_close,
         ):
-            LinkedProgram.link_kernels_to_files(input_files, output_files, mock_mem_model, mock_verbose)
+            program.link_kernels_to_files(kernels_info, program_info, mock_mem_model, mock_verbose)
 
         # Assert
         mock_init.assert_called_once()
-        mock_link_kernel.assert_called_once_with([], [], [])
+        mock_link_kernel.assert_called_once_with(mock_input_kernel)
         mock_close.assert_called_once()
 
 
@@ -564,7 +635,8 @@ class TestLinkedProgramValidation(unittest.TestCase):
         self.suppress_comments_patcher = patch.object(GlobalConfig, "suppress_comments", False)
         self.mock_suppress_comments = self.suppress_comments_patcher.start()
 
-        self.program = LinkedProgram(
+        self.program = LinkedProgram()
+        self.program.initialize(
             self.streams["minst"],
             self.streams["cinst"],
             self.streams["xinst"],
@@ -645,21 +717,24 @@ class TestLinkedProgramValidation(unittest.TestCase):
 
 
 class TestJoinDinstKernels(unittest.TestCase):
-    """@brief Tests for the join_dinst_kernels static method."""
+    """@brief Tests for the join_n_prune_dinst_kernels static method."""
 
     def test_join_dinst_kernels_empty(self):
         """@brief Test joining empty list of DInst kernels.
 
         @test Verifies that a ValueError is raised for an empty list
         """
+        program = LinkedProgram()
         with self.assertRaises(ValueError):
-            LinkedProgram.join_dinst_kernels([])
+            program.join_n_prune_dinst_kernels([])
 
     def test_join_dinst_kernels_single_kernel(self):
         """@brief Test joining a single DInst kernel.
 
         @test Verifies that instructions from a single kernel are correctly processed
         """
+        program = LinkedProgram()
+
         # Create mock DInstructions
         mock_dload = MagicMock(spec=dinst.DLoad)
         mock_dload.var = "var1"
@@ -668,7 +743,7 @@ class TestJoinDinstKernels(unittest.TestCase):
         mock_dstore.var = "var2"
 
         # Execute the method
-        result = LinkedProgram.join_dinst_kernels([[mock_dload, mock_dstore]])
+        result = program.join_n_prune_dinst_kernels([[mock_dload, mock_dstore]])
 
         # Verify result
         self.assertEqual(len(result), 2)
@@ -684,6 +759,8 @@ class TestJoinDinstKernels(unittest.TestCase):
 
         @test Verifies that instructions from multiple kernels are correctly merged
         """
+        program = LinkedProgram()
+
         # Create mock DInstructions for first kernel
         mock_dload1 = MagicMock(spec=dinst.DLoad)
         mock_dload1.var = "var1"
@@ -702,7 +779,7 @@ class TestJoinDinstKernels(unittest.TestCase):
         mock_dstore2.var = "var4"
 
         # Execute the method
-        result = LinkedProgram.join_dinst_kernels([[mock_dload1, mock_dstore1], [mock_dload2, mock_dkeygen, mock_dstore2]])
+        result = program.join_n_prune_dinst_kernels([[mock_dload1, mock_dstore1], [mock_dload2, mock_dkeygen, mock_dstore2]])
 
         # Verify result - should contain load1, store1 (output), keygen, store2 (output)
         # dload2 should be skipped since it loads var2 which is already an output from kernel1
@@ -722,6 +799,9 @@ class TestJoinDinstKernels(unittest.TestCase):
 
         @test Verifies that variables used across kernels are properly consolidated
         """
+
+        program = LinkedProgram()
+
         # Create mock DInstructions for first kernel
         mock_dload1 = MagicMock(spec=dinst.DLoad)
         mock_dload1.var = "var1"
@@ -737,7 +817,7 @@ class TestJoinDinstKernels(unittest.TestCase):
         mock_dstore2.var = "var2"  # Same variable is also an output
 
         # Execute the method
-        result = LinkedProgram.join_dinst_kernels([[mock_dload1, mock_dstore1], [mock_dload2, mock_dstore2]])
+        result = program.join_n_prune_dinst_kernels([[mock_dload1, mock_dstore1], [mock_dload2, mock_dstore2]])
 
         # Verify result - should contain load1, store2
         # Both dload2 and dstore1 should be skipped since var2 is carried over
