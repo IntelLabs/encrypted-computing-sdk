@@ -87,6 +87,9 @@ def search_minstrs_back(minstrs_map: list, idx: int, spad_address: int) -> int:
     @return int Index for the MLoad instruction associated with the SPAD address.
     """
     # Traverse backwards from idx, including idx
+    if idx < 0 or idx >= len(minstrs_map):
+        raise IndexError(f"Index {idx} is out of bounds for minstrs_map of length {len(minstrs_map)}.")
+
     for i in range(idx, -1, -1):
         minstr = minstrs_map[i].minstr
         if isinstance(minstr, minst.MLoad) and minstrs_map[i].spad_addr == spad_address:

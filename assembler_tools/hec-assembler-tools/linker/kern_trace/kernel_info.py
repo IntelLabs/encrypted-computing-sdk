@@ -178,7 +178,7 @@ class KernelInfo:
         """
         @brief Returns the kernel minst instructions if loaded.
 
-        @return Optional[dict]: The dict of kernel minst instructions or None if not loaded.
+        @return Optional[dict]: The dict of kernel minst instructions.
         """
         return self._minstrs
 
@@ -189,6 +189,8 @@ class KernelInfo:
 
         @param value: The dict of kernel minst instructions to set.
         """
+        if not isinstance(value, list):
+            raise TypeError("minstrs must be a list.")
         self._minstrs = value
         self._fill_minstrs_map()
 
@@ -237,7 +239,7 @@ class KernelInfo:
         """
         @brief Returns the kernel cinst instructions if loaded.
 
-        @return Optional[list]: The list of kernel cinst instructions or None if not loaded.
+        @return Optional[list]: The list of kernel cinst instructions.
         """
         return self._cinstrs
 
@@ -248,8 +250,8 @@ class KernelInfo:
 
         @param value: The list of kernel cinst instructions to set.
         """
-        if value is not None and not isinstance(value, list):
-            raise TypeError("cinstrs must be a list or None.")
+        if not isinstance(value, list):
+            raise TypeError("cinstrs must be a list.")
         self._cinstrs = value
         self._fill_cinstrs_map()
 
@@ -258,7 +260,7 @@ class KernelInfo:
         """
         @brief Returns the kernel xinst instructions if loaded.
 
-        @return Optional[list]: The list of kernel xinst instructions or None if not loaded.
+        @return Optional[list]: The list of kernel xinst instructions.
         """
         return self._xinstrs
 
@@ -269,8 +271,8 @@ class KernelInfo:
 
         @param value: The list of kernel xinst instructions to set.
         """
-        if value is not None and not isinstance(value, list):
-            raise TypeError("xinstrs must be a list or None.")
+        if not isinstance(value, list):
+            raise TypeError("xinstrs must be a list.")
         self._xinstrs = value
 
     def _fill_minstrs_map(self):
