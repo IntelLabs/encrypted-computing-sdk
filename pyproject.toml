@@ -22,7 +22,7 @@ dev = [
     # pre-commit installs its own version of the tools below,
     # but it is convenient to have them locally, too
     "ruff>=0.8.0",
-    "mypy==1.17.0",
+    "mypy==1.17.1",
     "cpplint>=1.6.0",
     "pydantic>=2.0.0",
     # Enables "doxygen" for python
