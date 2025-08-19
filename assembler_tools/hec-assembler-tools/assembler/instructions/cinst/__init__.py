@@ -1,4 +1,6 @@
-﻿
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 from . import bload, bones, cexit, cload, cnop, cstore, csyncm, ifetch, kgload, kgseed, kgstart, nload, xinstfetch
 
 # MInst aliases

@@ -24,6 +24,7 @@ Usage:
     to specify input and output files and configuration options for the assembly process.
 
 """
+
 import argparse
 import io
 import os
@@ -108,9 +109,7 @@ class AssemblerRunConfig(RunConfig):
                 if not hasattr(self, config_name):
                     setattr(self, config_name, default_value)
                     if getattr(self, config_name) is None:
-                        raise TypeError(
-                            f"Expected value for configuration `{config_name}`, but `None` received."
-                        )
+                        raise TypeError(f"Expected value for configuration `{config_name}`, but `None` received.")
 
         # class members
         self.input_prefix = ""
@@ -126,9 +125,7 @@ class AssemblerRunConfig(RunConfig):
         self.input_prefix = os.path.splitext(os.path.basename(self.input_file))[0]
 
         if not self.input_mem_file:
-            self.input_mem_file = "{}.{}".format(
-                os.path.join(input_dir, self.input_prefix), DEFAULT_MEM_FILE_EXT
-            )
+            self.input_mem_file = "{}.{}".format(os.path.join(input_dir, self.input_prefix), DEFAULT_MEM_FILE_EXT)
         self.input_mem_file = makeUniquePath(self.input_mem_file)
 
     @classmethod
@@ -173,12 +170,7 @@ class AssemblerRunConfig(RunConfig):
         """
         retval = super().as_dict()
         tmp_self_dict = vars(self)
-        retval.update(
-            {
-                config_name: tmp_self_dict[config_name]
-                for config_name in self.__default_config
-            }
-        )
+        retval.update({config_name: tmp_self_dict[config_name] for config_name in self.__default_config})
         return retval
 
 
@@ -210,12 +202,8 @@ def asmisaAssemble(
 
     input_filename: str = run_config.input_file
     mem_filename: str = run_config.input_mem_file
-    hbm_capacity_words: int = constants.convertBytes2Words(
-        run_config.hbm_size * constants.Constants.KILOBYTE
-    )
-    spad_capacity_words: int = constants.convertBytes2Words(
-        run_config.spad_size * constants.Constants.KILOBYTE
-    )
+    hbm_capacity_words: int = constants.convertBytes2Words(run_config.hbm_size * constants.Constants.KILOBYTE)
+    spad_capacity_words: int = constants.convertBytes2Words(run_config.spad_size * constants.Constants.KILOBYTE)
     num_register_banks: int = constants.MemoryModel.NUM_REGISTER_BANKS
     register_range: range = None
 
@@ -223,9 +211,7 @@ def asmisaAssemble(
         print("Assembling!")
         print("Reloading kernel from intermediate...")
 
-    hec_mem_model = MemoryModel(
-        hbm_capacity_words, spad_capacity_words, num_register_banks, register_range
-    )
+    hec_mem_model = MemoryModel(hbm_capacity_words, spad_capacity_words, num_register_banks, register_range)
 
     insts_listing = []
     with open(input_filename, "r") as insts:
@@ -240,11 +226,7 @@ def asmisaAssemble(
                 parsed_insts = [inst]
 
             if not parsed_insts:
-                raise SyntaxError(
-                    "Line {}: unable to parse kernel instruction:\n{}".format(
-                        line_no, s_line
-                    )
-                )
+                raise SyntaxError("Line {}: unable to parse kernel instruction:\n{}".format(line_no, s_line))
 
             insts_listing += parsed_insts
 
@@ -257,12 +239,8 @@ def asmisaAssemble(
     if b_verbose:
         print("Generating dependency graph...")
     start_time = time.time()
-    dep_graph = scheduler.generateInstrDependencyGraph(
-        insts_listing, sys.stdout if b_verbose else None
-    )
-    scheduler.enforceKeygenOrdering(
-        dep_graph, hec_mem_model, sys.stdout if b_verbose else None
-    )
+    dep_graph = scheduler.generateInstrDependencyGraph(insts_listing, sys.stdout if b_verbose else None)
+    scheduler.enforceKeygenOrdering(dep_graph, hec_mem_model, sys.stdout if b_verbose else None)
     deps_end = time.time() - start_time
 
     if b_verbose:
@@ -402,10 +380,7 @@ def parse_args():
     )
     parser.add_argument(
         "input_file",
-        help=(
-            "Input pre-processed P-ISA kernel file. "
-            "File must be the result of pre-processing a P-ISA kernel with he_prep.py"
-        ),
+        help=("Input pre-processed P-ISA kernel file. " "File must be the result of pre-processing a P-ISA kernel with he_prep.py"),
     )
     parser.add_argument(
         "--isa_spec",
@@ -439,10 +414,7 @@ def parse_args():
     parser.add_argument(
         "--output_prefix",
         default="",
-        help=(
-            "Prefix for the output files. "
-            "Defaults to the same the input file without extension."
-        ),
+        help=("Prefix for the output files. " "Defaults to the same the input file without extension."),
     )
     parser.add_argument("--spad_size", type=int, help="Scratchpad size in KB.")
     parser.add_argument("--hbm_size", type=int, help="HBM size in KB.")
@@ -468,9 +440,7 @@ def parse_args():
         "--no_comments",
         dest="suppress_comments",
         action="store_true",
-        help=(
-            "When enabled, no comments will be emitted on the output generated by the assembler."
-        ),
+        help=("When enabled, no comments will be emitted on the output generated by the assembler."),
     )
     parser.add_argument(
         "-v",
@@ -494,12 +464,8 @@ if __name__ == "__main__":
 
     # Initialize Defaults
     args = parse_args()
-    args.isa_spec_file = ISASpecConfig.initialize_isa_spec(
-        module_dir, args.isa_spec_file
-    )
-    args.mem_spec_file = MemSpecConfig.initialize_mem_spec(
-        module_dir, args.mem_spec_file
-    )
+    args.isa_spec_file = ISASpecConfig.initialize_isa_spec(module_dir, args.isa_spec_file)
+    args.mem_spec_file = MemSpecConfig.initialize_mem_spec(module_dir, args.mem_spec_file)
 
     config = AssemblerRunConfig(**vars(args))  # convert argsparser into a dictionary
 

@@ -11,7 +11,6 @@ import sys
 from unittest.mock import patch
 
 import pytest
-
 from assembler.spec_config.isa_spec import ISASpecConfig
 from assembler.spec_config.mem_spec import MemSpecConfig
 

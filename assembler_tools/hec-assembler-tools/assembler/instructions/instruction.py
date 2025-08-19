@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """BaseInstruction and related classes for assembler instructions."""
+
 from typing import final, NamedTuple, List, Optional
 
 # pylint: disable=too-many-instance-attributes, too-many-public-methods
@@ -112,9 +113,7 @@ class BaseInstruction(CycleTracker):
     _OP_DEFAULT_THROUGHPUT: int
     _OP_DEFAULT_LATENCY: int
 
-    __id_count = Counter.count(
-        0
-    )  # internal unique sequence counter to generate unique IDs
+    __id_count = Counter.count(0)  # internal unique sequence counter to generate unique IDs
 
     # Class methods and properties
     # ----------------------------
@@ -182,9 +181,7 @@ class BaseInstruction(CycleTracker):
     # Constructor
     # -----------
 
-    def __init__(
-        self, instruction_id: int, throughput: int, latency: int, comment: str = ""
-    ):
+    def __init__(self, instruction_id: int, throughput: int, latency: int, comment: str = ""):
         """
         Initializes a new BaseInstruction object.
 
@@ -204,19 +201,9 @@ class BaseInstruction(CycleTracker):
         """
         # validate inputs
         if throughput < 1:
-            raise ValueError(
-                (
-                    f"`throughput`: must be a positive number, "
-                    f"but {throughput} received."
-                )
-            )
+            raise ValueError((f"`throughput`: must be a positive number, " f"but {throughput} received."))
         if latency < throughput:
-            raise ValueError(
-                (
-                    f"`latency`: cannot be less than throughput. "
-                    f"Expected, at least, {throughput}, but {latency} received."
-                )
-            )
+            raise ValueError((f"`latency`: cannot be less than throughput. " f"Expected, at least, {throughput}, but {latency} received."))
 
         super().__init__(CycleType(0, 0))
         self.__id = (instruction_id, next(BaseInstruction.__id_count))
@@ -286,12 +273,8 @@ class BaseInstruction(CycleTracker):
             ValueError: If the value is less than 0.
         """
         if value < 0:
-            raise ValueError(
-                "`value`: expected a value of `0` or greater for `schedule_timing.index`."
-            )
-        self.__schedule_timing = ScheduleTiming(
-            cycle=self.__schedule_timing.cycle, index=value
-        )
+            raise ValueError("`value`: expected a value of `0` or greater for `schedule_timing.index`.")
+        self.__schedule_timing = ScheduleTiming(cycle=self.__schedule_timing.cycle, index=value)
 
     @property
     def is_scheduled(self) -> bool:
@@ -428,9 +411,7 @@ class BaseInstruction(CycleTracker):
             # INST1's dests are ready in cycle 6 and they are written to in cycle 5.
             # If INST2 uses any INST1 dest as its dest, INST2 can start the cycle
             # following INST1, 2, because INST2 will write to the same dest in cycle 6.
-            retval = max(
-                retval, *(dst.cycle_ready - self.latency + 1 for dst in self.dests)
-            )
+            retval = max(retval, *(dst.cycle_ready - self.latency + 1 for dst in self.dests))
         return retval
 
     def freeze(self):
@@ -455,9 +436,7 @@ class BaseInstruction(CycleTracker):
             RuntimeError: If the instruction has not been scheduled yet.
         """
         if not self.is_scheduled:
-            raise RuntimeError(
-                f"Instruction `{self.name}` (id = {self.id}) is not yet scheduled."
-            )
+            raise RuntimeError(f"Instruction `{self.name}` (id = {self.id}) is not yet scheduled.")
 
         self._frozen_pisa = self._to_pisa_format()
         self._frozen_xisa = self._to_xasmisa_format()
@@ -487,15 +466,11 @@ class BaseInstruction(CycleTracker):
             the current cycle counter.
         """
         if self.is_scheduled:
-            raise RuntimeError(
-                f"Instruction `{self.name}` (id = {self.id}) is already scheduled."
-            )
+            raise RuntimeError(f"Instruction `{self.name}` (id = {self.id}) is already scheduled.")
         if schedule_idx < 1:
             raise ValueError("`schedule_idx`: expected a value of `1` or greater.")
         if len(cycle_count) < 2:
-            raise ValueError(
-                "`cycle_count`: expected a pair/tuple with two components."
-            )
+            raise ValueError("`cycle_count`: expected a pair/tuple with two components.")
         if cycle_count < self.cycle_ready:
             raise RuntimeError(
                 f"Instruction {self.name}, id: {self.id}, not ready to schedule. "

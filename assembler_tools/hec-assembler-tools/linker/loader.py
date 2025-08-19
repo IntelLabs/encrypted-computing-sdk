@@ -9,14 +9,10 @@
 """
 
 import copy
-
 from typing import Any
 
-from linker.instructions import minst
-from linker.instructions import cinst
-from linker.instructions import xinst
-from linker.instructions import dinst
 from linker import instructions
+from linker.instructions import cinst, dinst, minst, xinst
 
 
 class Loader:
@@ -66,7 +62,7 @@ class Loader:
         if use_cache and cache_key in cls._file_cache:
             return copy.deepcopy(cls._file_cache[cache_key])
 
-        with open(filename, "r", encoding="utf-8") as kernel_minsts:
+        with open(filename, encoding="utf-8") as kernel_minsts:
             try:
                 result = cls.load_minst_kernel(kernel_minsts)
                 if use_cache:
@@ -106,7 +102,7 @@ class Loader:
         if use_cache and cache_key in cls._file_cache:
             return copy.deepcopy(cls._file_cache[cache_key])
 
-        with open(filename, "r", encoding="utf-8") as kernel_cinsts:
+        with open(filename, encoding="utf-8") as kernel_cinsts:
             try:
                 result = cls.load_cinst_kernel(kernel_cinsts)
                 if use_cache:
@@ -146,7 +142,7 @@ class Loader:
         if use_cache and cache_key in cls._file_cache:
             return copy.deepcopy(cls._file_cache[cache_key])
 
-        with open(filename, "r", encoding="utf-8") as kernel_xinsts:
+        with open(filename, encoding="utf-8") as kernel_xinsts:
             try:
                 result = cls.load_xinst_kernel(kernel_xinsts)
                 if use_cache:
@@ -187,7 +183,7 @@ class Loader:
         if use_cache and cache_key in cls._file_cache:
             return copy.deepcopy(cls._file_cache[cache_key])
 
-        with open(filename, "r", encoding="utf-8") as kernel_dinsts:
+        with open(filename, encoding="utf-8") as kernel_dinsts:
             try:
                 result = cls.load_dinst_kernel(kernel_dinsts)
                 if use_cache:

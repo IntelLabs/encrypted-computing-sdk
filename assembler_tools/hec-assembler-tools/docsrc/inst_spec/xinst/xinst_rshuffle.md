@@ -73,4 +73,4 @@ Notice that while `rshuffle`'s source and destination registers are the same in 
 
 Routing table metadata defining shuffling patterns is loaded by [`nload`](../cinst/cinst_nload.md).
 
-Parameter `data_type` is intended to select the correct routing table, however, in the current HERACLES implementation, only one routing table is availabe, and this parameter is used only for book keeping and error detection during scheduling.
+Parameter `data_type` is intended to select the correct routing table, however, in the current HERACLES implementation, only one routing table is available, and this parameter is used only for book keeping and error detection during scheduling.

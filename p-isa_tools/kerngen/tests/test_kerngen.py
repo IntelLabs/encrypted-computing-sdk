@@ -6,9 +6,10 @@
 from enum import Enum
 from pathlib import Path
 from subprocess import run
+
+import pytest
 from high_parser.parser import ParseResults
 from high_parser.types import Context
-import pytest
 
 
 class Op(Enum):
@@ -22,7 +23,7 @@ def execute_process(cmd: list[str], data_in=None):
     """Helper function for executing processes. stdout and stderr are always
     captured. NOTE: subprocess.run will fail silently with a non-zero exit code
     so always check the returncode"""
-    return run(
+    return run(  # noqa: S603
         list(map(str, cmd)),
         input=data_in,
         capture_output=True,
@@ -77,10 +78,7 @@ def test_context_options_without_key(kerngen_path):
         data_in=input_string,
     )
     assert not result.stdout
-    assert (
-        "ValueError: Options must be key/value pairs (e.g. num_digits=3): '1'"
-        in result.stderr
-    )
+    assert "ValueError: Options must be key/value pairs (e.g. num_digits=3): '1'" in result.stderr
     assert result.returncode != 0
 
 
@@ -105,10 +103,7 @@ def test_context_option_invalid_values(kerngen_path, invalid):
         data_in=input_string,
     )
     assert not result.stdout
-    assert (
-        f"ValueError: Options must be key/value pairs (e.g. num_digits=3): 'num_digits={invalid}'"
-        in result.stderr
-    )
+    assert f"ValueError: Options must be key/value pairs (e.g. num_digits=3): 'num_digits={invalid}'" in result.stderr
     assert result.returncode != 0
 
 
@@ -121,9 +116,7 @@ def test_unrecognised_opname(kerngen_path):
         data_in=input_string,
     )
     assert not result.stdout
-    assert (
-        "GeneratorError: Op not found in available pisa ops: OPERATION" in result.stderr
-    )
+    assert "GeneratorError: Op not found in available pisa ops: OPERATION" in result.stderr
     assert result.returncode != 0
 
 
@@ -148,10 +141,7 @@ def test_invalid_poly_order(kerngen_path, invalid_poly):
         data_in=input_string,
     )
     assert not result.stdout
-    assert (
-        "ValueError: Poly order `" + str(invalid_poly) + "` must be power of two >="
-        in result.stderr
-    )
+    assert "ValueError: Poly order `" + str(invalid_poly) + "` must be power of two >=" in result.stderr
     assert result.returncode != 0
 
 
@@ -168,12 +158,8 @@ def test_parse_results_multiple_context():
     with pytest.raises(LookupError) as e:
         parse_results = ParseResults(
             [
-                Context(
-                    scheme="BGV", poly_order=16384, key_rns=2, current_rns=1, max_rns=1
-                ),
-                Context(
-                    scheme="CKKS", poly_order=16384, key_rns=2, current_rns=1, max_rns=1
-                ),
+                Context(scheme="BGV", poly_order=16384, key_rns=2, current_rns=1, max_rns=1),
+                Context(scheme="CKKS", poly_order=16384, key_rns=2, current_rns=1, max_rns=1),
             ],
             {},
         )

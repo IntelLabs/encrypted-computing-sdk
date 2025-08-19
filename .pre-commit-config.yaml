@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 default_language_version:
-    # force all unspecified python hooks to run python3
+    # force all unspecified python hooks to run python3.10
     python: python3.10
 repos:
     - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -15,10 +15,13 @@ repos:
         - id: check-yaml
           args:
           - --allow-multiple-documents
+        - id: fix-byte-order-marker
     - repo: https://github.com/crate-ci/typos
       rev: v1.33.1 # Updated 2025/06
       hooks:
         - id: typos
+          args:
+          - --diff
     - repo: https://github.com/Lucas-C/pre-commit-hooks
       rev: v1.5.5 # Updated 2025/06
       hooks:
@@ -26,75 +29,45 @@ repos:
           name: insert-license-shell
           files: \.(sh|py)$
           args:
-          - --license-filepath
-          # defaults to: LICENSE.txt
-          - HEADER
+          - --license-filepath=HEADER
+          - --use-current-year
+          - --allow-past-years
+          - --detect-license-in-X-top-lines=10
+          - --fuzzy-ratio-cut-off=50
+          - --remove-header
         - id: insert-license
           name: insert-license-cpp
           files: \.(c|cc|cxx|cpp|h|hpp|hxx|inl|h.in)$
           args:
-          - --license-filepath
-          # defaults to: LICENSE.txt
-          - HEADER
-          - --comment-style
-          - //                   # defaults to: #
+          - --license-filepath=HEADER
+          - --comment-style=//
+          - --use-current-year
+          - --allow-past-years
+          - --detect-license-in-X-top-lines=10
+          - --fuzzy-ratio-cut-off=50
+          - --remove-header
         - id: remove-tabs
           name: remove-tabs
           files: \.(py)$
           args: [--whitespaces-count, '4']
-    - repo: https://github.com/psf/black-pre-commit-mirror
-      rev: 25.1.0 # Updated 2025/06
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.8.4
       hooks:
-        - id: black
-          language_version: python3.10
+        - id: ruff
+          args: [--fix]  # Automatically fix issues when possible
+        - id: ruff-format  # Replaces black
     - repo: https://github.com/pre-commit/mirrors-mypy
       rev: v1.16.0 # Last checked 2025/06
       hooks:
         - id: mypy
-          language: system
-          exclude: >-
-            ^(assembler_tools/hec-assembler-tools/assembler/common/run_config\.py|
-            *assembler_tools/hec-assembler-tools/assembler/instructions/|
-            *assembler_tools/hec-assembler-tools/assembler/memory_model/|
-            *assembler_tools/hec-assembler-tools/assembler/stages/asm_scheduler\.py|
-            *assembler_tools/hec-assembler-tools/assembler/stages/scheduler\.py|
-            *assembler_tools/hec-assembler-tools/debug_tools/main\.py|
-            *assembler_tools/hec-assembler-tools/debug_tools/xinst_timing_check/|
-            *assembler_tools/hec-assembler-tools/he_as\.py|
-            *assembler_tools/hec-assembler-tools/assembler/spec_config/isa_spec.py)
-          args: ["--follow-imports=skip", "--install-types", "--non-interactive"]
-    - repo: local
+          pass_filenames: false
+    -   repo: https://github.com/pre-commit/mirrors-clang-format
+        rev: "v18.1.2"
+        hooks:
+        -   id: clang-format
+            exclude_types: [json]   # skip *.json and *.JSON
+            args: ["--style=file"]
+    - repo: https://github.com/cpplint/cpplint
+      rev: "2.0.2"
       hooks:
-        - id: pylint
-          name: pylint
-          entry: pylint
-          language: system
-          types: [python]
-          exclude: >-
-            ^(assembler_tools/hec-assembler-tools/assembler/common/run_config\.py|
-            *assembler_tools/hec-assembler-tools/assembler/instructions/|
-            *assembler_tools/hec-assembler-tools/assembler/memory_model/|
-            *assembler_tools/hec-assembler-tools/assembler/stages/asm_scheduler\.py|
-            *assembler_tools/hec-assembler-tools/assembler/stages/scheduler\.py|
-            *assembler_tools/hec-assembler-tools/debug_tools/main\.py|
-            *assembler_tools/hec-assembler-tools/debug_tools/xinst_timing_check/|
-            *assembler_tools/hec-assembler-tools/he_as\.py|
-            *assembler_tools/hec-assembler-tools/assembler/spec_config/isa_spec.py)
-          args:
-          - -rn # Only display messages
-          - -sn # Don't display the score
-          - --source-roots=p-isa_tools/kerngen,assembler_tools/hec-assembler-tools
-        - id: clang-format-14
-          name: clang-format-14
-          entry: clang-format-14
-          language: system
-          files: \.(c|cc|cxx|cpp|h|hpp|hxx|inl)$
-          args: ["-i", "--style=file"]
         - id: cpplint
-          name: cpplint
-          entry: cpplint
-          language: system
-          files: \.(c|cc|cxx|cpp|h|hpp|hxx)$
-          args:
-          - --recursive
-          - --filter=-build/c++17

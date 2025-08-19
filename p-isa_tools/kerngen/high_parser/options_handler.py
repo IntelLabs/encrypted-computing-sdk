@@ -4,13 +4,14 @@
 """A module to process optional key/value dictionary parameters"""
 
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class OptionsDict(ABC):
     """Abstract class to hold the options key/value pairs"""
 
     op_name: str = ""
-    op_value = None
+    op_value: Any = None
 
     @abstractmethod
     def validate(self, value):
@@ -42,9 +43,7 @@ class OptionsIntDict(OptionsDict):
         if self.validate(value):
             self._op_value = int(value)
         else:
-            raise ValueError(
-                "{self.op_name} must be in range ({self.min_val}, {self.max_val}): {self.op_name}={self.op_value}"
-            )
+            raise ValueError("{self.op_name} must be in range ({self.min_val}, {self.max_val}): {self.op_name}={self.op_value}")
 
 
 class OptionsIntBounds:
@@ -127,11 +126,7 @@ class OptionsDictParser:
         for option in options:
             try:
                 key, value = option.split("=")
-                output_dict[key] = OptionsDictFactoryDispatcher.create(
-                    key, value
-                ).op_value
+                output_dict[key] = OptionsDictFactoryDispatcher.create(key, value).op_value
             except ValueError as err:
-                raise ValueError(
-                    f"Options must be key/value pairs (e.g. num_digits=3): '{option}'"
-                ) from err
+                raise ValueError(f"Options must be key/value pairs (e.g. num_digits=3): '{option}'") from err
         return output_dict

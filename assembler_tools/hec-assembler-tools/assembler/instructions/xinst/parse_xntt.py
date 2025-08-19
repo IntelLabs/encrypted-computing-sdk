@@ -50,17 +50,13 @@ def parseXNTTKernelLine(line: str, op_name: str, tw_separator: str) -> Namespace
         instr_tokens = tokens[0]
 
         if len(instr_tokens) > OP_NUM_TOKENS:
-            warnings.warn(
-                f'Extra tokens detected for instruction "{op_name}"', SyntaxWarning
-            )
+            warnings.warn(f'Extra tokens detected for instruction "{op_name}"', SyntaxWarning)
 
         retval["N"] = int(instr_tokens[0])
         retval["op_name"] = instr_tokens[1]
         params_start = 2
         params_end = params_start + OP_NUM_DESTS + OP_NUM_SOURCES
-        dst_src = xinst.XInstruction.parsePISASourceDestsFromTokens(
-            instr_tokens, OP_NUM_DESTS, OP_NUM_SOURCES, params_start
-        )
+        dst_src = xinst.XInstruction.parsePISASourceDestsFromTokens(instr_tokens, OP_NUM_DESTS, OP_NUM_SOURCES, params_start)
         retval.update(dst_src)
         twiddle = instr_tokens[params_end]
         retval["res"] = int(instr_tokens[params_end + 1])
@@ -68,17 +64,11 @@ def parseXNTTKernelLine(line: str, op_name: str, tw_separator: str) -> Namespace
         # Parse twiddle (w_<res>_<stage>_<block>, where "_" is the `tw_separator`)
         twiddle_tokens = list(map(lambda s: s.strip(), twiddle.split(tw_separator)))
         if len(twiddle_tokens) != 4:
-            raise ValueError(
-                f'Error parsing twiddle information for "{op_name}" in line "{line}".'
-            )
+            raise ValueError(f'Error parsing twiddle information for "{op_name}" in line "{line}".')
         if twiddle_tokens[0] != "w":
-            raise ValueError(
-                f'Invalid twiddle detected for "{op_name}" in line "{line}".'
-            )
+            raise ValueError(f'Invalid twiddle detected for "{op_name}" in line "{line}".')
         if int(twiddle_tokens[1]) != retval["res"]:
-            raise ValueError(
-                f'Invalid "residual" component detected in twiddle information for "{op_name}" in line "{line}".'
-            )
+            raise ValueError(f'Invalid "residual" component detected in twiddle information for "{op_name}" in line "{line}".')
         retval["stage"] = int(twiddle_tokens[2])
         retval["block"] = int(twiddle_tokens[3])
 
@@ -113,11 +103,7 @@ def __generateRMoveParsedOp(kntt_parsed_op: Namespace) -> (type, Namespace):
         xrshuffle_type = xinst.irShuffle
         parsed_op["dst"] = [s for s in kntt_parsed_op.src]
     else:
-        raise ValueError(
-            '`kntt_parsed_op`: cannot process operation with name "{}".'.format(
-                kntt_parsed_op.op_name
-            )
-        )
+        raise ValueError('`kntt_parsed_op`: cannot process operation with name "{}".'.format(kntt_parsed_op.op_name))
 
     assert xrshuffle_type
 
@@ -156,11 +142,7 @@ def __generateTWNTTParsedOp(xntt_parsed_op: Namespace) -> Namespace:
 
     # Find types depending on whether we are doing ntt or intt
     twxntt_type = next(
-        (
-            t
-            for t in (xinst.twNTT, xinst.twiNTT)
-            if t.op_name_pisa == parsed_op["op_name"]
-        ),
+        (t for t in (xinst.twNTT, xinst.twiNTT) if t.op_name_pisa == parsed_op["op_name"]),
         None,
     )
     assert twxntt_type
@@ -225,9 +207,7 @@ def __generateTWNTTParsedOp(xntt_parsed_op: Namespace) -> Namespace:
     return retval, Namespace(**parsed_op), tw_var_name_bank
 
 
-def generateXNTT(
-    mem_model: MemoryModel, xntt_parsed_op: Namespace, new_id: int = 0
-) -> list:
+def generateXNTT(mem_model: MemoryModel, xntt_parsed_op: Namespace, new_id: int = 0) -> list:
     """
     Parses an `xntt` instruction from a P-ISA kernel instruction string.
 
@@ -248,43 +228,27 @@ def generateXNTT(
 
     # Find xntt type depending on whether we are doing ntt or intt
     xntt_type = next(
-        (
-            t
-            for t in (xinst.NTT, xinst.iNTT)
-            if t.op_name_pisa == xntt_parsed_op.op_name
-        ),
+        (t for t in (xinst.NTT, xinst.iNTT) if t.op_name_pisa == xntt_parsed_op.op_name),
         None,
     )
     if not xntt_type:
-        raise ValueError(
-            '`xntt_parsed_op`: cannot process parsed kernel operation with name "{}".'.format(
-                xntt_parsed_op.op_name
-            )
-        )
+        raise ValueError('`xntt_parsed_op`: cannot process parsed kernel operation with name "{}".'.format(xntt_parsed_op.op_name))
 
     # Generate twiddle instruction
     # -----------------------------
 
-    twxntt_type, twxntt_parsed_op, last_twxinput_name = __generateTWNTTParsedOp(
-        xntt_parsed_op
-    )
+    twxntt_type, twxntt_parsed_op, last_twxinput_name = __generateTWNTTParsedOp(xntt_parsed_op)
     # print(twxntt_parsed_op)
     twxntt_inst = None
     if twxntt_type:
-        twxntt_inst = xinst.createFromParsedObj(
-            mem_model, twxntt_type, twxntt_parsed_op, new_id
-        )
+        twxntt_inst = xinst.createFromParsedObj(mem_model, twxntt_type, twxntt_parsed_op, new_id)
 
     # Generate corresponding rshuffle
     # -----------------------------
 
     rshuffle_type, rshuffle_parsed_op = __generateRMoveParsedOp(xntt_parsed_op)
-    rshuffle_parsed_op.comment += (
-        (" " + twxntt_parsed_op.comment) if twxntt_parsed_op else ""
-    )
-    rshuffle_inst = xinst.createFromParsedObj(
-        mem_model, rshuffle_type, rshuffle_parsed_op, new_id
-    )
+    rshuffle_parsed_op.comment += (" " + twxntt_parsed_op.comment) if twxntt_parsed_op else ""
+    rshuffle_inst = xinst.createFromParsedObj(mem_model, rshuffle_type, rshuffle_parsed_op, new_id)
 
     # Generate xntt instruction
     # --------------------------

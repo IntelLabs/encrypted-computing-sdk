@@ -69,11 +69,7 @@ class Instruction(CInstruction):
             str: A string representation of the Instruction object, including
                  its type, name, memory address, ID, minstr, throughput, and latency.
         """
-        retval = (
-            "<{}({}) object at {}>(id={}[0], "
-            "minstr={}, "
-            "throughput={}, latency={})"
-        ).format(
+        retval = ("<{}({}) object at {}>(id={}[0], " "minstr={}, " "throughput={}, latency={})").format(
             type(self).__name__,
             self.name,
             hex(id(self)),

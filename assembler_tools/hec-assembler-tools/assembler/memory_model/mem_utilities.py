@@ -1,7 +1,10 @@
-﻿
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 from assembler.common.constants import Constants
 from assembler.common.cycle_tracking import CycleType
 from assembler.common.priority_queue import PriorityQueue
+
 
 def computePriority(variable, replacement_policy):
     """
@@ -18,30 +21,28 @@ def computePriority(variable, replacement_policy):
     Returns:
         tuple: A tuple representing the priority for reusing the variable's location.
     """
-    retval = (float("-inf"), ) # Default: highest priority if no variable
+    retval = (float("-inf"),)  # Default: highest priority if no variable
     if variable:
         # Register in use
         # last_x_access = variable.last_x_access.bundle * Constants.MAX_BUNDLE_SIZE + variable.last_x_access.cycle \
-        last_x_access = variable.last_x_access if variable.last_x_access \
-                        else CycleType(0, 0)
+        last_x_access = variable.last_x_access if variable.last_x_access else CycleType(0, 0)
         if replacement_policy == Constants.REPLACEMENT_POLICY_FTBU:
             if variable.accessed_by_xinsts:
                 # Priority by
-                retval = (-variable.accessed_by_xinsts[0].index, # Largest (furthest) accessing instruction
-                          *last_x_access, # Oldest accessed cycle (oldest == smallest)
-                          len(variable.accessed_by_xinsts)) # How many more uses this variable has
+                retval = (
+                    -variable.accessed_by_xinsts[0].index,  # Largest (furthest) accessing instruction
+                    *last_x_access,  # Oldest accessed cycle (oldest == smallest)
+                    len(variable.accessed_by_xinsts),
+                )  # How many more uses this variable has
         elif replacement_policy == Constants.REPLACEMENT_POLICY_LRU:
             # Priority by oldest accessed cycle (oldest == smallest)
-            retval = (*last_x_access, )
+            retval = (*last_x_access,)
         else:
             raise ValueError(f'`replacement_policy`: invalid value "{replacement_policy}". Expected value in {REPLACEMENT_POLICIES}.')
     return retval
 
-def flushRegisterBank(register_bank,
-                      current_cycle: CycleType,
-                      replacement_policy,
-                      live_var_names = None,
-                      pct: float = 0.5):
+
+def flushRegisterBank(register_bank, current_cycle: CycleType, replacement_policy, live_var_names=None, pct: float = 0.5):
     """
     Cleans up a register bank by removing variables assigned to registers.
 
@@ -70,24 +71,20 @@ def flushRegisterBank(register_bank,
         v = reg.contained_variable
         if v is not None:
             occupied_count += 1
-            if not reg.register_dirty \
-               and (v.name and v.name not in live_var_names) \
-               and current_cycle >= v.cycle_ready:
+            if not reg.register_dirty and (v.name and v.name not in live_var_names) and current_cycle >= v.cycle_ready:
                 # Variable can be cleared from the register if needed
                 priority = computePriority(v, replacement_policy)
-                local_heap.push(priority, reg, (idx, ))
+                local_heap.push(priority, reg, (idx,))
 
     # Clean up registers until we reach the specified pct occupancy or we have
     # no registers left that can be cleaned up
-    while local_heap \
-          and occupied_count / register_bank.register_count > pct:
+    while local_heap and occupied_count / register_bank.register_count > pct:
         _, reg = local_heap.pop()
         reg.allocateVariable(None)
         occupied_count -= 1
 
-def findAvailableLocation(vars_lst,
-                          live_var_names,
-                          replacement_policy: str = None):
+
+def findAvailableLocation(vars_lst, live_var_names, replacement_policy: str = None):
     """
     Retrieves the index of the next available location in a collection of Variable objects.
 
@@ -112,18 +109,19 @@ def findAvailableLocation(vars_lst,
         if no suitable location is found.
     """
     if replacement_policy and replacement_policy not in Constants.REPLACEMENT_POLICIES:
-        raise ValueError(('`replacement_policy`: invalid value "{}". '
-                            'Expected value in {} or None.').format(replacement_policy,
-                                                                    Constants.REPLACEMENT_POLICIES))
+        raise ValueError(
+            ('`replacement_policy`: invalid value "{}". ' "Expected value in {} or None.").format(
+                replacement_policy, Constants.REPLACEMENT_POLICIES
+            )
+        )
 
     retval = -1
     priority = (float("inf"), float("inf"), float("inf"))
     for idx, v in enumerate(vars_lst):
         if not v:
             retval = idx
-            break # Found an empty spot
-        elif replacement_policy \
-            and (v.name and v.name not in live_var_names): # Avoids dummy variables
+            break  # Found an empty spot
+        elif replacement_policy and (v.name and v.name not in live_var_names):  # Avoids dummy variables
             # Find priority for replacement of this location
             v_priority = computePriority(v, replacement_policy)
             if v_priority < priority:

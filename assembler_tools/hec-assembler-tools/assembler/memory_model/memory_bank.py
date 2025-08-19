@@ -1,4 +1,8 @@
-﻿from assembler.common import constants
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+from assembler.common import constants
+
 
 class MemoryBank:
     """
@@ -52,8 +56,7 @@ class MemoryBank:
     # Constructor
     # -----------
 
-    def __init__(self,
-                 data_capacity_words: int):
+    def __init__(self, data_capacity_words: int):
         """
         Initializes a new MemoryBank object with a specified capacity in words.
 
@@ -64,9 +67,8 @@ class MemoryBank:
             ValueError: If the capacity is not a positive number.
         """
         if data_capacity_words <= 0:
-            raise ValueError(("`data_capacity_words` must be a positive number, "
-                              "but {} received.".format(data_capacity_words)))
-        self.__data_capacity_words = data_capacity_words # max capacity in words
+            raise ValueError(("`data_capacity_words` must be a positive number, " "but {} received.".format(data_capacity_words)))
+        self.__data_capacity_words = data_capacity_words  # max capacity in words
         self.__data_capacity = constants.convertWords2Bytes(data_capacity_words)
         self.__buffer = [None for _ in range(self.__data_capacity_words)]
         self._current_data_capacity_words = self.__data_capacity_words
@@ -114,9 +116,7 @@ class MemoryBank:
         """
         return self.__buffer
 
-    def allocateForce(self,
-                      addr: int,
-                      obj: object):
+    def allocateForce(self, addr: int, obj: object):
         """
         Force the allocation of an existing object at a specific address.
 
@@ -134,8 +134,7 @@ class MemoryBank:
         if self.currentCapacityWords <= 0:
             raise RuntimeError("Critical error: Out of memory.")
         if addr < 0 or addr >= len(self.buffer):
-            raise ValueError(("`addr` out of range. Must be in range [0, {}),"
-                              "but {} received.".format(len(self.buffer), addr)))
+            raise ValueError(("`addr` out of range. Must be in range [0, {})," "but {} received.".format(len(self.buffer), addr)))
         if not self.buffer[addr]:
             # track the obj our buffer
             self.buffer[addr] = obj
@@ -159,12 +158,11 @@ class MemoryBank:
             object: The object that was contained in the deallocated slot.
         """
         if addr < 0 or addr >= len(self.buffer):
-            raise ValueError(("`addr` out of range. Must be in range [0, {}),"
-                              "but {} received.".format(len(self.buffer), addr)))
+            raise ValueError(("`addr` out of range. Must be in range [0, {})," "but {} received.".format(len(self.buffer), addr)))
 
         obj = self.buffer[addr]
         if not obj:
-            raise ValueError('`addr`: Adress "{}" is already free.'.format(addr))
+            raise ValueError('`addr`: Address "{}" is already free.'.format(addr))
 
         self.buffer[addr] = None
         self._current_data_capacity_words += 1

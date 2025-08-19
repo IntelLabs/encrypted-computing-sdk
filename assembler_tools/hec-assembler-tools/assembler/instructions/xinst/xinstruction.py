@@ -48,9 +48,7 @@ class XInstruction(BaseInstruction):
         return retval
 
     @staticmethod
-    def parsePISASourceDestsFromTokens(
-        tokens: list, num_dests: int, num_sources: int, offset: int = 0
-    ) -> dict:
+    def parsePISASourceDestsFromTokens(tokens: list, num_dests: int, num_sources: int, offset: int = 0) -> dict:
         """
         Parses the sources and destinations for an instruction, given sources and
         destinations in tokens in P-ISA format.
@@ -183,11 +181,7 @@ class XInstruction(BaseInstruction):
             # Check that variable is in register file
             if not v.register:
                 # All variables must be in register before scheduling instruction
-                raise RuntimeError(
-                    "Instruction( {}, id={} ): Variable {} not in register file.".format(
-                        self.name, self.id, v.name
-                    )
-                )
+                raise RuntimeError("Instruction( {}, id={} ): Variable {} not in register file.".format(self.name, self.id, v.name))
             # Update accessed cycle
             v.last_x_access = cycle_count
             # Remove this instruction from access list
@@ -197,16 +191,11 @@ class XInstruction(BaseInstruction):
                     accessed_idx = idx
                     break
             assert accessed_idx >= 0
-            v.accessed_by_xinsts = (
-                v.accessed_by_xinsts[:accessed_idx]
-                + v.accessed_by_xinsts[accessed_idx + 1 :]
-            )
+            v.accessed_by_xinsts = v.accessed_by_xinsts[:accessed_idx] + v.accessed_by_xinsts[accessed_idx + 1 :]
 
         # Update ready cycle and dirty state of dests
         for dst in self.dests:
-            dst.cycle_ready = CycleType(
-                cycle_count.bundle, cycle_count.cycle + self.latency
-            )
+            dst.cycle_ready = CycleType(cycle_count.bundle, cycle_count.cycle + self.latency)
             dst.register_dirty = True
 
         return retval

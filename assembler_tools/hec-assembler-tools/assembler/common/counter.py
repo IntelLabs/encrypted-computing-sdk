@@ -11,7 +11,7 @@ numbering and sequence generation tasks in the assembler.
 """
 
 import itertools
-from typing import Set, Optional
+from typing import Optional
 
 
 class Counter:
@@ -80,7 +80,7 @@ class Counter:
             """
             self.__counter = itertools.count(self.start, self.step)
 
-    __counters: Set["Counter.CounterIter"] = set()
+    __counters: set["Counter.CounterIter"] = set()
 
     @classmethod
     def count(cls, start=0, step=1) -> "Counter.CounterIter":

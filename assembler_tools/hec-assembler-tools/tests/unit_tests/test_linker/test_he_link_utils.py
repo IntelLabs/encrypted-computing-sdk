@@ -8,18 +8,19 @@
 @file test_he_link_utils.py
 @brief Unit tests for the he_link_utils module
 """
-from unittest.mock import patch, mock_open, MagicMock
-import pytest
 
+from unittest.mock import MagicMock, mock_open, patch
+
+import pytest
+from assembler.common import constants
 from linker.he_link_utils import (
-    prepare_output_files,
-    prepare_input_files,
-    update_input_prefixes,
-    remap_vars,
     initialize_memory_model,
+    prepare_input_files,
+    prepare_output_files,
+    remap_vars,
+    update_input_prefixes,
 )
 from linker.kern_trace.trace_info import KernelInfo
-from assembler.common import constants
 
 
 class TestHelperFunctions:
@@ -39,9 +40,11 @@ class TestHelperFunctions:
         mock_config.using_trace_file = False
 
         # Act
-        with patch("os.path.dirname", return_value="/tmp"), patch(
-            "pathlib.Path.mkdir"
-        ), patch("assembler.common.makeUniquePath", side_effect=lambda x: x):
+        with (
+            patch("os.path.dirname", return_value="/tmp"),
+            patch("pathlib.Path.mkdir"),
+            patch("assembler.common.makeUniquePath", side_effect=lambda x: x),
+        ):
             result = prepare_output_files(mock_config)
 
         # Assert
@@ -63,9 +66,11 @@ class TestHelperFunctions:
         mock_config.using_trace_file = True
 
         # Act
-        with patch("os.path.dirname", return_value="/tmp"), patch(
-            "pathlib.Path.mkdir"
-        ), patch("assembler.common.makeUniquePath", side_effect=lambda x: x):
+        with (
+            patch("os.path.dirname", return_value="/tmp"),
+            patch("pathlib.Path.mkdir"),
+            patch("assembler.common.makeUniquePath", side_effect=lambda x: x),
+        ):
             result = prepare_output_files(mock_config)
 
         # Assert
@@ -97,9 +102,7 @@ class TestHelperFunctions:
         )
 
         # Act
-        with patch("os.path.isfile", return_value=True), patch(
-            "assembler.common.makeUniquePath", side_effect=lambda x: x
-        ):
+        with patch("os.path.isfile", return_value=True), patch("assembler.common.makeUniquePath", side_effect=lambda x: x):
             result = prepare_input_files(mock_config, mock_output_files)
 
         # Assert
@@ -134,9 +137,7 @@ class TestHelperFunctions:
         )
 
         # Act & Assert
-        with patch("os.path.isfile", return_value=False), patch(
-            "assembler.common.makeUniquePath", side_effect=lambda x: x
-        ):
+        with patch("os.path.isfile", return_value=False), patch("assembler.common.makeUniquePath", side_effect=lambda x: x):
             with pytest.raises(FileNotFoundError):
                 prepare_input_files(mock_config, mock_output_files)
 
@@ -163,9 +164,7 @@ class TestHelperFunctions:
         )
 
         # Act & Assert
-        with patch("os.path.isfile", return_value=True), patch(
-            "assembler.common.makeUniquePath", side_effect=lambda x: x
-        ):
+        with patch("os.path.isfile", return_value=True), patch("assembler.common.makeUniquePath", side_effect=lambda x: x):
             with pytest.raises(RuntimeError):
                 prepare_input_files(mock_config, output_files)
 
@@ -277,7 +276,6 @@ class TestHelperFunctions:
 
         # Act
         with patch("linker.he_link_utils.remap_dinstrs_vars") as mock_remap_vars:
-
             # Configure mocks
             mock_remap_vars.side_effect = [
                 test_data["expected_dicts"],
@@ -297,14 +295,10 @@ class TestHelperFunctions:
         assert mock_remap_vars.call_count == 2
 
         # First call
-        mock_remap_vars.assert_any_call(
-            test_data["kernel_dinstrs"][0], test_data["kernel_ops"][0]
-        )
+        mock_remap_vars.assert_any_call(test_data["kernel_dinstrs"][0], test_data["kernel_ops"][0])
 
         # Second call
-        mock_remap_vars.assert_any_call(
-            test_data["kernel_dinstrs"][1], test_data["kernel_ops"][1]
-        )
+        mock_remap_vars.assert_any_call(test_data["kernel_dinstrs"][1], test_data["kernel_ops"][1])
 
         # Verify the remap_dict was set on each kernel file
         assert test_data["files"][0].remap_dict == test_data["expected_dicts"]
@@ -384,15 +378,14 @@ class TestHelperFunctions:
         mock_stream = MagicMock()
 
         # Act
-        with patch(
-            "assembler.common.constants.convertBytes2Words", return_value=1024 * 1024
-        ) as mock_convert, patch(
-            "assembler.memory_model.mem_info.MemInfo.from_dinstrs",
-            return_value=mock_mem_info,
-        ) as mock_from_dinstrs, patch(
-            "linker.MemoryModel"
-        ) as mock_memory_model_class:
-
+        with (
+            patch("assembler.common.constants.convertBytes2Words", return_value=1024 * 1024) as mock_convert,
+            patch(
+                "assembler.memory_model.mem_info.MemInfo.from_dinstrs",
+                return_value=mock_mem_info,
+            ) as mock_from_dinstrs,
+            patch("linker.MemoryModel") as mock_memory_model_class,
+        ):
             # Configure mock memory model
             mock_memory_model = mock_memory_model_class.return_value
             mock_memory_model.hbm.capacity = 1024 * 1024
@@ -402,9 +395,7 @@ class TestHelperFunctions:
 
         # Assert
         # Verify convertBytes2Words was called with correct parameters
-        mock_convert.assert_called_once_with(
-            mock_config.hbm_size * constants.Constants.KILOBYTE
-        )
+        mock_convert.assert_called_once_with(mock_config.hbm_size * constants.Constants.KILOBYTE)
 
         # Verify from_dinstrs was called with kernel_dinstrs
         mock_from_dinstrs.assert_called_once_with(mock_dinstrs)
@@ -432,15 +423,15 @@ class TestHelperFunctions:
         mock_stream = MagicMock()
 
         # Act
-        with patch(
-            "assembler.common.constants.convertBytes2Words", return_value=2048 * 1024
-        ) as mock_convert, patch("builtins.open", mock_open()) as mock_open_file, patch(
-            "assembler.memory_model.mem_info.MemInfo.from_file_iter",
-            return_value=mock_mem_info,
-        ) as mock_from_file_iter, patch(
-            "linker.MemoryModel"
-        ) as mock_memory_model_class:
-
+        with (
+            patch("assembler.common.constants.convertBytes2Words", return_value=2048 * 1024) as mock_convert,
+            patch("builtins.open", mock_open()) as mock_open_file,
+            patch(
+                "assembler.memory_model.mem_info.MemInfo.from_file_iter",
+                return_value=mock_mem_info,
+            ) as mock_from_file_iter,
+            patch("linker.MemoryModel") as mock_memory_model_class,
+        ):
             # Configure mock memory model
             mock_memory_model = mock_memory_model_class.return_value
             mock_memory_model.hbm.capacity = 2048 * 1024
@@ -450,14 +441,10 @@ class TestHelperFunctions:
 
         # Assert
         # Verify convertBytes2Words was called with correct parameters
-        mock_convert.assert_called_once_with(
-            mock_config.hbm_size * constants.Constants.KILOBYTE
-        )
+        mock_convert.assert_called_once_with(mock_config.hbm_size * constants.Constants.KILOBYTE)
 
         # Verify open was called with input_mem_file
-        mock_open_file.assert_called_once_with(
-            mock_config.input_mem_file, "r", encoding="utf-8"
-        )
+        mock_open_file.assert_called_once_with(mock_config.input_mem_file, encoding="utf-8")
 
         # Verify from_file_iter was called
         assert mock_from_file_iter.called
@@ -486,15 +473,14 @@ class TestHelperFunctions:
         mock_mem_info = MagicMock()
 
         # Act
-        with patch(
-            "assembler.common.constants.convertBytes2Words", return_value=0
-        ) as mock_convert, patch(
-            "assembler.memory_model.mem_info.MemInfo.from_dinstrs",
-            return_value=mock_mem_info,
-        ), patch(
-            "linker.MemoryModel"
-        ) as mock_memory_model_class:
-
+        with (
+            patch("assembler.common.constants.convertBytes2Words", return_value=0) as mock_convert,
+            patch(
+                "assembler.memory_model.mem_info.MemInfo.from_dinstrs",
+                return_value=mock_mem_info,
+            ),
+            patch("linker.MemoryModel") as mock_memory_model_class,
+        ):
             # Call function under test
             result = initialize_memory_model(mock_config, mock_dinstrs)
 

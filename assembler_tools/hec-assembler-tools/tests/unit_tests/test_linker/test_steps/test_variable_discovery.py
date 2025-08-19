@@ -9,16 +9,16 @@
 """
 
 import unittest
-from unittest.mock import patch, MagicMock
 from collections import namedtuple
-import pytest
+from unittest.mock import MagicMock, patch
 
+import pytest
 from assembler.common.config import GlobalConfig
 from linker.steps.variable_discovery import (
+    check_unused_variables,
     discover_variables,
     discover_variables_spad,
     scan_variables,
-    check_unused_variables,
 )
 
 
@@ -47,9 +47,7 @@ class TestVariableDiscovery(unittest.TestCase):
     @patch("linker.steps.variable_discovery.minst")
     @patch("linker.steps.variable_discovery.MInstruction")
     @patch("assembler.memory_model.variable.Variable.validateName")
-    def test_discover_variables_valid(
-        self, mock_validate, mock_minst_class, mock_minst
-    ):
+    def test_discover_variables_valid(self, mock_validate, mock_minst_class, mock_minst):
         """@brief Test discovering variables from valid MInstructions.
 
         @test Verifies that variables are correctly discovered from MLoad and MStore instructions
@@ -81,7 +79,6 @@ class TestVariableDiscovery(unittest.TestCase):
                 mock_minst.MStore: is_mstore_side_effect(obj),
             }.get(cls, False),
         ):
-
             # Configure validateName to return True
             mock_validate.return_value = True
 
@@ -154,9 +151,7 @@ class TestVariableDiscovery(unittest.TestCase):
     @patch("linker.steps.variable_discovery.cinst")
     @patch("linker.steps.variable_discovery.CInstruction")
     @patch("assembler.memory_model.variable.Variable.validateName")
-    def test_discover_variables_spad_valid(
-        self, mock_validate, mock_cinst_class, mock_cinst
-    ):
+    def test_discover_variables_spad_valid(self, mock_validate, mock_cinst_class, mock_cinst):
         """@brief Test discovering variables from valid CInstructions.
 
         @test Verifies that variables are correctly discovered from all relevant CInstruction types
@@ -201,9 +196,7 @@ class TestVariableDiscovery(unittest.TestCase):
             return class_checks.get(cls, lambda: False)()
 
         # Patch the isinstance calls at the module level
-        with patch(
-            "linker.steps.variable_discovery.isinstance", side_effect=mock_isinstance
-        ):
+        with patch("linker.steps.variable_discovery.isinstance", side_effect=mock_isinstance):
             # Call the function
             result = list(discover_variables_spad(cinstrs))
 
@@ -245,9 +238,7 @@ class TestVariableDiscovery(unittest.TestCase):
     @patch("linker.steps.variable_discovery.cinst")
     @patch("linker.steps.variable_discovery.CInstruction")
     @patch("assembler.memory_model.variable.Variable.validateName")
-    def test_discover_variables_spad_invalid_variable_name(
-        self, mock_validate, mock_cinst_class, mock_cinst
-    ):
+    def test_discover_variables_spad_invalid_variable_name(self, mock_validate, mock_cinst_class, mock_cinst):
         """@brief Test discovering variables with an invalid variable name.
 
         @test Verifies that a RuntimeError is raised when a variable name is invalid
@@ -311,18 +302,23 @@ class TestVariableDiscovery(unittest.TestCase):
                 mock_verbose = MagicMock()
 
                 # Act
-                with patch(
-                    "linker.steps.variable_discovery.Loader.load_minst_kernel_from_file",
-                    return_value=[],
-                ), patch(
-                    "linker.steps.variable_discovery.Loader.load_cinst_kernel_from_file",
-                    return_value=[],
-                ), patch(
-                    "linker.steps.variable_discovery.discover_variables",
-                    return_value=["var1", "var2"],
-                ), patch(
-                    "linker.steps.variable_discovery.discover_variables_spad",
-                    return_value=["var1", "var2"],
+                with (
+                    patch(
+                        "linker.steps.variable_discovery.Loader.load_minst_kernel_from_file",
+                        return_value=[],
+                    ),
+                    patch(
+                        "linker.steps.variable_discovery.Loader.load_cinst_kernel_from_file",
+                        return_value=[],
+                    ),
+                    patch(
+                        "linker.steps.variable_discovery.discover_variables",
+                        return_value=["var1", "var2"],
+                    ),
+                    patch(
+                        "linker.steps.variable_discovery.discover_variables_spad",
+                        return_value=["var1", "var2"],
+                    ),
                 ):
                     scan_variables(input_files, mock_mem_model, mock_verbose)
 

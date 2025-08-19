@@ -9,8 +9,8 @@
 """
 
 import os
-import unittest
 import tempfile
+import unittest
 from unittest.mock import patch
 
 from assembler.common.config import GlobalConfig
@@ -157,7 +157,7 @@ class TestBaseInstruction(unittest.TestCase):
         try:
             BaseInstruction.dump_instructions_to_file(instructions, file_path)
 
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 lines = f.read().splitlines()
 
             self.assertEqual(len(lines), 2)

@@ -11,10 +11,11 @@ DInstruction is the parent class for all data instructions used in the
 assembly process, providing common functionality and interfaces.
 """
 
-from linker.instructions.instruction import BaseInstruction
 from assembler.common.counter import Counter
 from assembler.common.decorators import classproperty
 from assembler.memory_model.mem_info import MemInfo
+
+from linker.instructions.instruction import BaseInstruction
 
 
 class DInstruction(BaseInstruction):
@@ -80,9 +81,7 @@ class DInstruction(BaseInstruction):
                 f"Instruction {self.name} requires at least {self.num_tokens}, but {len(tokens)} received"
             )
         if tokens[self.name_token_index] != self.name:
-            raise ValueError(
-                f"`tokens`: invalid name. Expected {self.name}, but {tokens[self.name_token_index]} received"
-            )
+            raise ValueError(f"`tokens`: invalid name. Expected {self.name}, but {tokens[self.name_token_index]} received")
 
     def __init__(self, tokens: list, comment: str = ""):
         """
@@ -106,9 +105,7 @@ class DInstruction(BaseInstruction):
             if self.name in [MemInfo.Const.Keyword.LOAD, MemInfo.Const.Keyword.STORE]:
                 self.address = miv_dict["hbm_address"]
         except RuntimeError as e:
-            raise ValueError(
-                f"Failed to parse memory info from tokens: {tokens}. Error: {str(e)}"
-            ) from e
+            raise ValueError(f"Failed to parse memory info from tokens: {tokens}. Error: {str(e)}") from e
 
     @property
     def id(self):
