@@ -317,7 +317,7 @@ class TestLinkedProgram(unittest.TestCase):
         mock_cstore.comment = None
 
         # Execute the method with HBM enabled
-        kernel_cinstrs = [mock_ifetch, mock_csyncm]
+        kernel_cinstrs = [mock_ifetch, mock_csyncm, mock_csyncm]
         self.program._bundle_offset = 10
         self.program._minst_line_offset = 20
         self.program._update_cinsts_addresses_and_offsets(kernel_cinstrs)
@@ -1472,10 +1472,12 @@ class TestPruneMinstKernel(unittest.TestCase):
         # Create mock MSyncc instruction
         mock_msyncc = MagicMock(spec=minst.MSyncc)
         mock_msyncc.idx = 0
+        mock_msyncc.comment = ""
 
         mock_mload = MagicMock(spec=minst.MLoad)
         mock_mload.var_name = "test_var"
         mock_mload.spad_address = 10
+        mock_mload.comment = ""
         mock_mload.idx = 1
 
         # Create mock kernel
@@ -1498,6 +1500,7 @@ class TestPruneMinstKernel(unittest.TestCase):
         mock_mstore = MagicMock(spec=minst.MStore)
         mock_mstore.var_name = "intermediate_var"
         mock_mstore.spad_address = 20
+        mock_mstore.comment = ""
         mock_mstore.idx = 0
 
         # Create mock kernel
@@ -1527,6 +1530,7 @@ class TestPruneMinstKernel(unittest.TestCase):
         mock_mstore = MagicMock(spec=minst.MStore)
         mock_mstore.var_name = "intermediate_var"
         mock_mstore.spad_address = 20
+        mock_mstore.comment = ""
         mock_mstore.idx = 0
 
         # Create mock kernel
@@ -1548,10 +1552,12 @@ class TestPruneMinstKernel(unittest.TestCase):
         # Create mock MSyncc and MStore
         mock_msyncc = MagicMock(spec=minst.MSyncc)
         mock_msyncc.idx = 0
+        mock_msyncc.comment = ""
 
         mock_mstore = MagicMock(spec=minst.MStore)
         mock_mstore.var_name = "intermediate_var"
         mock_mstore.spad_address = 15
+        mock_mstore.comment = ""
         mock_mstore.idx = 1
 
         # Create mock kernel
@@ -1572,6 +1578,7 @@ class TestPruneMinstKernel(unittest.TestCase):
         mock_mstore = MagicMock(spec=minst.MStore)
         mock_mstore.var_name = "output_var"
         mock_mstore.spad_address = 20
+        mock_mstore.comment = ""
         mock_mstore.idx = 0
 
         # Create mock kernel
@@ -1596,6 +1603,7 @@ class TestPruneMinstKernel(unittest.TestCase):
         mock_mload = MagicMock(spec=minst.MLoad)
         mock_mload.var_name = "loaded_var"
         mock_mload.spad_address = 10
+        mock_mload.comment = ""
         mock_mload.idx = 0
 
         # Create mock kernel
@@ -1620,6 +1628,7 @@ class TestPruneMinstKernel(unittest.TestCase):
         mock_mload = MagicMock(spec=minst.MLoad)
         mock_mload.var_name = "intermediate_var"
         mock_mload.spad_address = 10
+        mock_mload.comment = ""
         mock_mload.idx = 0
 
         # Create mock kernel
@@ -1649,6 +1658,7 @@ class TestPruneMinstKernel(unittest.TestCase):
         mock_mload = MagicMock(spec=minst.MLoad)
         mock_mload.var_name = "intermediate_var"
         mock_mload.spad_address = 10
+        mock_mload.comment = ""
         mock_mload.idx = 0
 
         # Create mock kernel
@@ -1668,6 +1678,7 @@ class TestPruneMinstKernel(unittest.TestCase):
         mock_mload = MagicMock(spec=minst.MLoad)
         mock_mload.var_name = "new_var"
         mock_mload.spad_address = 10
+        mock_mload.comment = ""
         mock_mload.idx = 0
 
         # Create mock kernel
@@ -1692,20 +1703,24 @@ class TestPruneMinstKernel(unittest.TestCase):
         # Create mock instructions
         mock_msyncc = MagicMock(spec=minst.MSyncc)
         mock_msyncc.idx = 0
+        mock_msyncc.comment = "MSyncc instruction"
 
         mock_mload1 = MagicMock(spec=minst.MLoad)  # Already loaded
         mock_mload1.var_name = "already_loaded"
         mock_mload1.spad_address = 10
+        mock_mload1.comment = ""
         mock_mload1.idx = 1
 
         mock_mstore = MagicMock(spec=minst.MStore)  # Intermediate variable
         mock_mstore.var_name = "intermediate_var"
         mock_mstore.spad_address = 15
+        mock_mstore.comment = ""
         mock_mstore.idx = 2
 
         mock_mload2 = MagicMock(spec=minst.MLoad)  # New variable
         mock_mload2.var_name = "new_var"
         mock_mload2.spad_address = 20
+        mock_mload2.comment = ""
         mock_mload2.idx = 3
 
         # Create mock kernel
@@ -1731,16 +1746,19 @@ class TestPruneMinstKernel(unittest.TestCase):
         mock_mload1 = MagicMock(spec=minst.MLoad)
         mock_mload1.var_name = "var1"
         mock_mload1.spad_address = 10
+        mock_mload1.comment = ""
         mock_mload1.idx = 0
 
         mock_mstore = MagicMock(spec=minst.MStore)
         mock_mstore.var_name = "var2"
         mock_mstore.spad_address = 25
+        mock_mstore.comment = ""
         mock_mstore.idx = 1
 
         mock_mload2 = MagicMock(spec=minst.MLoad)
         mock_mload2.var_name = "var3"
         mock_mload2.spad_address = 15
+        mock_mload2.comment = ""
         mock_mload2.idx = 2
 
         # Create mock kernel
@@ -1763,16 +1781,19 @@ class TestPruneMinstKernel(unittest.TestCase):
         mock_mload1 = MagicMock(spec=minst.MLoad)  # Intermediate - will be skipped
         mock_mload1.var_name = "intermediate_var1"
         mock_mload1.spad_address = 10
+        mock_mload1.comment = ""
         mock_mload1.idx = 0
 
         mock_mstore = MagicMock(spec=minst.MStore)  # Intermediate - will be skipped
         mock_mstore.var_name = "intermediate_var2"
         mock_mstore.spad_address = 15
+        mock_mstore.comment = ""
         mock_mstore.idx = 1
 
         mock_mload2 = MagicMock(spec=minst.MLoad)  # Regular - should be adjusted
         mock_mload2.var_name = "regular_var"
         mock_mload2.spad_address = 20
+        mock_mload2.comment = ""
         mock_mload2.idx = 2
 
         # Create mock kernel

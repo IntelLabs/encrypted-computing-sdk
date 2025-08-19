@@ -234,6 +234,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
 
             # Update msyncc
             if isinstance(minstr, minst.MSyncc):
+                # If not the last MSyncc
                 if idx < len(kernel.minstrs) - 1:
                     # Update msyncc target to new cinst and global program offset
                     minstr.target = kernel.cinstrs_map[minstr.target].cinstr.idx
@@ -369,7 +370,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         if self.__mem_model is None:
             raise RuntimeError("Memory model is not initialized.")
 
-        for cinstr in kernel_cinstrs:
+        for i, cinstr in enumerate(kernel_cinstrs):
             # Update ifetch
             if isinstance(cinstr, cinst.IFetch):
                 cinstr.bundle = cinstr.bundle + self._bundle_offset
@@ -378,7 +379,8 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 raise NotImplementedError("`xinstfetch` not currently supported by linker.")
             # Update csyncm
             if isinstance(cinstr, cinst.CSyncm):
-                if cinstr.target > 4 or self._keep_hbm_boundary:
+                # If not a NLoad CSyncm or not keeping HBM boundary, update target
+                if i + 1 < len(kernel_cinstrs) and not isinstance(kernel_cinstrs[i + 1], cinst.NLoad) or self._keep_hbm_boundary:
                     cinstr.target = cinstr.target + self._minst_line_offset
 
             if not GlobalConfig.hasHBM:
@@ -402,6 +404,10 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
 
         @param kernel (KernelInfo): The kernel to update.
         """
+
+        # Nothing to update in cinst if we are keeping the HBM boundary
+        if self._keep_hbm_boundary:
+            return
 
         idx: int = 0
         syncm_idx = 0
@@ -544,7 +550,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 print(f" #{minstr.comment}", end="", file=self._minst_ostream)
             print(file=self._minst_ostream)
 
-        self._minst_line_offset += len(minstrs_list) - 1  # Subtract last line that is getting removed
+        self._minst_line_offset += (len(minstrs_list) - 1) if minstrs_list else 0  # Subtract last line that is getting removed
         self._cinst_line_offset += len(cinstrs_list) - 1  # Subtract last line that is getting removed
         self._kernel_count += 1  # Count the appended kernel
 
@@ -625,6 +631,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         last_msyncc = None
 
         for idx, minstr in enumerate(kernel_info.minstrs):
+            print(f"ROCHA ({idx}): PRUNE MINST -> {minstr.to_line()} # {minstr.comment}")
             if isinstance(minstr, minst.MSyncc):
                 last_msyncc = minstr
             elif isinstance(minstr, minst.MStore):
@@ -645,14 +652,24 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                         adjust_spad -= 1
 
                     adjust_idx -= 1
+
                 # Keep instruction
                 else:
+                    # Calculate new SPAD Address
+                    new_spad = minstr.spad_address + adjust_spad
+                    # Adjust spad address if negative, this could leave gaps in the spad address space
+                    if new_spad < 0:
+                        adjust_spad -= new_spad
+                        new_spad = 0
+
                     minstr.idx = minstr.idx + adjust_idx  # Update line number
                     minstr.spad_address += adjust_spad  # Adjust source spad address
                     spad_size = minstr.spad_address
+                    print(f"ROCHA ({idx}): PRUNE MINST -> Keeping {minstr.var_name} MStore - SPAD address {minstr.spad_address}")
             elif isinstance(minstr, minst.MLoad):
                 # Remove mload instructions if variables already loaded
                 if minstr.var_name in self._minst_in_var_tracker:
+                    print(f"ROCHA ({idx}): PRUNE MINST -> Removing MLoad - already loaded {minstr.var_name}")
                     kernel_info.minstrs_map[idx].action = InstrAct.SKIP
                     minstr.spad_address = self._minst_in_var_tracker[minstr.var_name]  # Adjust dest spad address
                     adjust_spad -= 1
@@ -666,10 +683,18 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                     adjust_idx -= 1
                     continue
 
+                # Calculate new SPAD Address
+                new_spad = minstr.spad_address + adjust_spad
+                # Adjust spad address if negative, this could leave gaps in the spad address space
+                if new_spad < 0:
+                    adjust_spad -= new_spad
+                    new_spad = 0
+
                 # Keep instruction
-                minstr.spad_address += adjust_spad  # Adjust dest spad address
+                minstr.spad_address = new_spad  # Adjust dest spad address
                 minstr.idx = minstr.idx + adjust_idx  # Update line number
                 spad_size = minstr.spad_address
+                print(f"ROCHA ({idx}): PRUNE MINST -> Keeping {minstr.var_name} MLoad - SPAD address {minstr.spad_address}")
 
                 # Track loaded variables
                 self._minst_in_var_tracker[minstr.var_name] = minstr.spad_address
@@ -681,6 +706,10 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         """
         @brief Prunes and updates CInsts for HBM mode, handling synchronization and address mapping.
         """
+        # Nothing to prune in cinst if we are keeping the HBM boundary
+        if self._keep_hbm_boundary:
+            return
+
         adjust_idx: int = 0  # Used to adjust the index when removing CInsts
         adjust_cycles: int = 0
 
@@ -735,6 +764,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 # Check if the variable is an intermediate variable
                 if cinstr.var_name in self._intermediate_vars:
                     # CSyncm no needed for intermediate variables
+                    print(f"ROCHA ({idx}): PRUNE CINST -> Removing intermediate {cinstr.var_name} CStore")
                     _idx, _cycles = remove_csyncm(kernel.cinstrs, kernel.cinstrs_map, idx + 1)
                     adjust_idx += _idx
                     adjust_cycles += _cycles
