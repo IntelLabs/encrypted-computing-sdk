@@ -18,17 +18,17 @@ dependencies = []
 [project.optional-dependencies]
 dev = [
     "pytest>=7.4.0",
-    "pre-commit>=3.5.0",
+    "pre-commit>=4.3.0",
     # pre-commit installs its own version of the tools below,
     # but it is convenient to have them locally, too
-    "ruff>=0.8.0",
-    "mypy==1.17.0",
+    "ruff>=0.12.9",
+    "mypy==1.17.1",
     "cpplint>=1.6.0",
     "pydantic>=2.0.0",
     # Enables "doxygen" for python
     "doxypypy>=0.8.8.7",
     # For requirements generation
-    "pip-tools>=7.0.0",
+    "pip-tools>=7.5.0",
 ]
 
 [tool.ruff]
