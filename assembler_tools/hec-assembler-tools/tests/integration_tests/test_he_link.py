@@ -468,11 +468,11 @@ class TestHeIntegration:
             # Assert no empty lines in between (except possibly the last one)
             assert tokens, f"Found empty line at index {i} in minst file"
             # Assert index is consecutive
-            assert int(tokens[0]) == i, f"Expected index {i} but found {tokens[0]} in line: {", ".join(tokens)}"
+            assert int(tokens[0]) == i, f"Expected index {i} but found {tokens[0]} in line: {', '.join(tokens)}"
             # Assert mload/mstore addresses are digits
             if tokens[1].startswith("mstore") or tokens[1].startswith("mload"):
-                assert tokens[2].isdigit(), f"Expected address {tokens[2]} to be digit in line: {", ".join(tokens)}"
-                assert tokens[3].isdigit(), f"Expected address {tokens[3]} to be digit in line: {", ".join(tokens)}"
+                assert tokens[2].isdigit(), f"Expected address {tokens[2]} to be digit in line: {', '.join(tokens)}"
+                assert tokens[3].isdigit(), f"Expected address {tokens[3]} to be digit in line: {', '.join(tokens)}"
 
                 if tokens[1].startswith("mload") and tokens[3] == "0":
                     # If mload address is 0, it should be a reset
@@ -482,21 +482,21 @@ class TestHeIntegration:
                     # Assert previous instruction was an msyncc
                     assert minstrs[i - 1][1].startswith(
                         "msyncc"
-                    ), f"Expected mstore to follow msyncc in line: {", ".join(tokens)} - prev: {", ".join(minstrs[i - 1])}"
+                    ), f"Expected mstore to follow msyncc in line: {', '.join(tokens)} - prev: {', '.join(minstrs[i - 1])}"
                     # Assert mstore's SPAD address is its cstore's SPAD address
                     assert tokens[3] == last_cinst_spad, (
                         f"Expected mstore SPAD address {tokens[3]} to match last cstore SPAD address "
-                        f"{last_cinst_spad} in line: {", ".join(tokens)}"
+                        f"{last_cinst_spad} in line: {', '.join(tokens)}"
                     )
 
             elif tokens[1].startswith("msyncc"):
                 target = tokens[2].strip()
                 # Assert msyncc targets are digits
-                assert target.isdigit(), f"Expected msyncc target to be digit in line: {", ".join(tokens)}"
+                assert target.isdigit(), f"Expected msyncc target to be digit in line: {', '.join(tokens)}"
                 # Assert targeted cinst is a cstore
                 assert cinstrs[int(target)][1].startswith(
                     "cstore"
-                ), f"Expected msyncc target {target} to be a cstore in line: {", ".join(tokens)}"
+                ), f"Expected msyncc target {target} to be a cstore in line: {', '.join(tokens)}"
                 last_cinst_spad = cinstrs[int(target)][2].strip()
 
         return {
@@ -533,17 +533,17 @@ class TestHeIntegration:
                 # Assert mload's hbm addresses are in expected set
                 assert (
                     tokens[3] in dload_addresses
-                ), f"Expected mload HBM address {tokens[3]} to be in {dload_addresses} in line: {", ".join(tokens)}"
+                ), f"Expected mload HBM address {tokens[3]} to be in {dload_addresses} in line: {', '.join(tokens)}"
                 # Assert spad address is not duplicate in mload sequence
                 assert (
                     tokens[2] not in mload_spad_addresses
-                ), f"Expected mload SPAD address {tokens[2]} to be unique within mload sequence for line: {", ".join(tokens)}"
+                ), f"Expected mload SPAD address {tokens[2]} to be unique within mload sequence for line: {', '.join(tokens)}"
                 mload_spad_addresses.add(tokens[2])
             elif tokens[1].startswith("mstore"):
                 # Assert mstore's hbm addresses are in expected set
                 assert (
                     tokens[2] in dstore_addresses
-                ), f"Expected mstore HBM address {tokens[2]} to be in {dstore_addresses} in line: {", ".join(tokens)}"
+                ), f"Expected mstore HBM address {tokens[2]} to be in {dstore_addresses} in line: {', '.join(tokens)}"
 
         # Assert spad resets count matches 1
         assert spad_address_resets == 1, f"Expected 1 spad resets but found {spad_address_resets} in minst file"
@@ -574,7 +574,7 @@ class TestHeIntegration:
                 # Assert mload's hbm addresses are in expected set
                 assert tokens[3] in (
                     dload_addresses | mstore_hbm_addresses
-                ), f"Expected mload HBM address {tokens[3]} to be in {dload_addresses | mstore_hbm_addresses} in line: {", ".join(tokens)}"
+                ), f"Expected mload HBM address {tokens[3]} to be in {dload_addresses | mstore_hbm_addresses} in line: {', '.join(tokens)}"
                 # Reset tracking for each new kernel
                 if tokens[3] == "0":
                     mload_spad_addresses = set()
@@ -582,7 +582,7 @@ class TestHeIntegration:
                 # Assert spad address is not duplicate in mload sequence
                 assert (
                     tokens[2] not in mload_spad_addresses
-                ), f"Expected mload SPAD address {tokens[2]} to be unique within mload sequence for line: {", ".join(tokens)}"
+                ), f"Expected mload SPAD address {tokens[2]} to be unique within mload sequence for line: {', '.join(tokens)}"
                 mload_spad_addresses.add(tokens[2])
             elif tokens[1].startswith("mstore"):
                 # Track intermediate mstore addresses for later mloads
@@ -645,7 +645,7 @@ class TestHeIntegration:
             if tokens[1].startswith("csyncm"):
                 csyncm_count += 1
                 # Assert csyncm targets are digits
-                assert tokens[2].isdigit(), f"Expected csyncm target to be digit in line: {", ".join(tokens)}"
+                assert tokens[2].isdigit(), f"Expected csyncm target to be digit in line: {', '.join(tokens)}"
                 # Not second last instruction
                 if i < len(cinstrs) - 2:
                     target_minst = minstrs[int(tokens[2])]
@@ -653,45 +653,45 @@ class TestHeIntegration:
 
             elif tokens[1] in ["cload", "bload", "nload", "bones"]:
                 # Assert cload/bload/nload/bones SPAD address is digits
-                assert tokens[3].isdigit(), f"Expected SPAD address {tokens[3]} to be digit in line: {", ".join(tokens)}"
+                assert tokens[3].isdigit(), f"Expected SPAD address {tokens[3]} to be digit in line: {', '.join(tokens)}"
                 # Assert SPAD address is in mload_addresses or cstore_spad_addresses
                 assert tokens[3] in (mload_addresses | cstore_spad_addresses), (
                     f"Expected SPAD address {tokens[3]} to be in mload or mstore addresses "
-                    f"in line: {", ".join(tokens)}  cstore addresses: {cstore_spad_addresses}"
+                    f"in line: {', '.join(tokens)}  cstore addresses: {cstore_spad_addresses}"
                 )
                 if tokens[1] in ["cload", "bload"] and tokens[3] in mload_addresses:
                     # Assert cload/bload SPAD address is last mload's SPAD address
                     assert tokens[3] == last_minstr_spad, (
                         f"Expected SPAD address {tokens[3]} to match last mload's SPAD "
-                        f"address {last_minstr_spad} in line: {", ".join(tokens)}"
+                        f"address {last_minstr_spad} in line: {', '.join(tokens)}"
                     )
 
                 if tokens[1].startswith("bones") and tokens[2] in mload_addresses:
                     # Assert bones SPAD address is last mload's SPAD address
                     assert tokens[2] == last_minstr_spad, (
                         f"Expected SPAD address {tokens[2]} to match last mload's SPAD "
-                        f"address {last_minstr_spad} in line: {", ".join(tokens)}"
+                        f"address {last_minstr_spad} in line: {', '.join(tokens)}"
                     )
 
             elif tokens[1].startswith("cstore"):
                 # Assert cstore SPAD address is digits
-                assert tokens[2].isdigit(), f"Expected SPAD address {tokens[2]} to be digit in line: {", ".join(tokens)}"
+                assert tokens[2].isdigit(), f"Expected SPAD address {tokens[2]} to be digit in line: {', '.join(tokens)}"
                 if tokens[2] not in mstore_addresses:
                     cstore_spad_addresses.add(tokens[2])
 
             elif tokens[1].startswith("ifetch"):
                 # Assert ifetch target is digits
-                assert tokens[2].isdigit(), f"Expected ifetch target {tokens[2]} to be digit in line: {", ".join(tokens)}"
+                assert tokens[2].isdigit(), f"Expected ifetch target {tokens[2]} to be digit in line: {', '.join(tokens)}"
                 # Assert ifetch target is a valid xinst bundle
                 assert (
                     int(tokens[2]) <= last_bundle
-                ), f"Expected ifetch target {tokens[2]} to be less than or equal to last bundle {last_bundle} in line: {", ".join(tokens)}"
+                ), f"Expected ifetch target {tokens[2]} to be less than or equal to last bundle {last_bundle} in line: {', '.join(tokens)}"
 
             # Assert no empty lines in between (except possibly the last one)
             assert tokens, "Found empty line in cinst file"
 
             # Assert index is consecutive
-            assert int(tokens[0]) == i, f"Expected index {i} but found {tokens[0]} in line: {", ".join(tokens)}"
+            assert int(tokens[0]) == i, f"Expected index {i} but found {tokens[0]} in line: {', '.join(tokens)}"
 
         # Assert last line contains cexit (termination instruction)
         last_tokens = cinstrs[-1]
@@ -701,7 +701,7 @@ class TestHeIntegration:
         csyncm_tokens = cinstrs[-2]
         assert csyncm_tokens[1].startswith("csyncm"), "Expected second last line to contain csyncm instruction"
         # Assert last csyncm's target is digits
-        assert csyncm_tokens[2].isdigit(), f"Expected last csyncm target {csyncm_tokens[2]} to be digit in line: {", ".join(csyncm_tokens)}"
+        assert csyncm_tokens[2].isdigit(), f"Expected last csyncm target {csyncm_tokens[2]} to be digit in line: {', '.join(csyncm_tokens)}"
         # Assert last csyncm's target is the second last minst
         assert int(csyncm_tokens[2]) == len(minstrs) - 2, "Expected last csyncm target to be the second last minst"
         # Assert csyncm instructions are present in HBM mode (they should be kept)
@@ -735,7 +735,7 @@ class TestHeIntegration:
                     # Assert targeted minst is an mload
                     assert minstrs[int(tokens[2])][1].startswith(
                         "mload"
-                    ), f"Expected csyncm target {tokens[2]} to be a mload in line: {", ".join(tokens)}"
+                    ), f"Expected csyncm target {tokens[2]} to be a mload in line: {', '.join(tokens)}"
 
     @pytest.mark.parametrize(
         "fixture_dir",
@@ -762,7 +762,7 @@ class TestHeIntegration:
                     # Assert targeted minst is an mload
                     assert minstrs[int(tokens[2])][1].startswith(
                         "mload"
-                    ), f"Expected csyncm target {tokens[2]} to be a mload in line: {", ".join(tokens)}"
+                    ), f"Expected csyncm target {tokens[2]} to be a mload in line: {', '.join(tokens)}"
 
     @pytest.mark.parametrize(
         "fixture_dir",
@@ -789,7 +789,7 @@ class TestHeIntegration:
                 assert minstrs[int(tokens[2])][1] in (
                     "mload",
                     "mstore",
-                ), f"Expected csyncm target {tokens[2]} to be a mload in line: {", ".join(tokens)}"
+                ), f"Expected csyncm target {tokens[2]} to be a mload in line: {', '.join(tokens)}"
 
             elif tokens[1].startswith("cload"):
                 if tokens[3] == "13":
@@ -834,27 +834,27 @@ class TestHeIntegration:
             # Assert no empty lines in between (except possibly the last one)
             assert tokens, f"Found empty line at index {i} in minst file"
             # Assert index is consecutive
-            assert int(tokens[0]) == i, f"Expected index {i} but found {tokens[0]} in line ({i}): {', '.join(tokens)}"
+            assert int(tokens[0]) == i, f"Expected index {i} but found {tokens[0]} in line: {', '.join(tokens)}"
 
             if tokens[1].startswith("cstore"):
                 # Assert cstore's spad addresses are digits
-                assert tokens[2].isdigit(), f"Expected address {tokens[2]} to be digit in line ({i}): {', '.join(tokens)}"
+                assert tokens[2].isdigit(), f"Expected address {tokens[2]} to be digit in line: {', '.join(tokens)}"
                 cstore_spad_addresses.add(tokens[2])
             elif tokens[1].startswith("cload"):
                 # Assert cload's spad addresses are digits
-                assert tokens[3].isdigit(), f"Expected address {tokens[3]} to be digit in line ({i}): {', '.join(tokens)}"
+                assert tokens[3].isdigit(), f"Expected address {tokens[3]} to be digit in line: {', '.join(tokens)}"
                 # Assert cload's spad addresses are in expected set
                 assert tokens[3] in (dload_addresses | cstore_spad_addresses), (
                     f"Expected cload SPAD address {tokens[3]} to be in {dload_addresses | cstore_spad_addresses} "
-                    f"in line ({i}): {', '.join(tokens)}"
+                    f"in line: {', '.join(tokens)}"
                 )
             elif tokens[1].startswith("ifetch"):
                 # Assert ifetch target is digits
-                assert tokens[2].isdigit(), f"Expected ifetch target {tokens[2]} to be digit in line ({i}): {', '.join(tokens)}"
+                assert tokens[2].isdigit(), f"Expected ifetch target {tokens[2]} to be digit in line: {', '.join(tokens)}"
                 # Assert ifetch target is a valid xinst bundle
                 assert int(tokens[2]) <= last_bundle, (
                     f"Expected ifetch target {tokens[2]} to be less than or equal to "
-                    f"last bundle {last_bundle} in line ({i}): {', '.join(tokens)}"
+                    f"last bundle {last_bundle} in line: {', '.join(tokens)}"
                 )
 
         # Assert last line contains cexit (termination instruction)
