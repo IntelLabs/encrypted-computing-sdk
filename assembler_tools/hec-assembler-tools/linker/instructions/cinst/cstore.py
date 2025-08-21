@@ -75,7 +75,7 @@ class Instruction(CInstruction):
     @property
     def spad_address(self) -> int:
         """
-        @brief Name of the destination.
+        @brief SPAD address of destination.
         Should be set to HBM address to write back.
 
         @return The destination variable address.

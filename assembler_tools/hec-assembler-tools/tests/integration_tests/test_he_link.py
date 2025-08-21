@@ -19,7 +19,7 @@ from linker.kern_trace.trace_info import TraceInfo
 from linker.linker_run_config import LinkerRunConfig
 
 
-class TestHeIntegration:
+class TestHeLinkIntegration:
     """
     @class TestHeIntegration
     @brief Integration tests for the he_link module

@@ -52,11 +52,12 @@ def process_bload_instructions(kernel_cinstrs, kernel_cinstrs_map, cinst_in_var_
 
 def remove_csyncm(kernel_cinstrs, kernel_cinstrs_map, idx):
     """
-    @brief Remove CSyncm instruction for intermediate variables.
+    @brief Remove instruction at target idx if that is a CSyncm.
 
     @param kernel_cinstrs List of CInstructions.
     @param kernel_cinstrs_map Map of CInstructions with actions.
-    @param direction Direction to look for CSyncm ("next" or "prev").
+    @param idx Index of the instruction to check.
+
     @return tuple (adjust_idx, adjust_cycles) Adjustments for index and cycles.
     """
     adjust_idx = 0
@@ -100,7 +101,7 @@ def search_minstrs_back(minstrs_map: list, idx: int, spad_address: int) -> int:
 
 def search_minstrs_forward(minstrs_map: list, idx: int, spad_address: int) -> int:
     """
-    @brief Searches for an MStore based on its SPAD address
+    @brief Searches for an MStore/MLoad based on its SPAD address
 
     This method is used to find the instruction associated with a given SPAD address
     in the MInsts of a kernel.

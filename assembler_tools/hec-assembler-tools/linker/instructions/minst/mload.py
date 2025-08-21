@@ -75,11 +75,11 @@ class Instruction(MInstruction):
     @property
     def hbm_address(self) -> int:
         """
-        @brief Gets the name of the source.
+        @brief Source HBM address.
 
         Should be set to HBM address to write back.
 
-        @return The name of the source.
+        @return The HBM source.
         """
         return int(self.tokens[3])
 

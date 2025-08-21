@@ -78,8 +78,7 @@ class Instruction(CInstruction):
     @property
     def spad_address(self) -> int:
         """
-        @brief Name of the source.
-        Spad address when there is HBM.
+        @brief Source SPAD address.
         """
         return int(self.tokens[3])
 
