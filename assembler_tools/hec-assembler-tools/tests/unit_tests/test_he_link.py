@@ -11,6 +11,7 @@
 
 import argparse
 import io
+from contextlib import ExitStack
 from unittest.mock import MagicMock, mock_open, patch
 
 import he_link
@@ -105,52 +106,41 @@ class TestMainFunction:
         mock_config.trace_file = "mock_trace.txt" if using_trace_file else ""
 
         # Act
-        with (
-            patch("assembler.common.constants.convertBytes2Words", return_value=1024),
-            patch("he_link.prepare_output_files", mocks["prepare_output"]),
-            patch("he_link.prepare_input_files", mocks["prepare_input"]),
-            patch("assembler.common.counter.Counter.reset"),
-            patch("he_link.Loader.load_dinst_kernel_from_file", mocks["load_dinst"]),
-            patch(
-                "linker.instructions.BaseInstruction.dump_instructions_to_file",
-                mocks["dump_instructions"],
-            ),
-            patch("he_link.LinkedProgram", return_value=mocks["linked_program"]),
-            patch.object(mocks["linked_program"], "join_n_prune_dinst_kernels", mocks["join_dinst"]),
-            patch(
-                "assembler.memory_model.mem_info.MemInfo.from_dinstrs",
-                mocks["from_dinstrs"],
-            ),
-            patch(
-                "assembler.memory_model.mem_info.MemInfo.from_file_iter",
-                mocks["from_file_iter"],
-            ),
-            patch("linker.MemoryModel"),
-            patch("he_link.scan_variables", mocks["scan_variables"]),
-            patch("he_link.check_unused_variables", mocks["check_unused_variables"]),
-            patch(
-                "linker.kern_trace.TraceInfo.parse_kernel_ops_from_file",
-                mocks["parse_kernel_ops"],
-            ),
-            patch(
-                "os.path.isfile",
-                return_value=True,  # Make all file existence checks return True
-            ),
-            patch("linker.kern_trace.remap_dinstrs_vars", mocks["remap_dinstrs_vars"]),
-            patch("he_link.update_input_prefixes", mocks["update_input_prefixes"]),
-            patch("he_link.remap_vars", mocks["remap_vars"]),
-            patch("he_link.initialize_memory_model", mocks["initialize_memory_model"]),
-            patch("he_link.Loader.flush_cache"),
-            patch(
-                "builtins.open",
-                mocks["mock_open"],  # Mock all file opens to prevent actual file operations
-            ),
-        ):
-            # Mock link_kernels_to_files directly instead of patching the method
-            # This avoids the internal file operations while still tracking the call
-            mocks["linked_program"].link_kernels_to_files = mocks["link_kernels"]
+        with ExitStack() as stack:
+            stack.enter_context(patch("assembler.common.constants.convertBytes2Words", return_value=1024))
+            stack.enter_context(patch("he_link.prepare_output_files", mocks["prepare_output"]))
+            stack.enter_context(patch("he_link.prepare_input_files", mocks["prepare_input"]))
+            stack.enter_context(patch("assembler.common.counter.Counter.reset"))
+            stack.enter_context(patch("he_link.Loader.load_dinst_kernel_from_file", mocks["load_dinst"]))
+            stack.enter_context(
+                patch(
+                    "linker.instructions.BaseInstruction.dump_instructions_to_file",
+                    mocks["dump_instructions"],
+                )
+            )
+            stack.enter_context(patch("he_link.LinkedProgram", return_value=mocks["linked_program"]))
+            stack.enter_context(patch.object(mocks["linked_program"], "join_n_prune_dinst_kernels", mocks["join_dinst"]))
+            stack.enter_context(patch("assembler.memory_model.mem_info.MemInfo.from_dinstrs", mocks["from_dinstrs"]))
+            stack.enter_context(patch("assembler.memory_model.mem_info.MemInfo.from_file_iter", mocks["from_file_iter"]))
+            stack.enter_context(patch("linker.MemoryModel"))
+            stack.enter_context(patch("he_link.scan_variables", mocks["scan_variables"]))
+            stack.enter_context(patch("he_link.check_unused_variables", mocks["check_unused_variables"]))
+            stack.enter_context(
+                patch(
+                    "linker.kern_trace.TraceInfo.parse_kernel_ops_from_file",
+                    mocks["parse_kernel_ops"],
+                )
+            )
+            stack.enter_context(patch("os.path.isfile", return_value=True))
+            stack.enter_context(patch("linker.kern_trace.remap_dinstrs_vars", mocks["remap_dinstrs_vars"]))
+            stack.enter_context(patch("he_link.update_input_prefixes", mocks["update_input_prefixes"]))
+            stack.enter_context(patch("he_link.remap_vars", mocks["remap_vars"]))
+            stack.enter_context(patch("he_link.initialize_memory_model", mocks["initialize_memory_model"]))
+            stack.enter_context(patch("he_link.Loader.flush_cache"))
+            stack.enter_context(patch("builtins.open", mocks["mock_open"]))
 
-            # Run the main function with all patches in place
+            # Mock link_kernels_to_files directly instead of patching the method
+            mocks["linked_program"].link_kernels_to_files = mocks["link_kernels"]
             he_link.main(mock_config, MagicMock())
 
         # Assert pipeline is run as expected
@@ -203,24 +193,26 @@ class TestMainFunction:
         mock_file_open = mock_open()
 
         # Act & Assert
-        with (
-            patch("warnings.warn") as mock_warn,
-            patch("assembler.common.constants.convertBytes2Words", return_value=1024),
-            patch("he_link.prepare_output_files", return_value=mock_output_files),
-            patch("he_link.prepare_input_files", return_value=[]),
-            patch("assembler.common.counter.Counter.reset"),
-            patch(
-                "linker.steps.program_linker.LinkedProgram",
-                return_value=mock_linked_program,
-            ),
-            patch("assembler.memory_model.mem_info.MemInfo.from_file_iter"),
-            patch("linker.MemoryModel"),
-            patch("he_link.scan_variables"),
-            patch("he_link.check_unused_variables"),
-            patch("he_link.initialize_memory_model"),
-            patch("he_link.Loader.flush_cache"),
-            patch("builtins.open", mock_file_open),  # Mock all file operations
-        ):
+        with ExitStack() as stack:
+            mock_warn = stack.enter_context(patch("warnings.warn"))
+            stack.enter_context(patch("assembler.common.constants.convertBytes2Words", return_value=1024))
+            stack.enter_context(patch("he_link.prepare_output_files", return_value=mock_output_files))
+            stack.enter_context(patch("he_link.prepare_input_files", return_value=[]))
+            stack.enter_context(patch("assembler.common.counter.Counter.reset"))
+            stack.enter_context(
+                patch(
+                    "linker.steps.program_linker.LinkedProgram",
+                    return_value=mock_linked_program,
+                )
+            )
+            stack.enter_context(patch("assembler.memory_model.mem_info.MemInfo.from_file_iter"))
+            stack.enter_context(patch("linker.MemoryModel"))
+            stack.enter_context(patch("he_link.scan_variables"))
+            stack.enter_context(patch("he_link.check_unused_variables"))
+            stack.enter_context(patch("he_link.initialize_memory_model"))
+            stack.enter_context(patch("he_link.Loader.flush_cache"))
+            stack.enter_context(patch("builtins.open", mock_file_open))
+
             # Set link_kernels_to_files method directly to avoid internal file operations
             mock_linked_program.link_kernels_to_files = mock_link_kernels
 

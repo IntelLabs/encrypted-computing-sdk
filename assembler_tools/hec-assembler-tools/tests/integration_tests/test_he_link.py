@@ -834,27 +834,28 @@ class TestHeIntegration:
             # Assert no empty lines in between (except possibly the last one)
             assert tokens, f"Found empty line at index {i} in minst file"
             # Assert index is consecutive
-            assert int(tokens[0]) == i, f"Expected index {i} but found {tokens[0]} in line: {", ".join(tokens)}"
+            assert int(tokens[0]) == i, f"Expected index {i} but found {tokens[0]} in line ({i}): {', '.join(tokens)}"
 
             if tokens[1].startswith("cstore"):
                 # Assert cstore's spad addresses are digits
-                assert tokens[2].isdigit(), f"Expected address {tokens[2]} to be digit in line: {", ".join(tokens)}"
+                assert tokens[2].isdigit(), f"Expected address {tokens[2]} to be digit in line ({i}): {', '.join(tokens)}"
                 cstore_spad_addresses.add(tokens[2])
             elif tokens[1].startswith("cload"):
                 # Assert cload's spad addresses are digits
-                assert tokens[3].isdigit(), f"Expected address {tokens[3]} to be digit in line: {", ".join(tokens)}"
+                assert tokens[3].isdigit(), f"Expected address {tokens[3]} to be digit in line ({i}): {', '.join(tokens)}"
                 # Assert cload's spad addresses are in expected set
                 assert tokens[3] in (dload_addresses | cstore_spad_addresses), (
                     f"Expected cload SPAD address {tokens[3]} to be in {dload_addresses | cstore_spad_addresses} "
-                    f"in line: {", ".join(tokens)}"
+                    f"in line ({i}): {', '.join(tokens)}"
                 )
             elif tokens[1].startswith("ifetch"):
                 # Assert ifetch target is digits
-                assert tokens[2].isdigit(), f"Expected ifetch target {tokens[2]} to be digit in line: {", ".join(tokens)}"
+                assert tokens[2].isdigit(), f"Expected ifetch target {tokens[2]} to be digit in line ({i}): {', '.join(tokens)}"
                 # Assert ifetch target is a valid xinst bundle
-                assert (
-                    int(tokens[2]) <= last_bundle
-                ), f"Expected ifetch target {tokens[2]} to be less than or equal to last bundle {last_bundle} in line: {", ".join(tokens)}"
+                assert int(tokens[2]) <= last_bundle, (
+                    f"Expected ifetch target {tokens[2]} to be less than or equal to "
+                    f"last bundle {last_bundle} in line ({i}): {', '.join(tokens)}"
+                )
 
         # Assert last line contains cexit (termination instruction)
         last_tokens = cinstrs[-1]
