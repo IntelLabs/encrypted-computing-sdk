@@ -1,0 +1,67 @@
+0, csyncm, 4 # id: (0, 20)
+1, bload, 0, twid_4, 0 # id: (0, 21); loading twid metadata for residuals [0, 64)
+2, bload, 1, twid_4, 1 # id: (0, 22); loading twid metadata for residuals [0, 64)
+3, bload, 2, twid_4, 2 # id: (0, 23); loading twid metadata for residuals [0, 64)
+4, bload, 3, twid_4, 3 # id: (0, 24); loading twid metadata for residuals [0, 64)
+5, csyncm, 5 # id: (0, 25)
+6, bload, 4, twid_5, 0 # id: (0, 26); loading twid metadata for residuals [0, 64)
+7, bload, 5, twid_5, 1 # id: (0, 27); loading twid metadata for residuals [0, 64)
+8, bload, 6, twid_5, 2 # id: (0, 28); loading twid metadata for residuals [0, 64)
+9, bload, 7, twid_5, 3 # id: (0, 29); loading twid metadata for residuals [0, 64)
+10, csyncm, 6 # id: (0, 30)
+11, bload, 8, twid_6, 0 # id: (0, 31); loading twid metadata for residuals [0, 64)
+12, bload, 9, twid_6, 1 # id: (0, 32); loading twid metadata for residuals [0, 64)
+13, bload, 10, twid_6, 2 # id: (0, 33); loading twid metadata for residuals [0, 64)
+14, bload, 11, twid_6, 3 # id: (0, 34); loading twid metadata for residuals [0, 64)
+15, csyncm, 7 # id: (0, 35)
+16, bload, 12, twid_7, 0 # id: (0, 36); loading twid metadata for residuals [0, 64)
+17, bload, 13, twid_7, 1 # id: (0, 37); loading twid metadata for residuals [0, 64)
+18, bload, 14, twid_7, 2 # id: (0, 38); loading twid metadata for residuals [0, 64)
+19, bload, 15, twid_7, 3 # id: (0, 39); loading twid metadata for residuals [0, 64)
+20, csyncm, 8 # id: (0, 40)
+21, bload, 16, twid_8, 0 # id: (0, 41); loading twid metadata for residuals [0, 64)
+22, bload, 17, twid_8, 1 # id: (0, 42); loading twid metadata for residuals [0, 64)
+23, bload, 18, twid_8, 2 # id: (0, 43); loading twid metadata for residuals [0, 64)
+24, bload, 19, twid_8, 3 # id: (0, 44); loading twid metadata for residuals [0, 64)
+25, csyncm, 9 # id: (0, 45)
+26, bload, 20, twid_9, 0 # id: (0, 46); loading twid metadata for residuals [0, 64)
+27, bload, 21, twid_9, 1 # id: (0, 47); loading twid metadata for residuals [0, 64)
+28, bload, 22, twid_9, 2 # id: (0, 48); loading twid metadata for residuals [0, 64)
+29, bload, 23, twid_9, 3 # id: (0, 49); loading twid metadata for residuals [0, 64)
+30, csyncm, 10 # id: (0, 50)
+31, bload, 24, twid_10, 0 # id: (0, 51); loading twid metadata for residuals [0, 64)
+32, bload, 25, twid_10, 1 # id: (0, 52); loading twid metadata for residuals [0, 64)
+33, bload, 26, twid_10, 2 # id: (0, 53); loading twid metadata for residuals [0, 64)
+34, bload, 27, twid_10, 3 # id: (0, 54); loading twid metadata for residuals [0, 64)
+35, csyncm, 11 # id: (0, 55)
+36, bload, 28, twid_11, 0 # id: (0, 56); loading twid metadata for residuals [0, 64)
+37, bload, 29, twid_11, 1 # id: (0, 57); loading twid metadata for residuals [0, 64)
+38, bload, 30, twid_11, 2 # id: (0, 58); loading twid metadata for residuals [0, 64)
+39, bload, 31, twid_11, 3 # id: (0, 59); loading twid metadata for residuals [0, 64)
+40, csyncm, 12 # id: (0, 61)
+41, bones, ones_12, 0 # id: (0, 62); loading ones metadata for residuals [0, 64)
+42, csyncm, 13 # id: (1, 65)
+43, cload, r0b0, ct0_0_0_0 # id: (1, 66); dep id: (1, 0); ct0_0_0_0
+44, csyncm, 14 # id: (1, 69)
+45, cload, r1b0, ct1_1_0_0 # id: (1, 70); dep id: (1, 0); ct1_1_0_0
+46, csyncm, 15 # id: (2, 73)
+47, cload, r2b0, ct0_0_0_1 # id: (2, 74); dep id: (2, 1); ct0_0_0_1
+48, csyncm, 16 # id: (2, 77)
+49, cload, r3b0, ct1_1_0_1 # id: (2, 78); dep id: (2, 1); ct1_1_0_1
+50, csyncm, 17 # id: (3, 81)
+51, cload, r4b0, ct1_0_0_0 # id: (3, 82); dep id: (3, 2); ct1_0_0_0
+52, csyncm, 18 # id: (4, 86)
+53, cload, r5b0, ct1_0_0_1 # id: (4, 87); dep id: (4, 3); ct1_0_0_1
+54, csyncm, 19 # id: (5, 91)
+55, cload, r6b0, ct0_1_0_0 # id: (5, 92); dep id: (5, 4); ct0_1_0_0
+56, csyncm, 20 # id: (6, 95)
+57, cload, r7b0, ct0_1_0_1 # id: (6, 96); dep id: (6, 5); ct0_1_0_1
+58, ifetch, 0 # id: (67, 150)
+59, cstore, ct2_0_0_0 # id: (3, 101);  id: (3, 89);  flushing output; variable "ct2_0_0_0": SPAD(19) <- r3b1; ct2_0_0_0
+60, cstore, ct2_0_0_1 # id: (4, 107);  id: (4, 99);  flushing output; variable "ct2_0_0_1": SPAD(22) <- r7b1; ct2_0_0_1
+61, cstore, ct2_2_0_0 # id: (5, 109);  id: (5, 102);  flushing output; variable "ct2_2_0_0": SPAD(23) <- r5b1; ct2_2_0_0
+62, cstore, ct2_2_0_1 # id: (6, 111);  id: (6, 103);  flushing output; variable "ct2_2_0_1": SPAD(24) <- r6b1; ct2_2_0_1
+63, cstore, ct2_1_0_0 # id: (7, 113);  id: (7, 104);  flushing output; variable "ct2_1_0_0": SPAD(25) <- r0b3; ct2_1_0_0
+64, cstore, ct2_1_0_1 # id: (8, 115);  id: (8, 105);  flushing output; variable "ct2_1_0_1": SPAD(26) <- r1b3; ct2_1_0_1
+65, csyncm, 32 # id: (8, 163)
+66, cexit # id: (66, 164)

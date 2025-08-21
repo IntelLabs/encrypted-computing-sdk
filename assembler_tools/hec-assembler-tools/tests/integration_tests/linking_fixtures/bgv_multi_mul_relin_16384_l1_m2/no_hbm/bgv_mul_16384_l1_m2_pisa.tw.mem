@@ -1,0 +1,27 @@
+dload, ntt_auxiliary_table, 0
+dload, ntt_routing_table, 1
+dload, intt_auxiliary_table, 2
+dload, intt_routing_table, 3
+dload, twid, 4
+dload, twid, 5
+dload, twid, 6
+dload, twid, 7
+dload, twid, 8
+dload, twid, 9
+dload, twid, 10
+dload, twid, 11
+dload, ones, 12
+dload, poly, 13, ct0_0_0_0
+dload, poly, 14, ct1_1_0_0
+dload, poly, 15, ct0_0_0_1
+dload, poly, 16, ct1_1_0_1
+dload, poly, 17, ct1_0_0_0
+dload, poly, 18, ct1_0_0_1
+dload, poly, 19, ct0_1_0_0
+dload, poly, 20, ct0_1_0_1
+dstore, ct2_0_0_0, 21
+dstore, ct2_0_0_1, 22
+dstore, ct2_2_0_0, 23
+dstore, ct2_2_0_1, 24
+dstore, ct2_1_0_0, 25
+dstore, ct2_1_0_1, 26
