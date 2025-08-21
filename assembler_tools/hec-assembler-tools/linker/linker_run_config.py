@@ -82,7 +82,6 @@ class LinkerRunConfig(RunConfig):
         # class members based on configuration
         for config_name, default_value in self.__default_config.items():
             value = kwargs.get(config_name, default_value)
-            print(f"Config: {config_name} = {value} default: {default_value}")
             if value is not None:
                 setattr(self, config_name, value)
             else:

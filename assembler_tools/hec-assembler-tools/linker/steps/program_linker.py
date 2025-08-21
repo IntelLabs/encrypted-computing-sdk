@@ -230,8 +230,6 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         while idx < len(kernel.minstrs):
             minstr = kernel.minstrs[idx]
 
-            print(f"ROCHA ({idx}): processing minst {minstr.to_line()} token 0 {minstr.idx} id {minstr.id}")
-
             # Update msyncc
             if isinstance(minstr, minst.MSyncc):
                 # If not the last MSyncc
@@ -264,7 +262,6 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 minstr.hbm_address = hbm_address
                 minstr.comment = f" var: {var_name} - HBM({hbm_address})" + f";{minstr.comment}" if minstr.comment else ""
 
-            print(f"ROCHA ({idx}) NEW minst {minstr.to_line()}")
             idx += 1  # next instruction
 
     def _remove_and_merge_csyncm_cnop(self, kernel: KernelInfo):
@@ -277,8 +274,6 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         current_bundle = 0
         csyncm_count = 0
         while i < len(kernel.cinstrs):
-            print(f"ROCHA ({i}): CINST -> {kernel.cinstrs[i].to_line()}")
-
             cinstr = kernel.cinstrs[i]
             cinstr.idx = str(i)  # Update the line number
 
@@ -345,15 +340,18 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         # Merge continuous cnop
         i = 0
         while i < len(kernel.cinstrs):
-            print(f"ROCHA ({i}): CINST -> {kernel.cinstrs[i].to_line()}")
-            cinstr = kernel.cinstrs[i]
-            cinstr.idx = str(i)
-            if isinstance(cinstr, cinst.CNop):
-                # Do look ahead
-                if i + 1 < len(kernel.cinstrs):
-                    if isinstance(kernel.cinstrs[i + 1], cinst.CNop):
+            if kernel.cinstrs_map[i].action != InstrAct.SKIP:
+                cinstr = kernel.cinstrs[i]
+                cinstr.idx = str(i)
+                if isinstance(cinstr, cinst.CNop):
+                    # Do look ahead
+                    _next = i + 1
+                    while kernel.cinstrs_map[_next].action == InstrAct.SKIP and _next < len(kernel.cinstrs):
+                        _next += 1
+
+                    if isinstance(kernel.cinstrs[_next], cinst.CNop):
                         # Add 1 because cnop n, waits for n+1 cycles
-                        kernel.cinstrs[i + 1].cycles += cinstr.cycles + 1
+                        kernel.cinstrs[_next].cycles += cinstr.cycles + 1
                         kernel.cinstrs_map[i].action = InstrAct.SKIP
             i += 1
 
@@ -413,7 +411,6 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         syncm_idx = 0
         while idx < len(kernel.cinstrs):
             cinstr = kernel.cinstrs[idx]
-            print(f"ROCHA ({idx}): CINST     -> {cinstr.to_line()} # {cinstr.comment}")
 
             if isinstance(cinstr, cinst.CSyncm):
                 syncm_idx = cinstr.target
@@ -421,12 +418,10 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 if kernel.cinstrs_map[idx].action != InstrAct.SKIP:
                     minstr = kernel.minstrs_map[syncm_idx].minstr
                     cinstr.target = minstr.idx
-                    print(f"ROCHA ({idx}): CSyncm target {cinstr.target}")
 
             elif isinstance(cinstr, (cinst.CLoad, cinst.BLoad, cinst.BOnes)):
                 # Update CLoad/BLoad/BOnes SPAD addresses to new minst
                 if kernel.cinstrs_map[idx].action != InstrAct.SKIP:
-                    print(f"ROCHA ({idx}): Updating CLoad/BLoad/BOnes syncm_idx {syncm_idx} source {cinstr.var_name}")
                     minstr_idx = search_minstrs_back(kernel.minstrs_map, syncm_idx, cinstr.spad_address)
                     minstr = kernel.minstrs_map[minstr_idx].minstr
                     cinstr.var_name = minstr.var_name
@@ -456,7 +451,6 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                     cinstr.spad_address = minstr.spad_address
                     self._cinst_in_var_tracker[cinstr.var_name] = cinstr.spad_address
 
-            print(f"ROCHA ({idx}): NEW CINST -> {cinstr.to_line()} # {cinstr.comment}")
             idx += 1  # next instruction
 
     def _update_cinsts(self, kernel: KernelInfo):
@@ -518,11 +512,8 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             # extract all instructions from minstrs marked as KEEP_HBM in minstrs_map
             minstrs_list = [minstr_map.minstr for minstr_map in kernel.minstrs_map if minstr_map.action == InstrAct.KEEP_HBM]
 
-        print(f"\nROCHA UPATADE MINST {kernel.minst} spad offset {self._spad_offset}\n")
         self._update_minsts(kernel)
-        print(f"\nROCHA UPATADE CINST {kernel.cinst} spad offset {self._spad_offset}\n")
         self._update_cinsts(kernel)
-        print(f"\nROCHA UPATADE xINST {kernel.xinst} spad offset {self._spad_offset}\n")
         self._bundle_offset = self._update_xinsts(kernel.xinstrs) + 1
         self._spad_offset += (kernel.spad_size + 1) if not self._keep_hbm_boundary else 0
 
@@ -631,7 +622,6 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         last_msyncc = None
 
         for idx, minstr in enumerate(kernel_info.minstrs):
-            print(f"ROCHA ({idx}): PRUNE MINST -> {minstr.to_line()} # {minstr.comment}")
             if isinstance(minstr, minst.MSyncc):
                 last_msyncc = minstr
             elif isinstance(minstr, minst.MStore):
@@ -665,11 +655,9 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                     minstr.idx = minstr.idx + adjust_idx  # Update line number
                     minstr.spad_address += adjust_spad  # Adjust source spad address
                     spad_size = minstr.spad_address
-                    print(f"ROCHA ({idx}): PRUNE MINST -> Keeping {minstr.var_name} MStore - SPAD address {minstr.spad_address}")
             elif isinstance(minstr, minst.MLoad):
                 # Remove mload instructions if variables already loaded
                 if minstr.var_name in self._minst_in_var_tracker:
-                    print(f"ROCHA ({idx}): PRUNE MINST -> Removing MLoad - already loaded {minstr.var_name}")
                     kernel_info.minstrs_map[idx].action = InstrAct.SKIP
                     minstr.spad_address = self._minst_in_var_tracker[minstr.var_name]  # Adjust dest spad address
                     adjust_spad -= 1
@@ -694,7 +682,6 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 minstr.spad_address = new_spad  # Adjust dest spad address
                 minstr.idx = minstr.idx + adjust_idx  # Update line number
                 spad_size = minstr.spad_address
-                print(f"ROCHA ({idx}): PRUNE MINST -> Keeping {minstr.var_name} MLoad - SPAD address {minstr.spad_address}")
 
                 # Track loaded variables
                 self._minst_in_var_tracker[minstr.var_name] = minstr.spad_address
@@ -764,7 +751,6 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 # Check if the variable is an intermediate variable
                 if cinstr.var_name in self._intermediate_vars:
                     # CSyncm no needed for intermediate variables
-                    print(f"ROCHA ({idx}): PRUNE CINST -> Removing intermediate {cinstr.var_name} CStore")
                     _idx, _cycles = remove_csyncm(kernel.cinstrs, kernel.cinstrs_map, idx + 1)
                     adjust_idx += _idx
                     adjust_cycles += _cycles

@@ -93,7 +93,6 @@ def scan_variables(
 
             kernel_info.cinstrs = Loader.load_cinst_kernel_from_file(kernel_info.cinst)
             remap_m_c_instrs_vars(kernel_info.cinstrs, kernel_info.hbm_remap_dict)
-            print(f"\nROCHA Pruning Cinst {kernel_info.cinst}\n")
             p_linker.prune_cinst_kernel_no_hbm(kernel_info)
 
             for var_name in discover_variables_spad(kernel_info.cinstrs):
@@ -108,8 +107,6 @@ def scan_variables(
                 )
             kernel_info.minstrs = Loader.load_minst_kernel_from_file(kernel_info.minst)
             remap_m_c_instrs_vars(kernel_info.minstrs, kernel_info.hbm_remap_dict)
-
-            print(f"\nROCHA Pruning Minst {kernel_info.minst}\n")
             p_linker.prune_minst_kernel(kernel_info)
 
             for var_name in discover_variables(kernel_info.minstrs):
