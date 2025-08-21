@@ -346,10 +346,10 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 if isinstance(cinstr, cinst.CNop):
                     # Do look ahead
                     _next = i + 1
-                    while kernel.cinstrs_map[_next].action == InstrAct.SKIP and _next < len(kernel.cinstrs):
+                    while _next < len(kernel.cinstrs) and kernel.cinstrs_map[_next].action == InstrAct.SKIP:
                         _next += 1
 
-                    if isinstance(kernel.cinstrs[_next], cinst.CNop):
+                    if _next < len(kernel.cinstrs) and isinstance(kernel.cinstrs[_next], cinst.CNop):
                         # Add 1 because cnop n, waits for n+1 cycles
                         kernel.cinstrs[_next].cycles += cinstr.cycles + 1
                         kernel.cinstrs_map[i].action = InstrAct.SKIP
