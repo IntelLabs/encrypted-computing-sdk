@@ -834,6 +834,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                     self.prune_cinst_kernel_hbm(kernel)
 
                 kernel.xinstrs = Loader.load_xinst_kernel_from_file(kernel.xinst)
+                kern_mapper.remap_xinstrs_vars(kernel.xinstrs, kernel.hbm_remap_dict)
 
                 self.link_kernel(kernel)
 

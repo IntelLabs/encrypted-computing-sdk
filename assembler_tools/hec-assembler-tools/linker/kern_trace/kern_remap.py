@@ -8,10 +8,11 @@
 
 import re
 
-from linker.instructions import cinst, minst
+from linker.instructions import cinst, minst, xinst
 from linker.instructions.cinst.cinstruction import CInstruction
 from linker.instructions.dinst.dinstruction import DInstruction
 from linker.instructions.minst.minstruction import MInstruction
+from linker.instructions.xinst.xinstruction import XInstruction
 from linker.kern_trace.kernel_op import KernelOp
 
 
@@ -97,3 +98,23 @@ def remap_m_c_instrs_vars(kernel_instrs: list, hbm_remap_dict: dict[str, str]) -
                 else:
                     for key, value in hbm_remap_dict.items():
                         instr.comment = instr.comment.replace(key, value)
+
+
+def remap_xinstrs_vars(kernel_xinstrs: list, hbm_remap_dict: dict[str, str]) -> None:
+    """
+    @brief Remaps variable names in X Instructions based on a provided remap dictionary.
+
+    This function updates the variable names in each X Instruction by replacing them
+    with their corresponding values from the remap dictionary.
+
+    @param kernel_xinstrs: List of X Instruction objects to process
+    @param hbm_remap_dict: Dictionary mapping old variable names to new variable names
+    """
+    if hbm_remap_dict:
+        for instr in kernel_xinstrs:
+            if not isinstance(instr, XInstruction):
+                raise TypeError(f"Item {instr} is not a valid X Instruction.")
+
+            if isinstance(instr, (xinst.Move, xinst.XStore)):
+                for key, value in hbm_remap_dict.items():
+                    instr.comment = instr.comment.replace(key, value)
