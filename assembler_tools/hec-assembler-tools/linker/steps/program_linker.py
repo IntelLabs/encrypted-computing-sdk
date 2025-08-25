@@ -13,7 +13,7 @@ from assembler.instructions import cinst as ISACInst
 
 import linker.kern_trace.kern_remap as kern_mapper
 from linker import MemoryModel
-from linker.instructions import cinst, dinst, minst
+from linker.instructions import cinst, dinst, minst, xinst
 from linker.instructions.dinst.dinstruction import DInstruction
 from linker.kern_trace import InstrAct, KernelInfo
 from linker.kern_trace.kernel_info import CinstrMapEntry
@@ -22,6 +22,7 @@ from linker.steps.program_linker_utils import (
     calculate_instruction_latency_adjustment,
     process_bload_instructions,
     remove_csyncm,
+    search_cinstrs_back,
     search_minstrs_back,
     search_minstrs_forward,
 )
@@ -48,6 +49,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         self._cinst_in_var_tracker: dict[str, int] = {}
 
         self._intermediate_vars: list = []
+        self._xstore_tracker: dict[str, str] = {}
         self._spad_offset = 0
         self._keep_hbm_boundary = keep_hbm_boundary
         self._keep_spad_boundary = keep_spad_boundary
@@ -647,7 +649,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 else:
                     # Calculate new SPAD Address
                     new_spad = minstr.spad_address + adjust_spad
-                    # Adjust spad address if negative, this could leave gaps in the spad address space
+                    # Adjust spad address if negative. Note: this could leave gaps in the spad address space
                     if new_spad < 0:
                         adjust_spad -= new_spad
                         new_spad = 0
@@ -658,7 +660,11 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             elif isinstance(minstr, minst.MLoad):
                 # Remove mload instructions if variables already loaded
                 if minstr.var_name in self._minst_in_var_tracker:
-                    kernel_info.minstrs_map[idx].action = InstrAct.SKIP
+                    if not minstr.var_name.startswith(("psi", "rlk", "ipsi")):
+                        kernel_info.minstrs_map[idx].action = InstrAct.SKIP
+                    else:
+                        kernel_info.minstrs_map[idx].action = InstrAct.KEEP_SPAD
+
                     minstr.spad_address = self._minst_in_var_tracker[minstr.var_name]  # Adjust dest spad address
                     adjust_spad -= 1
                     adjust_idx -= 1
@@ -702,10 +708,24 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
 
         syncm_idx: int = 0
         idx: int = 0
+        bundle_idx: int = -1
+        ifetch_idx: int = -1
+        cstore_vars: list[str] = []
         while idx < len(kernel.cinstrs):
             cinstr = kernel.cinstrs[idx]
+            # print(f"ROCHA PRUNE CInst ({idx}): {cinstr.to_line()} # {cinstr.comment}")
             if isinstance(cinstr, cinst.IFetch):
+                # Add bundle CStore map
+                print(f"ROCHA  CStore map for bundle {bundle_idx}: {ifetch_idx}, {cstore_vars}")
+                kernel.fetch_cstores_map[bundle_idx] = (ifetch_idx, cstore_vars.copy())
+                cstore_vars.clear()
+                bundle_idx = cinstr.bundle
+                ifetch_idx = idx
                 adjust_cycles = 0
+            if isinstance(cinstr, cinst.CExit):
+                # Final CStore map
+                print(f"ROCHA  CStore map for bundle {bundle_idx}: {ifetch_idx}, {cstore_vars}")
+                kernel.fetch_cstores_map[bundle_idx] = (ifetch_idx, cstore_vars.copy())
             elif isinstance(cinstr, cinst.CNop):
                 # Adjust CNop cycles based on removed instructions
                 cinstr.cycles += adjust_cycles
@@ -714,7 +734,6 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 syncm_idx = cinstr.target
             elif isinstance(cinstr, (cinst.CLoad, cinst.BLoad, cinst.BOnes)):
                 minstr_idx = search_minstrs_back(kernel.minstrs_map, syncm_idx, int(cinstr.spad_address))
-
                 cinstr.var_name = kernel.minstrs_map[minstr_idx].minstr.var_name
 
                 # Remove CLoad/BLoad/BOnes instructions if minstr action is SKIP
@@ -730,6 +749,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
 
                 # Check if the variable is an intermediate variable
                 elif cinstr.var_name in self._intermediate_vars:
+                    print(f"ROCHA  CLoad/BLoad var: {cinstr.var_name}")
                     # Remove any csyncm instruction before this load
                     _idx, _cycles = remove_csyncm(kernel.cinstrs, kernel.cinstrs_map, idx - 1)
                     adjust_idx += _idx
@@ -750,6 +770,8 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
 
                 # Check if the variable is an intermediate variable
                 if cinstr.var_name in self._intermediate_vars:
+                    print(f"ROCHA  CStore var: {cinstr.var_name}")
+                    cstore_vars.append(cinstr.var_name)
                     # CSyncm no needed for intermediate variables
                     _idx, _cycles = remove_csyncm(kernel.cinstrs, kernel.cinstrs_map, idx + 1)
                     adjust_idx += _idx
@@ -768,11 +790,21 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         adjust_cycles: int = 0
 
         idx: int = 0
+        bundle_idx: int = -1
+        ifetch_idx: int = -1
+        cstore_vars: list[str] = []
         while idx < len(kernel.cinstrs):
             cinstr = kernel.cinstrs[idx]
-            # Update csyncm
             if isinstance(cinstr, cinst.IFetch):
+                # Add bundle CStore map
+                kernel.fetch_cstores_map[bundle_idx] = (ifetch_idx, cstore_vars.copy())
+                cstore_vars.clear()
+                bundle_idx = cinstr.bundle
+                ifetch_idx = idx
                 adjust_cycles = 0
+            if isinstance(cinstr, cinst.CExit):
+                # Final CStore map
+                kernel.fetch_cstores_map[bundle_idx] = (ifetch_idx, cstore_vars.copy())
             elif isinstance(cinstr, cinst.CNop):
                 cinstr.cycles += adjust_cycles
             elif isinstance(cinstr, cinst.BLoad):
@@ -782,7 +814,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                     self._cinst_in_var_tracker[cinstr.var_name] = 0
 
             elif isinstance(cinstr, (cinst.CLoad, cinst.BOnes)):
-                # Remove CLoad/BLoad/BOnes instructions if variable already loaded
+                # Remove CLoad/BOnes instructions if variable already loaded
                 if cinstr.var_name in self._cinst_in_var_tracker:
                     kernel.cinstrs_map[idx].action = InstrAct.SKIP
                     adjust_cycles += calculate_instruction_latency_adjustment(cinstr)
@@ -790,11 +822,57 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 elif cinstr.var_name in self._intermediate_vars and not self._keep_spad_boundary:
                     kernel.cinstrs_map[idx].action = InstrAct.SKIP
                 # Keep instruction
-                else:
+                elif cinstr.var_name.startswith("ct") or cinstr.var_name.startswith("pt"):
                     self._cinst_in_var_tracker[cinstr.var_name] = cinstr.spad_address
 
             elif isinstance(cinstr, cinst.CStore) and cinstr.var_name in self._intermediate_vars and not self._keep_spad_boundary:
+                cstore_vars.append(cinstr.var_name)
                 kernel.cinstrs_map[idx].action = InstrAct.SKIP
+
+            idx += 1  # next instruction
+
+    def prune_xinst_kernel(self, kernel: KernelInfo):
+        """
+        @brief Removes unnecessary XInsts from the kernel.
+        @param kernel KernelInfo object containing the kernel's XInsts.
+        This method modifies the kernel's XInsts in place by removing redundant instructions.
+        """
+
+        if self._keep_spad_boundary:
+            return
+
+        idx: int = 0
+        prev_bundle: int = -1
+        xstore_count: int = 0
+        while idx < len(kernel.xinstrs):
+            xinstr = kernel.xinstrs[idx]
+            # Extract bundle number
+            bundle_idx = xinstr.bundle
+            # Reset the variable tracker when a new bundle is encountered
+            if bundle_idx != prev_bundle:
+                prev_bundle = bundle_idx
+                xstore_count = 0
+
+            print(f"ROCHA PRUNE XInst ({idx}): {xinstr.to_line()} # {xinstr.comment}")
+            if isinstance(xinstr, xinst.XStore):
+                assert bundle_idx in kernel.fetch_cstores_map, f"Bundle {bundle_idx} not found in CStore maps."
+
+                _, cstore_vars = kernel.fetch_cstores_map[bundle_idx]
+                var_name = cstore_vars[xstore_count] if xstore_count < len(cstore_vars) else ""
+                if var_name in self._intermediate_vars:
+                    self._xstore_tracker[var_name] = xinstr.source
+                    # Remove xstore instructions that store intermediate variables
+                    kernel.xinstrs.pop(idx)
+                    xstore_count += 1
+                    continue
+            elif isinstance(xinstr, xinst.Move):
+                # Updates move instructions that move from a previous xstore of the same intermediate variable
+                fetch_idx, _ = kernel.fetch_cstores_map[bundle_idx]
+                var_name = search_cinstrs_back(kernel.cinstrs_map, fetch_idx, xinstr.source)
+                print(f"ROCHA  Move source var: {var_name}")
+                if var_name in self._intermediate_vars:
+                    print(f"ROCHA  Move updated source var: {var_name}: {xinstr.source} -> {self._xstore_tracker[var_name]}")
+                    xinstr.source = self._xstore_tracker[var_name]
 
             idx += 1  # next instruction
 
@@ -835,6 +913,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
 
                 kernel.xinstrs = Loader.load_xinst_kernel_from_file(kernel.xinst)
                 kern_mapper.remap_xinstrs_vars(kernel.xinstrs, kernel.hbm_remap_dict)
+                self.prune_xinst_kernel(kernel)
 
                 self.link_kernel(kernel)
 
