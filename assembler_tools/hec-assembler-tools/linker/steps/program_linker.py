@@ -19,8 +19,10 @@ from linker.kern_trace import InstrAct, KernelInfo
 from linker.kern_trace.kernel_info import CinstrMapEntry
 from linker.loader import Loader
 from linker.steps.program_linker_utils import (
-    calculate_instruction_latency_adjustment,
-    process_bload_instructions,
+    XStoreMoveMapEntry,
+    get_instruction_lat,
+    get_instruction_tp,
+    proc_seq_bloads,
     remove_csyncm,
     search_cinstrs_back,
     search_minstrs_back,
@@ -49,7 +51,8 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         self._cinst_in_var_tracker: dict[str, int] = {}
 
         self._intermediate_vars: list = []
-        self._xstore_tracker: dict[str, str] = {}
+        self._xstores_map: dict[str, XStoreMoveMapEntry] = {}
+        self._var_name_by_reg: dict[str, str] = {}  # Maps register names to variable names for tracking
         self._spad_offset = 0
         self._keep_hbm_boundary = keep_hbm_boundary
         self._keep_spad_boundary = keep_spad_boundary
@@ -63,6 +66,8 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         self._cinst_line_offset = 0
         self._kernel_count = 0  # Number of kernels linked into this program
         self._is_open = False
+
+        self._last_cq_tp = 0  # CInst queue thrpughput used since last sync point
 
     def initialize(
         self,
@@ -218,7 +223,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         """
         @brief Updates the MInsts in the kernel to offset to the current expected
         synchronization points, and convert variable placeholders/names into
-        the corresponding HBM address.
+        the corresponding HBM addresses.
 
         All MInsts in the kernel are expected to synchronize with CInsts starting at line 0.
         Does not change the LinkedProgram object.
@@ -231,46 +236,42 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         idx: int = 0
         while idx < len(kernel.minstrs):
             minstr = kernel.minstrs[idx]
-
-            # Update msyncc
+            # Update MSyncc to new target index + global kernel offset
             if isinstance(minstr, minst.MSyncc):
                 # If not the last MSyncc
                 if idx < len(kernel.minstrs) - 1:
-                    # Update msyncc target to new cinst and global program offset
                     minstr.target = kernel.cinstrs_map[minstr.target].cinstr.idx
                     minstr.target = minstr.target + self._cinst_line_offset
-
-            # Change mload variable names into HBM addresses
+            # Change MLoad variable names into HBM addresses
             if isinstance(minstr, minst.MLoad):
                 var_name = minstr.var_name
-
+                # Update SPAD address with offset if not skipping
                 if kernel.minstrs_map[idx].action != InstrAct.SKIP:
                     minstr.spad_address += self._spad_offset
-
+                # Get HBM address from memory model
                 hbm_address = self.__mem_model.use_variable(var_name, self._kernel_count)
                 self._validate_hbm_address(var_name, hbm_address)
                 minstr.hbm_address = hbm_address
                 minstr.comment = f" var: {var_name} - HBM({hbm_address})" + f";{minstr.comment}" if minstr.comment else ""
-
             # Change mstore variable names into HBM addresses
             if isinstance(minstr, minst.MStore):
                 var_name = minstr.var_name
-
+                # Update SPAD address with offset if not skipping
                 if kernel.minstrs_map[idx].action != InstrAct.SKIP:
                     minstr.spad_address += self._spad_offset
-
+                # Get HBM address from memory model
                 hbm_address = self.__mem_model.use_variable(var_name, self._kernel_count)
                 self._validate_hbm_address(var_name, hbm_address)
                 minstr.hbm_address = hbm_address
                 minstr.comment = f" var: {var_name} - HBM({hbm_address})" + f";{minstr.comment}" if minstr.comment else ""
 
-            idx += 1  # next instruction
+            idx += 1  # Next instruction
 
     def _remove_and_merge_csyncm_cnop(self, kernel: KernelInfo):
         """
         @brief Remove csyncm instructions and merge consecutive cnop instructions.
 
-        @param kernel_cinstrs List of CInstructions to process.
+        @param kernel with cinstrs List of CInstructions to process.
         """
         i = 0
         current_bundle = 0
@@ -278,7 +279,6 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         while i < len(kernel.cinstrs):
             cinstr = kernel.cinstrs[i]
             cinstr.idx = str(i)  # Update the line number
-
             # ------------------------------
             # This code block will remove csyncm instructions and keep track,
             # later adding their throughput into a cnop instruction before
@@ -371,18 +371,18 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             raise RuntimeError("Memory model is not initialized.")
 
         for i, cinstr in enumerate(kernel_cinstrs):
-            # Update ifetch
+            # Update ifetch to global bundle offset
             if isinstance(cinstr, cinst.IFetch):
                 cinstr.bundle = cinstr.bundle + self._bundle_offset
             # Update xinstfetch
             if isinstance(cinstr, cinst.XInstFetch):
                 raise NotImplementedError("`xinstfetch` not currently supported by linker.")
-            # Update csyncm
+            # Update csyncm target to global minst line offset
             if isinstance(cinstr, cinst.CSyncm):
-                # If not a NLoad CSyncm or not keeping HBM boundary, update target
+                # NLoad CSyncm targets not updated unless we are keeping HBM boundary.
+                # As result, they end up pointing to first ntt's tables loaded.
                 if i + 1 < len(kernel_cinstrs) and not isinstance(kernel_cinstrs[i + 1], cinst.NLoad) or self._keep_hbm_boundary:
                     cinstr.target = cinstr.target + self._minst_line_offset
-
             if not GlobalConfig.hasHBM:
                 # Update all SPAD instruction variable names to be SPAD addresses
                 # Change xload variable names into SPAD addresses
@@ -409,41 +409,33 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         if self._keep_hbm_boundary:
             return
 
+        syncm_idx: int = 0  # Last sync point to minst
+
         idx: int = 0
-        syncm_idx = 0
         while idx < len(kernel.cinstrs):
             cinstr = kernel.cinstrs[idx]
-
             if isinstance(cinstr, cinst.CSyncm):
                 syncm_idx = cinstr.target
-                # Update CSyncm target to the corresponding MInst
+                # If not skipping, update CSyncm target to new minst index
                 if kernel.cinstrs_map[idx].action != InstrAct.SKIP:
                     minstr = kernel.minstrs_map[syncm_idx].minstr
                     cinstr.target = minstr.idx
-
             elif isinstance(cinstr, (cinst.CLoad, cinst.BLoad, cinst.BOnes)):
                 # Update CLoad/BLoad/BOnes SPAD addresses to new minst
                 if kernel.cinstrs_map[idx].action != InstrAct.SKIP:
                     minstr_idx = search_minstrs_back(kernel.minstrs_map, syncm_idx, cinstr.spad_address)
                     minstr = kernel.minstrs_map[minstr_idx].minstr
                     cinstr.var_name = minstr.var_name
-
+                    # If variable already in tracker, use that SPAD address
                     if cinstr.var_name in self._cinst_in_var_tracker:
                         cinstr.spad_address = self._cinst_in_var_tracker[cinstr.var_name]
                     else:
                         cinstr.spad_address = minstr.spad_address
-
+                        self._cinst_in_var_tracker[cinstr.var_name] = cinstr.spad_address
             elif isinstance(cinstr, cinst.NLoad):
-                # Update NLoad SPAD addresses to new minst
-                minstr_idx = search_minstrs_forward(kernel.minstrs_map, 0, cinstr.spad_address)
-                minstr = kernel.minstrs_map[minstr_idx].minstr
-                cinstr.var_name = minstr.var_name
-
-                if cinstr.var_name in self._cinst_in_var_tracker:
-                    cinstr.spad_address = self._cinst_in_var_tracker[cinstr.var_name]
-                else:
-                    cinstr.spad_address = minstr.spad_address
-
+                pass
+                # No need to update, all ntt tables are placed in the same SPAD addresses.
+                # As a result, this will point to first loaded tables.
             elif isinstance(cinstr, cinst.CStore):
                 # Update CStore SPAD addresses to new minst
                 if kernel.cinstrs_map[idx].action != InstrAct.SKIP:
@@ -525,8 +517,6 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
 
         for xinstr in kernel.xinstrs:
             print(xinstr.to_line(), end="", file=self._xinst_ostream)
-            if not GlobalConfig.suppress_comments and xinstr.comment:
-                print(f" #{xinstr.comment}", end="", file=self._xinst_ostream)
             print(file=self._xinst_ostream)
 
         for idx, cinstr in enumerate(cinstrs_list[:-1]):  # Skip the `cexit`
@@ -613,29 +603,36 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         intermediate variables. It also tracks loaded variables in the `_minst_in_var_tracker` list.
         """
 
+        # Nothing to prune if we are keeping transactions to the HBM
         if self._keep_hbm_boundary:
             return
 
-        # Initialize variables for tracking new indices and adjust_spad when instructions are removed
+        # Initialize variables for tracking new indices and adjusting SPAD addresses when instructions are removed
         adjust_idx: int = 0
         adjust_spad: int = 0
 
-        spad_size: int = 0
-        last_msyncc = None
+        spad_size: int = 0  # Tracks the maximum SPAD address used in this kernel
+        last_msyncc = None  # Tracks the last MSyncc instruction
 
         for idx, minstr in enumerate(kernel_info.minstrs):
             if isinstance(minstr, minst.MSyncc):
+                # Track the last MSyncc instruction
                 last_msyncc = minstr
             elif isinstance(minstr, minst.MStore):
-                # Remove mstore instructions that stores intermediate variables
+                # Remove from MInst (HBM) the MStore instructions for intermediate variables
                 if minstr.var_name in self._intermediate_vars:
                     # Remove the MSyncc if it is the immediately previous instruction
                     if last_msyncc and last_msyncc.idx == idx - 1:
                         kernel_info.minstrs_map[idx - 1].action = InstrAct.SKIP
                         adjust_idx -= 1
 
+                    # Determine SPAD action based on xstore map
+                    action = InstrAct.SKIP
+                    if minstr.var_name in self._xstores_map:
+                        action = self._xstores_map[minstr.var_name].action
+
                     # Take variable into account for spad if we are keeping the spad boundary
-                    if self._keep_spad_boundary:
+                    if self._keep_spad_boundary or action == InstrAct.KEEP_SPAD:
                         kernel_info.minstrs_map[idx].action = InstrAct.KEEP_SPAD
                         minstr.spad_address += adjust_spad  # Adjust source spad address
                         spad_size = minstr.spad_address
@@ -649,7 +646,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 else:
                     # Calculate new SPAD Address
                     new_spad = minstr.spad_address + adjust_spad
-                    # Adjust spad address if negative. Note: this could leave gaps in the spad address space
+                    # Adjust spad address if negative. ** Note: this could leave gaps in the spad address space
                     if new_spad < 0:
                         adjust_spad -= new_spad
                         new_spad = 0
@@ -658,19 +655,20 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                     minstr.spad_address += adjust_spad  # Adjust source spad address
                     spad_size = minstr.spad_address
             elif isinstance(minstr, minst.MLoad):
-                # Remove mload instructions if variables already loaded
+                # Remove MLoad instructions if variable is already loaded
                 if minstr.var_name in self._minst_in_var_tracker:
-                    if not minstr.var_name.startswith(("psi", "rlk", "ipsi")):
-                        kernel_info.minstrs_map[idx].action = InstrAct.SKIP
-                    else:
+                    # Keep psi, rlk and ipsi loads from spad
+                    if minstr.var_name.startswith(("psi", "rlk", "ipsi")):
                         kernel_info.minstrs_map[idx].action = InstrAct.KEEP_SPAD
-
-                    minstr.spad_address = self._minst_in_var_tracker[minstr.var_name]  # Adjust dest spad address
+                    else:
+                        kernel_info.minstrs_map[idx].action = InstrAct.SKIP
+                    # Update spad address
+                    minstr.spad_address = self._minst_in_var_tracker[minstr.var_name]
                     adjust_spad -= 1
                     adjust_idx -= 1
                     continue
 
-                # Remove mload instructions that load intermediate variables
+                # Remove MLoad instructions that load intermediate variables
                 if minstr.var_name in self._intermediate_vars:
                     kernel_info.minstrs_map[idx].action = InstrAct.KEEP_SPAD if self._keep_spad_boundary else InstrAct.SKIP
                     adjust_spad -= 1
@@ -684,7 +682,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                     adjust_spad -= new_spad
                     new_spad = 0
 
-                # Keep instruction
+                # Keep & update instruction
                 minstr.spad_address = new_spad  # Adjust dest spad address
                 minstr.idx = minstr.idx + adjust_idx  # Update line number
                 spad_size = minstr.spad_address
@@ -695,186 +693,416 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             # Keep track of the spad size used by this kernel
             kernel_info.spad_size = max(spad_size, kernel_info.spad_size)
 
-    def prune_cinst_kernel_hbm(self, kernel: KernelInfo):
+    def _insert_latency_cnop_if_needed(self, bundle: int, prev_kernel: KernelInfo, last_cq_tp: int) -> None:
         """
-        @brief Prunes and updates CInsts for HBM mode, handling synchronization and address mapping.
+        @brief Insert a CNop into prev_kernel to cover remaining XInst bundle latency.
+
+        @param prev_kernel Previous kernel (may be None).
+        @param idx Current IFetch index in the new kernel.
+        @param last_cq_tp Throughput accumulated in the previous kernel C queue.
         """
-        # Nothing to prune in cinst if we are keeping the HBM boundary
+
+        # Check cycles against xinst bundle latency of previous kernel
+        if bundle == 0 and prev_kernel is not None:
+            # First ifetch, account for last xinst latency
+            last_xq_lat = 0
+            x_idx = len(prev_kernel.xinstrs) - 1
+            prev_bundle = prev_kernel.xinstrs[x_idx].bundle
+            while (
+                x_idx >= 0 and prev_kernel.xinstrs[x_idx].bundle == prev_bundle and not isinstance(prev_kernel.xinstrs[x_idx], xinst.XStore)
+            ):
+                last_xq_lat += get_instruction_lat(prev_kernel.xinstrs[x_idx])
+                x_idx -= 1
+
+            # Adjust cycles if last xinst bundle latency is greater than last CQueue throughput
+            if last_cq_tp < last_xq_lat:
+                wait_cycles = last_xq_lat - last_cq_tp
+                # Insert on previous kernel. This keeps current instructions on its original idx.
+                # Usefull to find instructions by old target when updating an MSyncc with new idx
+                ins_idx = len(prev_kernel.cinstrs) - 2  # Before the cexit
+                cinstr_nop = cinst.CNop(
+                    [
+                        ins_idx,
+                        cinst.CNop.name,
+                        str(wait_cycles - ISACInst.CNop.get_throughput()),  # Subtract 1 because cnop n, waits for n+1 cycles
+                    ],
+                    f" Inserted by linker to account for last XInst bundle latency ({last_xq_lat} cycles)",
+                )
+                prev_kernel.cinstrs.insert(ins_idx, cinstr_nop)  # Insert before the `cexit`
+                # Insert instruction also in cinstrs_map
+                prev_kernel.cinstrs_map.insert(ins_idx, CinstrMapEntry("", cinstr_nop, InstrAct.KEEP_SPAD))
+
+    def _handle_cload_prune_hbm(self, cinstr: cinst.CLoad, kernel: KernelInfo, idx: int, syncm_idx: int) -> tuple[int, int]:
+        """
+        @brief Handle a CLoad instruction during HBM pruning.
+        @return (adjust_idx, removed_cycles) updated values after processing.
+        """
+        adjust_idx: int = 0
+        removed_cycles: int = 0
+        minstr_idx = search_minstrs_back(kernel.minstrs_map, syncm_idx, int(cinstr.spad_address))
+
+        # Intermediate variable path
+        if cinstr.var_name in self._intermediate_vars:
+            if cinstr.var_name in self._xstores_map:
+                action = self._xstores_map[cinstr.var_name].action
+                if action == InstrAct.KEEP_SPAD:
+                    self._last_cq_tp += ISACInst.CLoad.get_throughput()
+                else:
+                    kernel.cinstrs_map[idx].action = InstrAct.SKIP
+                    adjust_idx -= 1
+                    removed_cycles += ISACInst.CLoad.get_throughput()
+            _idx, _cycles = remove_csyncm(kernel.cinstrs, kernel.cinstrs_map, idx - 1)
+            adjust_idx += _idx
+            removed_cycles += _cycles
+            return adjust_idx, removed_cycles
+
+        # Minstr skipped
+        if kernel.minstrs_map[minstr_idx].action == InstrAct.SKIP:
+            kernel.cinstrs_map[idx].action = InstrAct.SKIP
+            adjust_idx -= 1
+            removed_cycles += get_instruction_tp(cinstr)
+            _idx, _cycles = remove_csyncm(kernel.cinstrs, kernel.cinstrs_map, idx - 1)
+            adjust_idx += _idx
+            removed_cycles += _cycles
+            return adjust_idx, removed_cycles
+
+        # Already loaded
+        if cinstr.var_name in self._cinst_in_var_tracker:
+            _idx, _cycles = remove_csyncm(kernel.cinstrs, kernel.cinstrs_map, idx - 1)
+            adjust_idx += _idx
+            removed_cycles += _cycles
+            self._last_cq_tp += ISACInst.CLoad.get_throughput()
+            return adjust_idx, removed_cycles
+
+        # First time load
+        self._cinst_in_var_tracker[cinstr.var_name] = cinstr.spad_address
+        self._last_cq_tp += ISACInst.CLoad.get_throughput()
+        return adjust_idx, removed_cycles
+
+    def prune_cinst_kernel_hbm(self, kernel: KernelInfo, prev_kernel: KernelInfo):
+        """
+        @brief Prunes CInsts for HBM mode.
+        """
+        # Nothing to prune in cinst if we are keeping transactions to the HBM
         if self._keep_hbm_boundary:
             return
 
         adjust_idx: int = 0  # Used to adjust the index when removing CInsts
-        adjust_cycles: int = 0
+        removed_cycles: int = 0  # Used to adjust cnop cycles when removing CInsts
+        syncm_idx: int = 0  # Last sync point to minst
 
-        syncm_idx: int = 0
         idx: int = 0
-        bundle_idx: int = -1
-        ifetch_idx: int = -1
-        cstore_vars: list[str] = []
         while idx < len(kernel.cinstrs):
             cinstr = kernel.cinstrs[idx]
-            # print(f"ROCHA PRUNE CInst ({idx}): {cinstr.to_line()} # {cinstr.comment}")
+
             if isinstance(cinstr, cinst.IFetch):
-                # Add bundle CStore map
-                print(f"ROCHA  CStore map for bundle {bundle_idx}: {ifetch_idx}, {cstore_vars}")
-                kernel.fetch_cstores_map[bundle_idx] = (ifetch_idx, cstore_vars.copy())
-                cstore_vars.clear()
-                bundle_idx = cinstr.bundle
-                ifetch_idx = idx
-                adjust_cycles = 0
-            if isinstance(cinstr, cinst.CExit):
-                # Final CStore map
-                print(f"ROCHA  CStore map for bundle {bundle_idx}: {ifetch_idx}, {cstore_vars}")
-                kernel.fetch_cstores_map[bundle_idx] = (ifetch_idx, cstore_vars.copy())
+                self._insert_latency_cnop_if_needed(cinstr.bundle, prev_kernel, self._last_cq_tp)
+                # Sync point, reset cycle counts
+                removed_cycles = 0
+                self._last_cq_tp = 0
+
             elif isinstance(cinstr, cinst.CNop):
-                # Adjust CNop cycles based on removed instructions
-                cinstr.cycles += adjust_cycles
+                # Use exsting CNops to restore cycles based on removed instructions
+                if removed_cycles > 0:
+                    cinstr.cycles += removed_cycles
+                    cinstr.comment = (
+                        cinstr.comment + "; " if cinstr.comment else ""
+                    ) + f" Adjusted ({removed_cycles} cycles) by linker to account for removed instructions"
+                removed_cycles = 0
+                self._last_cq_tp += ISACInst.CNop.get_throughput() + cinstr.cycles
+
             elif isinstance(cinstr, cinst.CSyncm):
-                # Keeping track of the minst
+                # Keeping track of the minst sync point
                 syncm_idx = cinstr.target
-            elif isinstance(cinstr, (cinst.CLoad, cinst.BLoad, cinst.BOnes)):
+
+            elif isinstance(cinstr, (cinst.BLoad, cinst.BOnes)):
+                # Remove BLoad/BOnes instructions if minstr action is SKIP
                 minstr_idx = search_minstrs_back(kernel.minstrs_map, syncm_idx, int(cinstr.spad_address))
-                cinstr.var_name = kernel.minstrs_map[minstr_idx].minstr.var_name
-
-                # Remove CLoad/BLoad/BOnes instructions if minstr action is SKIP
                 if kernel.minstrs_map[minstr_idx].action == InstrAct.SKIP:
                     kernel.cinstrs_map[idx].action = InstrAct.SKIP
                     adjust_idx -= 1
-                    adjust_cycles += calculate_instruction_latency_adjustment(cinstr)
-
-                    # Remove any csyncm instructions before this load
+                    removed_cycles += get_instruction_tp(cinstr)
+                    # Remove any csyncm instructions before this load; not needed anymore.
                     _idx, _cycles = remove_csyncm(kernel.cinstrs, kernel.cinstrs_map, idx - 1)
                     adjust_idx += _idx
-                    adjust_cycles += _cycles
-
-                # Check if the variable is an intermediate variable
-                elif cinstr.var_name in self._intermediate_vars:
-                    print(f"ROCHA  CLoad/BLoad var: {cinstr.var_name}")
-                    # Remove any csyncm instruction before this load
-                    _idx, _cycles = remove_csyncm(kernel.cinstrs, kernel.cinstrs_map, idx - 1)
-                    adjust_idx += _idx
-                    adjust_cycles += _cycles
-
-            elif isinstance(cinstr, cinst.CStore):
-                minstr_idx = search_minstrs_forward(kernel.minstrs_map, syncm_idx, int(cinstr.spad_address))
-
-                cinstr.var_name = kernel.minstrs_map[minstr_idx].minstr.var_name
-
-                # Remove CStore instructions if minstr action is SKIP
-                if kernel.minstrs_map[minstr_idx].action == InstrAct.SKIP:
-                    kernel.cinstrs_map[idx].action = InstrAct.SKIP
-                    adjust_idx -= 1
-                    adjust_cycles += ISACInst.CStore.get_latency()
+                    removed_cycles += _cycles
                 else:
-                    cinstr.idx += adjust_idx  # Update line number
+                    self._last_cq_tp += get_instruction_tp(cinstr)
+            # Handle CLoad instructions
+            elif isinstance(cinstr, cinst.CLoad):
+                _idx, _cycles = self._handle_cload_prune_hbm(cinstr, kernel, idx, syncm_idx)
+                adjust_idx += _idx
+                removed_cycles += _cycles
+            # Check if the CStore variable is an intermediate variable
+            elif isinstance(cinstr, cinst.CStore) and cinstr.var_name in self._intermediate_vars:
+                # CSyncm no needed for intermediate variables if there is no HBM boundary.
+                _idx, _cycles = remove_csyncm(kernel.cinstrs, kernel.cinstrs_map, idx + 1)
+                adjust_idx += _idx
+                removed_cycles += _cycles
+                # Check action for this intermediate variable
+                if cinstr.var_name in self._xstores_map:
+                    action = self._xstores_map[cinstr.var_name].action
+                    if action == InstrAct.KEEP_SPAD:
+                        cinstr.idx += adjust_idx  # Update line number
+                        # Reset count, not need to adjust cycles as cstores are blocking
+                        removed_cycles = 0
+                        self._last_cq_tp = 0
+                    else:
+                        kernel.cinstrs_map[idx].action = InstrAct.SKIP
+                        adjust_idx -= 1
+                        removed_cycles += ISACInst.CStore.get_throughput()
 
-                # Check if the variable is an intermediate variable
-                if cinstr.var_name in self._intermediate_vars:
-                    print(f"ROCHA  CStore var: {cinstr.var_name}")
-                    cstore_vars.append(cinstr.var_name)
-                    # CSyncm no needed for intermediate variables
-                    _idx, _cycles = remove_csyncm(kernel.cinstrs, kernel.cinstrs_map, idx + 1)
-                    adjust_idx += _idx
-                    adjust_cycles += _cycles
+            elif kernel.cinstrs_map[idx].action != InstrAct.SKIP:
+                # Keep track of throughput for other kept instructions
+                self._last_cq_tp += get_instruction_tp(cinstr)
+                cinstr.idx += adjust_idx  # Update line number
 
             idx += 1  # next instruction
 
-    def prune_cinst_kernel_no_hbm(self, kernel: KernelInfo):
+    def _handle_cload_prune_no_hbm(self, cinstr: cinst.CLoad, kernel: KernelInfo, idx: int) -> int:
         """
-        @brief Prunes and updates CInsts for HBM mode, handling synchronization and address mapping.
+        @brief Handle a CLoad instruction in no-HBM mode, updating trackers and actions.
+
+        @param cinstr The CLoad instruction.
+        @param kernel KernelInfo containing instruction/action maps.
+        @param idx Index of the instruction inside kernel.cinstrs.
+        @return int Additional removed cycle count contributed by this instruction.
+        """
+        removed_delta = 0
+        # Already loaded?
+        if cinstr.var_name in self._cinst_in_var_tracker:
+            kernel.cinstrs_map[idx].action = InstrAct.SKIP
+            removed_delta += ISACInst.CLoad.get_throughput()
+            return removed_delta
+
+        # Intermediate variable with xstore decision?
+        if cinstr.var_name in self._intermediate_vars and cinstr.var_name in self._xstores_map:
+            action = self._xstores_map[cinstr.var_name].action
+            if action == InstrAct.KEEP_SPAD:
+                self._last_cq_tp += ISACInst.CLoad.get_throughput()
+            else:
+                kernel.cinstrs_map[idx].action = InstrAct.SKIP
+                removed_delta += ISACInst.CLoad.get_throughput()
+            return removed_delta
+
+        # Track new load unless special table (psi / rlk / ipsi)
+        if not cinstr.var_name.startswith(("psi", "rlk", "ipsi")):
+            self._cinst_in_var_tracker[cinstr.var_name] = cinstr.spad_address
+            self._last_cq_tp += ISACInst.CLoad.get_throughput()
+        return removed_delta
+
+    def prune_cinst_kernel_no_hbm(self, kernel: KernelInfo, prev_kernel: KernelInfo):
+        """
+        @brief Prunes CInsts of unnecessary memory transactions for HBM mode.
         """
 
+        # Nothing to prune if keeping higher level boundary
         if self._keep_hbm_boundary:
             return
 
-        adjust_cycles: int = 0
+        removed_cycles: int = 0  # Used to keep track of removed cycles
 
         idx: int = 0
-        bundle_idx: int = -1
-        ifetch_idx: int = -1
-        cstore_vars: list[str] = []
         while idx < len(kernel.cinstrs):
             cinstr = kernel.cinstrs[idx]
             if isinstance(cinstr, cinst.IFetch):
-                # Add bundle CStore map
-                kernel.fetch_cstores_map[bundle_idx] = (ifetch_idx, cstore_vars.copy())
-                cstore_vars.clear()
-                bundle_idx = cinstr.bundle
-                ifetch_idx = idx
-                adjust_cycles = 0
-            if isinstance(cinstr, cinst.CExit):
-                # Final CStore map
-                kernel.fetch_cstores_map[bundle_idx] = (ifetch_idx, cstore_vars.copy())
+                self._insert_latency_cnop_if_needed(cinstr.bundle, prev_kernel, self._last_cq_tp)
+                # Sync point: reset cycle counts
+                removed_cycles = 0
+                self._last_cq_tp = 0
             elif isinstance(cinstr, cinst.CNop):
-                cinstr.cycles += adjust_cycles
+                # Use exsting CNops to restore removed cycles
+                if removed_cycles > 0:
+                    cinstr.cycles += removed_cycles
+                    cinstr.comment = (
+                        cinstr.comment + "; " if cinstr.comment else ""
+                    ) + f" Adjusted ({removed_cycles} cycles) by linker to account for removed instructions"
+                removed_cycles = 0
+                self._last_cq_tp += ISACInst.CNop.get_throughput() + cinstr.cycles
             elif isinstance(cinstr, cinst.BLoad):
-                idx = process_bload_instructions(kernel.cinstrs, kernel.cinstrs_map, self._cinst_in_var_tracker, idx)
-
+                # Process consecutive BLoads
+                tp, idx = proc_seq_bloads(kernel.cinstrs, kernel.cinstrs_map, self._cinst_in_var_tracker, idx)
+                self._last_cq_tp += tp
+                # Track loaded variable
                 if cinstr.var_name not in self._cinst_in_var_tracker:
                     self._cinst_in_var_tracker[cinstr.var_name] = 0
-
-            elif isinstance(cinstr, (cinst.CLoad, cinst.BOnes)):
-                # Remove CLoad/BOnes instructions if variable already loaded
+            elif isinstance(cinstr, cinst.BOnes):
+                # Remove BOnes instructions if variable already loaded
                 if cinstr.var_name in self._cinst_in_var_tracker:
                     kernel.cinstrs_map[idx].action = InstrAct.SKIP
-                    adjust_cycles += calculate_instruction_latency_adjustment(cinstr)
-                # Check if the variable is an intermediate variable
-                elif cinstr.var_name in self._intermediate_vars and not self._keep_spad_boundary:
-                    kernel.cinstrs_map[idx].action = InstrAct.SKIP
-                # Keep instruction
-                elif cinstr.var_name.startswith("ct") or cinstr.var_name.startswith("pt"):
+                    removed_cycles += get_instruction_tp(cinstr)
+                # Otherwise, track loaded variable
+                else:
                     self._cinst_in_var_tracker[cinstr.var_name] = cinstr.spad_address
-
-            elif isinstance(cinstr, cinst.CStore) and cinstr.var_name in self._intermediate_vars and not self._keep_spad_boundary:
-                cstore_vars.append(cinstr.var_name)
-                kernel.cinstrs_map[idx].action = InstrAct.SKIP
+                    self._last_cq_tp += ISACInst.BOnes.get_throughput()
+            elif isinstance(cinstr, cinst.CLoad):
+                # Handle CLoad instruction and update removed_cycles accordingly
+                removed_cycles += self._handle_cload_prune_no_hbm(cinstr, kernel, idx)
+            # Check if the CStore variable is an intermediate variable
+            elif isinstance(cinstr, cinst.CStore) and cinstr.var_name in self._intermediate_vars and cinstr.var_name in self._xstores_map:
+                # Check action for this intermediate variable according to xinst preprocessing
+                action = self._xstores_map[cinstr.var_name].action
+                if action == InstrAct.KEEP_SPAD:
+                    # Reset count, not= longer needed to adjust cycles as cstores are blocking
+                    removed_cycles = 0
+                    self._last_cq_tp = 0
+                else:
+                    kernel.cinstrs_map[idx].action = InstrAct.SKIP
+                    removed_cycles += ISACInst.CStore.get_throughput()
+            elif kernel.cinstrs_map[idx].action != InstrAct.SKIP:
+                # Count cycles for other instructions that are not removed
+                self._last_cq_tp += get_instruction_tp(cinstr)
 
             idx += 1  # next instruction
 
-    def prune_xinst_kernel(self, kernel: KernelInfo):
+    def preprocess_cinst_kernel(self, kernel: KernelInfo):
+        """
+        @brief Preprocesses CInsts in the kernel to build a map of cstores by bundle.
+
+        This method modifies the kernel's fetch_cstores_map in place by mapping each bundle
+        to its corresponding ifetch index and list of cstore variable names.
+
+        @param kernel KernelInfo object containing the kernel's CInsts.
+        """
+
+        syncm_idx: int = 0  # Sync point with minst
+        bundle_idx: int = -1  # Current bundle index
+        ifetch_idx: int = -1  # Last ifetch index
+        cstore_vars: list[str] = []  # List of cstore variable names in the current bundle
+
+        idx: int = 0
+        while idx < len(kernel.cinstrs):
+            cinstr = kernel.cinstrs[idx]
+            if isinstance(cinstr, cinst.IFetch):
+                # Track CStore vars for previous bundle
+                kernel.fetch_cstores_map[bundle_idx] = (ifetch_idx, cstore_vars.copy())
+                # Start tracking new bundle
+                cstore_vars.clear()
+                # Update current bundle and ifetch idx
+                bundle_idx = cinstr.bundle
+                ifetch_idx = idx
+            elif isinstance(cinstr, cinst.CExit):
+                # Save final bundle's CStore map
+                kernel.fetch_cstores_map[bundle_idx] = (ifetch_idx, cstore_vars.copy())
+            elif isinstance(cinstr, cinst.CSyncm):
+                # Keeping track of the last sync point with minst
+                syncm_idx = cinstr.target
+            elif GlobalConfig.hasHBM:
+                # Find var names from minst instruction by using last sync point and SPAD address
+                if isinstance(cinstr, (cinst.BLoad, cinst.BOnes, cinst.CLoad)):
+                    minstr_idx = search_minstrs_back(kernel.minstrs_map, syncm_idx, int(cinstr.spad_address))
+                    cinstr.var_name = kernel.minstrs_map[minstr_idx].minstr.var_name
+                elif isinstance(cinstr, cinst.CStore):
+                    minstr_idx = search_minstrs_forward(kernel.minstrs_map, syncm_idx, int(cinstr.spad_address))
+                    cinstr.var_name = kernel.minstrs_map[minstr_idx].minstr.var_name
+                    # Map needed to later match xstores with cstores's var_name
+                    cstore_vars.append(cinstr.var_name)
+            elif isinstance(cinstr, cinst.CStore):
+                # Map needed to later match xstores with cstores's var_name
+                cstore_vars.append(cinstr.var_name)
+
+            idx += 1
+
+    def preprocess_xinst_kernel(self, kernel: KernelInfo, kernel_idx: int):
         """
         @brief Removes unnecessary XInsts from the kernel.
         @param kernel KernelInfo object containing the kernel's XInsts.
         This method modifies the kernel's XInsts in place by removing redundant instructions.
         """
 
+        # Nothing to process if keeping transactions to SPAD
         if self._keep_spad_boundary:
             return
 
+        prev_bundle: int = -1  # Previous bundle index
+        xstore_count: int = 0  # Count of XStore instructions in the current bundle
+
         idx: int = 0
-        prev_bundle: int = -1
-        xstore_count: int = 0
         while idx < len(kernel.xinstrs):
             xinstr = kernel.xinstrs[idx]
-            # Extract bundle number
+
+            # Reset the xstore counter when a new bundle is encountered
             bundle_idx = xinstr.bundle
-            # Reset the variable tracker when a new bundle is encountered
             if bundle_idx != prev_bundle:
                 prev_bundle = bundle_idx
                 xstore_count = 0
 
-            print(f"ROCHA PRUNE XInst ({idx}): {xinstr.to_line()} # {xinstr.comment}")
             if isinstance(xinstr, xinst.XStore):
+                # Extract variable name from CStore map using bundle index and XStore count
                 assert bundle_idx in kernel.fetch_cstores_map, f"Bundle {bundle_idx} not found in CStore maps."
-
                 _, cstore_vars = kernel.fetch_cstores_map[bundle_idx]
                 var_name = cstore_vars[xstore_count] if xstore_count < len(cstore_vars) else ""
+
+                # Track XStore instructions for intermediate variables
                 if var_name in self._intermediate_vars:
-                    self._xstore_tracker[var_name] = xinstr.source
-                    # Remove xstore instructions that store intermediate variables
-                    kernel.xinstrs.pop(idx)
+                    self._xstores_map[var_name] = XStoreMoveMapEntry(xinstr.source, kernel_idx, (kernel.xinstrs, idx), InstrAct.SKIP)
+                    self._var_name_by_reg[xinstr.source] = var_name
                     xstore_count += 1
-                    continue
+
             elif isinstance(xinstr, xinst.Move):
-                # Updates move instructions that move from a previous xstore of the same intermediate variable
+                # Find variable name from CStore map using bundle index
                 fetch_idx, _ = kernel.fetch_cstores_map[bundle_idx]
                 var_name = search_cinstrs_back(kernel.cinstrs_map, fetch_idx, xinstr.source)
-                print(f"ROCHA  Move source var: {var_name}")
-                if var_name in self._intermediate_vars:
-                    print(f"ROCHA  Move updated source var: {var_name}: {xinstr.source} -> {self._xstore_tracker[var_name]}")
-                    xinstr.source = self._xstore_tracker[var_name]
 
-            idx += 1  # next instruction
+                # If move for intermediate var and var is tracked
+                if var_name in self._intermediate_vars and var_name in self._xstores_map:
+                    # If the register was not reused (Still SKIP) no need to send to SPAD
+                    if self._xstores_map[var_name].action == InstrAct.SKIP:
+                        self._var_name_by_reg.pop(self._xstores_map[var_name].xstore_instr.source)
+                        self._xstores_map[var_name].move_instr = (kernel.xinstrs, idx)
+                        self._xstores_map[var_name].replace_xstore_with_nop()
+
+                # If tracked register is reused in other move, keep var flushing to SPAD
+                if xinstr.dest in self._var_name_by_reg:
+                    var_name = self._var_name_by_reg[xinstr.dest]
+                    self._xstores_map[var_name].action = InstrAct.KEEP_SPAD
+                    self._var_name_by_reg.pop(xinstr.dest)
+
+            # If tracked register is reused in other instruction, keep var flushing to SPAD
+            elif isinstance(xinstr, (xinst.Add, xinst.Sub, xinst.Mac, xinst.Maci, xinst.Mul, xinst.Muli, xinst.TwiNTT, xinst.TwNTT)):
+                if xinstr.dest in self._var_name_by_reg:
+                    var_name = self._var_name_by_reg[xinstr.dest]
+                    self._xstores_map[var_name].action = InstrAct.KEEP_SPAD
+                    self._var_name_by_reg.pop(xinstr.dest)
+            elif isinstance(xinstr, (xinst.NTT, xinst.INTT, xinst.RShuffle)):
+                if xinstr.dest0 in self._var_name_by_reg:
+                    var_name = self._var_name_by_reg[xinstr.dest0]
+                    self._xstores_map[var_name].action = InstrAct.KEEP_SPAD
+                    self._var_name_by_reg.pop(xinstr.dest0)
+                if xinstr.dest1 in self._var_name_by_reg:
+                    var_name = self._var_name_by_reg[xinstr.dest1]
+                    self._xstores_map[var_name].action = InstrAct.KEEP_SPAD
+                    self._var_name_by_reg.pop(xinstr.dest1)
+
+            idx += 1  # Next instruction
+
+    def preload_kernels(self, kernels_info: list[KernelInfo]):
+        """
+        @brief Preloads XInsts from all kernels to track XStore instructions.
+
+        This method processes each kernel's XInsts to identify and track XStore
+        instructions, which is essential for optimizing the linking process.
+
+        @param kernels_info List of KernelInfo for input kernels.
+        """
+        for kernel_idx, kernel in enumerate(kernels_info):
+            # minst
+            if GlobalConfig.hasHBM:
+                kernel.minstrs = Loader.load_minst_kernel_from_file(kernel.minst)
+                kern_mapper.remap_m_c_instrs_vars(kernel.minstrs, kernel.hbm_remap_dict)
+
+            # cinst
+            kernel.cinstrs = Loader.load_cinst_kernel_from_file(kernel.cinst)
+            if not GlobalConfig.hasHBM:
+                kern_mapper.remap_m_c_instrs_vars(kernel.cinstrs, kernel.hbm_remap_dict)
+            else:
+                kern_mapper.remap_cinstrs_vars_hbm(kernel.cinstrs, kernel.hbm_remap_dict)
+            self.preprocess_cinst_kernel(kernel)
+
+            # xinst
+            kernel.xinstrs = Loader.load_xinst_kernel_from_file(kernel.xinst)
+            kern_mapper.remap_xinstrs_vars(kernel.xinstrs, kernel.hbm_remap_dict)
+            self.preprocess_xinst_kernel(kernel, kernel_idx)
 
     def link_kernels_to_files(
         self,
@@ -891,6 +1119,13 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
         @param mem_model Memory model to use.
         @param verbose_stream Stream for verbose output.
         """
+        # Process cinsts before linking
+        for idx, kernel in enumerate(kernels_info):
+            if GlobalConfig.hasHBM:
+                self.prune_cinst_kernel_hbm(kernel, kernels_info[idx - 1] if idx > 0 else None)
+
+        self.flush_buffers()
+
         with (
             open(output_files.minst, "w", encoding="utf-8") as fnum_output_minst,
             open(output_files.cinst, "w", encoding="utf-8") as fnum_output_cinst,
@@ -906,15 +1141,6 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                         file=verbose_stream,
                     )
 
-                if GlobalConfig.hasHBM:
-                    kernel.cinstrs = Loader.load_cinst_kernel_from_file(kernel.cinst)
-                    kern_mapper.remap_m_c_instrs_vars(kernel.cinstrs, kernel.hbm_remap_dict)
-                    self.prune_cinst_kernel_hbm(kernel)
-
-                kernel.xinstrs = Loader.load_xinst_kernel_from_file(kernel.xinst)
-                kern_mapper.remap_xinstrs_vars(kernel.xinstrs, kernel.hbm_remap_dict)
-                self.prune_xinst_kernel(kernel)
-
                 self.link_kernel(kernel)
 
             if verbose_stream:
@@ -924,9 +1150,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
 
     def flush_buffers(self):
         """
-        @brief Flushes the CInst input variable tracker.
-
-        This method clears the list of input variables used in CInsts.
+        @brief Clears internal trackers and resets SPAD offset.
         """
         self._cinst_in_var_tracker.clear()
         self._minst_in_var_tracker.clear()

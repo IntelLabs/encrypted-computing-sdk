@@ -21,7 +21,8 @@ class InstrAct(Enum):
 
     KEEP_HBM = 0
     KEEP_SPAD = 1
-    SKIP = 2
+    KEEP_BANK0 = 2
+    SKIP = 3
 
 
 class MinstrMapEntry:
@@ -65,7 +66,10 @@ class KernelInfo:
     _xinstrs: list[XInstruction]
 
     _hbm_remap_dict: dict[str, str]
+    # Maps bundle -> (ifetch_index, [variable_names])
+    _fetch_cstores_map: dict[int, tuple[int, list[str]]]
     _spad_size: int  # Reflects the spad memory used by the kernel
+    _first_vars_bank0: dict[str, str] = {}
 
     def __init__(self, config: dict):
         """
@@ -77,6 +81,8 @@ class KernelInfo:
 
         self._hbm_remap_dict = {}
         self._spad_size = 0  # Reflects the spad memory used by the kernel
+        self._fetch_cstores_map = {}
+        self._first_vars_bank0 = {}
 
         self._minstrs = []  # Placeholder for kernel minst instructions
         self._minstrs_map: list[MinstrMapEntry] = []
@@ -108,6 +114,24 @@ class KernelInfo:
         if not isinstance(value, dict):
             raise TypeError("Remap dictionary must be of type dict.")
         self._hbm_remap_dict = value
+
+    @property
+    def fetch_cstores_map(self) -> dict[int, tuple[int, list[str]]]:
+        """
+        @brief Returns the cstore maps for bundle to variable names.
+        """
+        return self._fetch_cstores_map
+
+    @fetch_cstores_map.setter
+    def fetch_cstores_map(self, value: dict[int, tuple[int, list[str]]]):
+        """
+        @brief Sets the cstore maps for bundle to variable names.
+
+        @param value: Dictionary mapping bundle number to list of variable names.
+        """
+        if not isinstance(value, dict):
+            raise TypeError("CStore maps must be of type dict.")
+        self._fetch_cstores_map = value
 
     @property
     def spad_size(self) -> int:
@@ -274,6 +298,26 @@ class KernelInfo:
         if not isinstance(value, list):
             raise TypeError("xinstrs must be a list.")
         self._xinstrs = value
+
+    @property
+    def first_vars_bank0(self) -> dict[str, str]:
+        """
+        @brief Returns the mapping of first variables loaded into bank 0.
+
+        @return dict: The mapping of variable names to registers.
+        """
+        return self._first_vars_bank0
+
+    @first_vars_bank0.setter
+    def first_vars_bank0(self, value: dict[str, str]):
+        """
+        @brief Sets the mapping of first variables loaded into bank 0.
+
+        @param value: The mapping of variable names to registers to set.
+        """
+        if not isinstance(value, dict):
+            raise TypeError("first_vars_bank0 must be a dict.")
+        self._first_vars_bank0 = value
 
     def _fill_minstrs_map(self):
         """

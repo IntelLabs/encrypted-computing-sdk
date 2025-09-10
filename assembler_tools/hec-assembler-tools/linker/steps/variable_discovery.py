@@ -14,8 +14,7 @@ from assembler.memory_model.variable import Variable
 from linker.instructions import cinst, minst
 from linker.instructions.cinst.cinstruction import CInstruction
 from linker.instructions.minst.minstruction import MInstruction
-from linker.kern_trace import KernelInfo, remap_m_c_instrs_vars
-from linker.loader import Loader
+from linker.kern_trace import KernelInfo
 from linker.steps.program_linker import LinkedProgram
 
 
@@ -91,9 +90,7 @@ def scan_variables(
                     file=verbose_stream,
                 )
 
-            kernel_info.cinstrs = Loader.load_cinst_kernel_from_file(kernel_info.cinst)
-            remap_m_c_instrs_vars(kernel_info.cinstrs, kernel_info.hbm_remap_dict)
-            p_linker.prune_cinst_kernel_no_hbm(kernel_info)
+            p_linker.prune_cinst_kernel_no_hbm(kernel_info, kernels_info[idx - 1] if idx > 0 else None)
 
             for var_name in discover_variables_spad(kernel_info.cinstrs):
                 mem_model.add_variable(var_name)
@@ -105,8 +102,6 @@ def scan_variables(
                     kernel_info.minst,
                     file=verbose_stream,
                 )
-            kernel_info.minstrs = Loader.load_minst_kernel_from_file(kernel_info.minst)
-            remap_m_c_instrs_vars(kernel_info.minstrs, kernel_info.hbm_remap_dict)
             p_linker.prune_minst_kernel(kernel_info)
 
             for var_name in discover_variables(kernel_info.minstrs):

@@ -14,7 +14,7 @@ from unittest.mock import MagicMock
 import pytest
 from linker.instructions.cinst import CLoad, CStore
 from linker.instructions.minst import MLoad, MStore
-from linker.kern_trace.kern_remap import remap_dinstrs_vars, remap_m_c_instrs_vars
+from linker.kern_trace.kern_remap import remap_cinstrs_vars_hbm, remap_dinstrs_vars, remap_m_c_instrs_vars
 from linker.kern_trace.kern_var import KernVar
 from linker.kern_trace.kernel_op import KernelOp
 
@@ -348,7 +348,7 @@ class TestRemapMCInstrsVars:
         hbm_remap_dict = self._create_remap_dict()
 
         # Act
-        remap_m_c_instrs_vars(kernel_instrs, hbm_remap_dict)
+        remap_cinstrs_vars_hbm(kernel_instrs, hbm_remap_dict)
 
         # Assert
         assert mock_instr.var_name == "0"  # Unchanged

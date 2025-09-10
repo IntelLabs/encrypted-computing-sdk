@@ -50,9 +50,11 @@ class Instruction(CInstruction):
         @throws ValueError If the number of tokens is invalid or the instruction name is incorrect.
         """
         super().__init__(tokens, comment=comment)
-        self._var_name = tokens[3]
         if not tokens[3].isdigit():
+            self._var_name = tokens[3]
             self.tokens[3] = "-1"  # Should be set to SPAD address to write back.
+        else:
+            self._var_name = ""
 
     @property
     def var_name(self) -> str:

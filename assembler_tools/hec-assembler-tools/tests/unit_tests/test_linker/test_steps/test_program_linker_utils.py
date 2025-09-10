@@ -14,8 +14,8 @@ import pytest
 from linker.instructions import cinst, minst
 from linker.kern_trace.kernel_info import InstrAct
 from linker.steps.program_linker_utils import (
-    calculate_instruction_latency_adjustment,
-    process_bload_instructions,
+    get_instruction_tp,
+    proc_seq_bloads,
     remove_csyncm,
     search_minstrs_back,
     search_minstrs_forward,
@@ -23,55 +23,55 @@ from linker.steps.program_linker_utils import (
 
 
 class TestCalculateInstructionLatencyAdjustment:
-    """@brief Tests for calculate_instruction_latency_adjustment function."""
+    """@brief Tests for get_instruction_tp function."""
 
-    @patch("assembler.instructions.cinst.CLoad.get_latency", return_value=5)
-    def test_cload_latency(self, mock_get_latency):
+    @patch("assembler.instructions.cinst.CLoad.get_throughput", return_value=5)
+    def test_cload_latency(self, mock_get_throughput):
         """@brief Test latency calculation for CLoad instruction."""
         mock_cload = MagicMock(spec=cinst.CLoad)
 
-        result = calculate_instruction_latency_adjustment(mock_cload)
+        result = get_instruction_tp(mock_cload)
 
         assert result == 5
-        mock_get_latency.assert_called_once()
+        mock_get_throughput.assert_called_once()
 
-    @patch("assembler.instructions.cinst.BLoad.get_latency", return_value=3)
-    def test_bload_latency(self, mock_get_latency):
+    @patch("assembler.instructions.cinst.BLoad.get_throughput", return_value=3)
+    def test_bload_latency(self, mock_get_throughput):
         """@brief Test latency calculation for BLoad instruction."""
         mock_bload = MagicMock(spec=cinst.BLoad)
 
-        result = calculate_instruction_latency_adjustment(mock_bload)
+        result = get_instruction_tp(mock_bload)
 
         assert result == 3
-        mock_get_latency.assert_called_once()
+        mock_get_throughput.assert_called_once()
 
-    @patch("assembler.instructions.cinst.BOnes.get_latency", return_value=2)
-    def test_bones_latency(self, mock_get_latency):
+    @patch("assembler.instructions.cinst.BOnes.get_throughput", return_value=2)
+    def test_bones_latency(self, mock_get_throughput):
         """@brief Test latency calculation for BOnes instruction."""
         mock_bones = MagicMock(spec=cinst.BOnes)
 
-        result = calculate_instruction_latency_adjustment(mock_bones)
+        result = get_instruction_tp(mock_bones)
 
         assert result == 2
-        mock_get_latency.assert_called_once()
+        mock_get_throughput.assert_called_once()
 
     def test_unknown_instruction_latency(self):
         """@brief Test latency calculation for unknown instruction type."""
         mock_unknown = MagicMock()
 
-        result = calculate_instruction_latency_adjustment(mock_unknown)
+        result = get_instruction_tp(mock_unknown)
 
         assert result == 0
 
     def test_none_instruction(self):
         """@brief Test latency calculation for None instruction."""
-        result = calculate_instruction_latency_adjustment(None)
+        result = get_instruction_tp(None)
 
         assert result == 0
 
 
 class TestProcessBloadInstructions:
-    """@brief Tests for process_bload_instructions function."""
+    """@brief Tests for proc_seq_bloads function."""
 
     def test_process_single_bload_not_in_tracker(self):
         """@brief Test processing single BLoad not in tracker."""
@@ -85,7 +85,7 @@ class TestProcessBloadInstructions:
 
         cinst_in_var_tracker = {}
 
-        result = process_bload_instructions(kernel_cinstrs, kernel_cinstrs_map, cinst_in_var_tracker, 0)
+        _, result = proc_seq_bloads(kernel_cinstrs, kernel_cinstrs_map, cinst_in_var_tracker, 0)
 
         assert result == 0  # idx - 1
         # Action should not be modified since var not in tracker
@@ -103,7 +103,7 @@ class TestProcessBloadInstructions:
 
         cinst_in_var_tracker = {"var1": 0}
 
-        result = process_bload_instructions(kernel_cinstrs, kernel_cinstrs_map, cinst_in_var_tracker, 0)
+        _, result = proc_seq_bloads(kernel_cinstrs, kernel_cinstrs_map, cinst_in_var_tracker, 0)
 
         assert result == 0  # idx - 1
         assert mock_map_entry.action == InstrAct.SKIP
@@ -126,7 +126,7 @@ class TestProcessBloadInstructions:
 
         cinst_in_var_tracker = {"var2": 1}  # Only var2 is tracked
 
-        result = process_bload_instructions(kernel_cinstrs, kernel_cinstrs_map, cinst_in_var_tracker, 0)
+        _, result = proc_seq_bloads(kernel_cinstrs, kernel_cinstrs_map, cinst_in_var_tracker, 0)
 
         assert result == 2  # 3 - 1
         # Only var2 should be marked as SKIP
@@ -148,7 +148,7 @@ class TestProcessBloadInstructions:
 
         cinst_in_var_tracker = {}
 
-        result = process_bload_instructions(kernel_cinstrs, kernel_cinstrs_map, cinst_in_var_tracker, 0)
+        _, result = proc_seq_bloads(kernel_cinstrs, kernel_cinstrs_map, cinst_in_var_tracker, 0)
 
         assert result == 0  # Stopped at first non-BLoad, so 1 - 1 = 0
 

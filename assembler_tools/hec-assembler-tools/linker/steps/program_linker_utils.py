@@ -7,28 +7,140 @@
 """@brief This module provides functionality to link kernels into a program."""
 
 from assembler.instructions import cinst as ISACInst
+from assembler.instructions import xinst as ISAXInst
 
-from linker.instructions import cinst, minst
+from linker.instructions import cinst, minst, xinst
+from linker.instructions.xinst.xinstruction import XInstruction
 from linker.kern_trace.kernel_info import InstrAct
 
 
-def calculate_instruction_latency_adjustment(cinstr) -> int:
+class XStoreMoveMapEntry:
     """
-    @brief Calculate the latency adjustment for different instruction types.
+    @brief Represents a mapping entry for an XStore instruction and its associated Move instruction.
+    """
+
+    def __init__(self, reg_name: str, kernel_idx: int, xinstrs_n_xstore_idx: tuple[list, int], action: InstrAct):
+        self._reg_name: str = reg_name
+        self._xstore_kernel_idx: int = kernel_idx
+        self._xinstrs_n_xstore_idx: tuple[list, int] = xinstrs_n_xstore_idx
+        self._xinstrs_n_move_idx: tuple[list, int] = ([], -1)  # to be filled later
+        self._action = action
+
+    @property
+    def reg_name(self) -> str:
+        """@brief Gets the register name associated with the instruction."""
+        return self._reg_name
+
+    @property
+    def xstore_kernel_idx(self) -> int:
+        """@brief Gets the kernel index where the XStore instruction is located."""
+        return self._xstore_kernel_idx
+
+    @property
+    def xstore_instr(self) -> XInstruction:
+        """@brief Gets the XStore instruction."""
+        xinstrs, idx = self._xinstrs_n_xstore_idx
+        return xinstrs[idx]
+
+    def replace_xstore_with_nop(self):
+        """@brief Replaces the XStore instruction with a Nop instruction."""
+
+        if self._xinstrs_n_move_idx[1] == -1:
+            raise RuntimeError("Move instruction index not set. Cannot replace Move with original register.")
+
+        xinstrs, idx = self._xinstrs_n_xstore_idx
+        self.move_instr.source = xinstrs[idx].source  # Set original register in Move instruction
+        xinstrs[idx] = xinst.Nop(
+            [f"F{xinstrs[idx].bundle}", str(idx), xinst.Nop.name, str(3)],
+            comment=f"Replaced XStore for {xinstrs[idx].source} with Nop; {xinstrs[idx].comment}",
+        )
+
+    def replace_xstore_with_move(self, reg_name: str):
+        """@brief Replaces the XStore instruction with a Move instruction."""
+        xinstrs, idx = self._xinstrs_n_xstore_idx
+        xinstrs[idx] = xinst.Move(
+            [f"F{xinstrs[idx].bundle}", str(idx), xinst.Move.name, reg_name, xinstrs[idx].source],
+            comment=f"Replaced XStore for {xinstrs[idx].source} with Move to {reg_name}",
+        )
+
+    @property
+    def move_instr(self) -> XInstruction:
+        """@brief Gets the Move instruction."""
+        xinstrs, idx = self._xinstrs_n_move_idx
+        return xinstrs[idx]
+
+    @move_instr.setter
+    def move_instr(self, xinstrs_n_move_idx: tuple[list, int]):
+        """@brief Sets the Move instruction."""
+        self._xinstrs_n_move_idx = xinstrs_n_move_idx
+
+    @property
+    def action(self) -> InstrAct:
+        """@brief Gets the action associated with the instruction."""
+        return self._action
+
+    @action.setter
+    def action(self, action: InstrAct):
+        """@brief Sets the action associated with the instruction."""
+        self._action = action
+
+
+def get_instruction_tp(cinstr) -> int:
+    """
+    @brief Get the latency for different instruction types.
 
     @param cinstr The instruction to calculate latency for.
-    @return int The latency adjustment value.
+    @return int The latency value.
     """
-    if isinstance(cinstr, cinst.CLoad):
-        return ISACInst.CLoad.get_latency()
     if isinstance(cinstr, cinst.BLoad):
-        return ISACInst.BLoad.get_latency()
+        return ISACInst.BLoad.get_throughput()
     if isinstance(cinstr, cinst.BOnes):
-        return ISACInst.BOnes.get_latency()
+        return ISACInst.BOnes.get_throughput()
+    if isinstance(cinstr, cinst.NLoad):
+        return ISACInst.NLoad.get_throughput()
+    if isinstance(cinstr, cinst.XInstFetch):
+        return ISACInst.XInstFetch.get_throughput()
+    if isinstance(cinstr, cinst.CLoad):
+        return ISACInst.CLoad.get_throughput()
     return 0
 
 
-def process_bload_instructions(kernel_cinstrs, kernel_cinstrs_map, cinst_in_var_tracker, start_idx):
+def get_instruction_lat(xinstr) -> int:
+    """
+    @brief Get the latency for different instruction types.
+
+    @param xinstr The instruction to calculate latency for.
+    @return int The latency value.
+    """
+    # Map xinstr classes to their corresponding assembler latency getter.
+    _lat_getters = {
+        xinst.Add: ISAXInst.Add.get_latency,
+        xinst.Sub: ISAXInst.Sub.get_latency,
+        xinst.Mul: ISAXInst.Mul.get_latency,
+        xinst.Muli: ISAXInst.Muli.get_latency,
+        xinst.Mac: ISAXInst.Mac.get_latency,
+        xinst.Maci: ISAXInst.Maci.get_latency,
+        xinst.INTT: ISAXInst.iNTT.get_latency,
+        xinst.NTT: ISAXInst.NTT.get_latency,
+        xinst.TwNTT: ISAXInst.twNTT.get_latency,
+        xinst.TwiNTT: ISAXInst.twiNTT.get_latency,
+        xinst.XStore: ISAXInst.XStore.get_latency,
+        xinst.Move: ISAXInst.Move.get_latency,
+        xinst.Nop: ISAXInst.Nop.get_latency,
+        xinst.RShuffle: ISAXInst.rShuffle.get_latency,
+        xinst.Exit: ISAXInst.Exit.get_latency,
+    }
+
+    for cls, getter in _lat_getters.items():
+        if isinstance(xinstr, cls):
+            try:
+                return getter()
+            except (TypeError, AttributeError, ValueError):
+                return 0
+    return 0
+
+
+def proc_seq_bloads(kernel_cinstrs, kernel_cinstrs_map, cinst_in_var_tracker, start_idx):
     """
     @brief Process consecutive BLoad instructions and mark duplicates for skipping.
 
@@ -39,15 +151,17 @@ def process_bload_instructions(kernel_cinstrs, kernel_cinstrs_map, cinst_in_var_
     @return int The last processed index.
     """
     idx = start_idx
-
+    tp = 0
     # Look ahead and process all consecutive BLoad instructions
     while idx < len(kernel_cinstrs) and isinstance(kernel_cinstrs[idx], cinst.BLoad):
         if kernel_cinstrs[idx].var_name in cinst_in_var_tracker:
             kernel_cinstrs_map[idx].action = InstrAct.SKIP
+        else:
+            tp += ISACInst.BLoad.get_throughput()
         idx += 1
 
     # Adjust index since the calling loop will increment it again
-    return idx - 1
+    return (tp, idx - 1)
 
 
 def remove_csyncm(kernel_cinstrs, kernel_cinstrs_map, idx):
@@ -119,3 +233,28 @@ def search_minstrs_forward(minstrs_map: list, idx: int, spad_address: int) -> in
             return i
 
     raise RuntimeError(f"Could not find MStore with SPAD address {spad_address} in kernel MInsts.")
+
+
+def search_cinstrs_back(cinstrs_map: list, idx: int, reg_name: str) -> str:
+    """
+    @brief Searches for a CInstruction that writes to a specific register.
+
+    This method is used to find the instruction associated with a given register
+    in the CInsts of a kernel.
+
+    @param cinstrs_map Map with CInstructions to search.
+    @param idx Index to start searching from (inclusive, backwards).
+    @param reg_name The register name to search for.
+
+    @return str The variable name associated with the register.
+    """
+    # Traverse backwards from idx, including idx
+    if idx < 0 or idx >= len(cinstrs_map):
+        raise IndexError(f"Index {idx} is out of bounds for cinstrs_map of length {len(cinstrs_map)}.")
+
+    for i in range(idx, -1, -1):
+        cinstr = cinstrs_map[i].cinstr
+        if isinstance(cinstr, cinst.CLoad) and cinstr.register == reg_name:
+            return cinstr.var_name
+
+    return ""  # Not found

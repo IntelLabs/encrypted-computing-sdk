@@ -95,9 +95,29 @@ def remap_m_c_instrs_vars(kernel_instrs: list, hbm_remap_dict: dict[str, str]) -
                 if instr.var_name in hbm_remap_dict:
                     instr.comment = instr.comment.replace(instr.var_name, hbm_remap_dict[instr.var_name])
                     instr.var_name = hbm_remap_dict[instr.var_name]
-                else:
-                    for key, value in hbm_remap_dict.items():
-                        instr.comment = instr.comment.replace(key, value)
+
+
+def remap_cinstrs_vars_hbm(kernel_instrs: list, hbm_remap_dict: dict[str, str]) -> None:
+    """
+    @brief Remaps variable names in CInstructions based on a provided remap dictionary.
+
+    This function updates the variable names in each Instruction by replacing them
+    with their corresponding values from the remap dictionary.
+
+    @param kernel_minstrs: List of CInstruction objects to process
+    @param hbm_remap_dict: Dictionary mapping old variable names to new variable names
+    """
+    if hbm_remap_dict:
+        for instr in kernel_instrs:
+            if not isinstance(instr, CInstruction):
+                raise TypeError(f"Item {instr} is not a valid CInstruction.")
+
+            if isinstance(instr, (cinst.CLoad, cinst.CStore)):
+                for key, value in hbm_remap_dict.items():
+                    prev = instr.comment
+                    instr.comment = prev.replace(key, value)
+                    if prev != instr.comment:
+                        break
 
 
 def remap_xinstrs_vars(kernel_xinstrs: list, hbm_remap_dict: dict[str, str]) -> None:
@@ -117,4 +137,7 @@ def remap_xinstrs_vars(kernel_xinstrs: list, hbm_remap_dict: dict[str, str]) -> 
 
             if isinstance(instr, (xinst.Move, xinst.XStore)):
                 for key, value in hbm_remap_dict.items():
+                    prev = instr.comment
                     instr.comment = instr.comment.replace(key, value)
+                    if prev != instr.comment:
+                        break

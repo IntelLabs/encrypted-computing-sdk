@@ -151,6 +151,7 @@ class TestLinkedProgram(unittest.TestCase):
 
         # Create mock MInstructions with initial SPAD addresses
         mock_msyncc = MagicMock(spec=minst.MSyncc)
+        mock_msyncc.comment = ""
         mock_msyncc.target = 1
 
         mock_mload1 = MagicMock(spec=minst.MLoad)
@@ -189,6 +190,7 @@ class TestLinkedProgram(unittest.TestCase):
 
         # Create mock CInstr for cinstrs_map
         mock_cinstr = MagicMock()
+        mock_cinstr.comment = ""
         mock_cinstr.idx = 6  # Same as msyncc.target
 
         # Create mock CinstrMapEntry
@@ -240,20 +242,25 @@ class TestLinkedProgram(unittest.TestCase):
         mock_ifetch = MagicMock(spec=cinst.IFetch)
         mock_ifetch.bundle = 1
         mock_ifetch.tokens = [0]
+        mock_ifetch.comment = "ifetch comment"
 
         mock_csyncm1 = MagicMock(spec=cinst.CSyncm)
         mock_csyncm1.tokens = [0]
+        mock_csyncm1.comment = "sync comment"
 
         mock_cnop1 = MagicMock(spec=cinst.CNop)
         mock_cnop1.cycles = 2
         mock_cnop1.tokens = [0]
+        mock_cnop1.comment = "nop comment"
 
         mock_csyncm2 = MagicMock(spec=cinst.CSyncm)
         mock_csyncm2.tokens = [0]
+        mock_csyncm2.comment = "sync comment"
 
         mock_cnop2 = MagicMock(spec=cinst.CNop)
         mock_cnop2.cycles = 3
         mock_cnop2.tokens = [0]
+        mock_cnop2.comment = "nop comment"
 
         # Create mock KernelInfo
         mock_kernel_info = MagicMock()
@@ -479,14 +486,12 @@ class TestLinkedProgram(unittest.TestCase):
                 # Verify variable was added to tracker
                 self.assertEqual(self.program._cinst_in_var_tracker["output_var"], 200)
 
-                # Verify NLoad was updated with correct variable name and SPAD address
+                # Verify NLoad was updated with correct variable name
                 self.assertEqual(mock_nload.var_name, "nload_var")
-                self.assertEqual(mock_nload.spad_address, 150)
 
                 # Verify search functions were called correctly
                 mock_search_back.assert_called_with(mock_kernel.minstrs_map, 2, 10)
                 mock_search_forward.assert_any_call(mock_kernel.minstrs_map, 2, 20)
-                mock_search_forward.assert_any_call(mock_kernel.minstrs_map, 0, 15)
 
     def test_update_xinsts(self):
         """@brief Test updating XInsts.
@@ -592,7 +597,6 @@ class TestLinkedProgram(unittest.TestCase):
 
             self.assertIn("xinst0", xinst_output)
             self.assertIn("xinst1", xinst_output)
-            self.assertIn("xinst_comment0", xinst_output)
 
             self.assertIn("0, cinst0", cinst_output)
             self.assertIn("cinst_comment0", cinst_output)
@@ -1036,7 +1040,9 @@ class TestPruneCinstKernel(unittest.TestCase):
         """@brief Test that IFetch resets adjust_cycles in HBM mode."""
         # Create mock instructions
         mock_ifetch = MagicMock(spec=cinst.IFetch)
+        mock_ifetch.comment = ""
         mock_cnop = MagicMock(spec=cinst.CNop)
+        mock_cnop.comment = ""
         mock_cnop.cycles = 5
 
         # Create mock kernel
@@ -1044,7 +1050,7 @@ class TestPruneCinstKernel(unittest.TestCase):
         mock_kernel.cinstrs = [mock_ifetch, mock_cnop]
         mock_kernel.cinstrs_map = [MagicMock(), MagicMock()]
 
-        self.program.prune_cinst_kernel_hbm(mock_kernel)
+        self.program.prune_cinst_kernel_hbm(mock_kernel, None)
 
         # CNop cycles should remain unchanged since adjust_cycles is reset by IFetch
         self.assertEqual(mock_cnop.cycles, 5)
@@ -1053,6 +1059,7 @@ class TestPruneCinstKernel(unittest.TestCase):
         """@brief Test that CNop adds adjust_cycles in HBM mode."""
         # Create mock instructions
         mock_cnop = MagicMock(spec=cinst.CNop)
+        mock_cnop.comment = ""
         mock_cnop.cycles = 3
 
         # Create mock kernel
@@ -1066,6 +1073,7 @@ class TestPruneCinstKernel(unittest.TestCase):
             # Mock a CLoad that would be skipped to create adjust_cycles
             mock_cload = MagicMock(spec=cinst.CLoad)
             mock_cload.spad_address = 10
+            mock_cload.comment = ""
             mock_cload.var_name = "test_var"
 
             mock_kernel.cinstrs = [mock_cload, mock_cnop]
@@ -1080,8 +1088,8 @@ class TestPruneCinstKernel(unittest.TestCase):
             mock_kernel.minstrs_map = [mock_minstr_entry]
 
             with patch("linker.steps.program_linker.search_minstrs_back", return_value=0):
-                with patch("linker.steps.program_linker.calculate_instruction_latency_adjustment", return_value=2):
-                    self.program.prune_cinst_kernel_hbm(mock_kernel)
+                with patch("linker.steps.program_linker.get_instruction_tp", return_value=2):
+                    self.program.prune_cinst_kernel_hbm(mock_kernel, None)
 
             # CNop should have added the adjustment cycles
             self.assertEqual(mock_cnop.cycles, 5)  # 3 + 2
@@ -1090,9 +1098,11 @@ class TestPruneCinstKernel(unittest.TestCase):
         """@brief Test that CSyncm tracks minst index in HBM mode."""
         # Create mock instructions
         mock_csyncm = MagicMock(spec=cinst.CSyncm)
+        mock_csyncm.comment = ""
         mock_csyncm.target = 1
         mock_cload = MagicMock(spec=cinst.CLoad)
         mock_cload.spad_address = 10
+        mock_cload.comment = ""
         mock_cload.var_name = "test_var"
 
         # Create mock kernel
@@ -1112,7 +1122,7 @@ class TestPruneCinstKernel(unittest.TestCase):
         # Verify search was called with correct syncm_idx
         with patch("linker.steps.program_linker.search_minstrs_back") as mock_search:
             mock_search.return_value = 0
-            self.program.prune_cinst_kernel_hbm(mock_kernel)
+            self.program.prune_cinst_kernel_hbm(mock_kernel, None)
             mock_search.assert_called_with(mock_kernel.minstrs_map, 1, 10)
 
     def test_prune_cinst_kernel_hbm_cload_with_skipped_minstr(self):
@@ -1120,6 +1130,7 @@ class TestPruneCinstKernel(unittest.TestCase):
         # Create mock CLoad
         mock_cload = MagicMock(spec=cinst.CLoad)
         mock_cload.spad_address = 10
+        mock_cload.comment = ""
         mock_cload.var_name = "test_var"
 
         # Create mock kernel
@@ -1136,9 +1147,9 @@ class TestPruneCinstKernel(unittest.TestCase):
         mock_kernel.minstrs_map = [mock_minstr_entry]
 
         with patch("linker.steps.program_linker.search_minstrs_back", return_value=0):
-            with patch("linker.steps.program_linker_utils.calculate_instruction_latency_adjustment", return_value=3):
+            with patch("linker.steps.program_linker_utils.get_instruction_tp", return_value=3):
                 with patch("linker.steps.program_linker_utils.remove_csyncm", return_value=(-1, 2)):
-                    self.program.prune_cinst_kernel_hbm(mock_kernel)
+                    self.program.prune_cinst_kernel_hbm(mock_kernel, None)
 
         # CLoad should be marked as SKIP
         self.assertEqual(mock_kernel.cinstrs_map[0].action, InstrAct.SKIP)
@@ -1153,6 +1164,7 @@ class TestPruneCinstKernel(unittest.TestCase):
         # Create mock CLoad
         mock_cload = MagicMock(spec=cinst.CLoad)
         mock_cload.spad_address = 10
+        mock_cload.comment = ""
         mock_cload.var_name = "intermediate_var"
 
         # Create mock kernel
@@ -1170,38 +1182,10 @@ class TestPruneCinstKernel(unittest.TestCase):
 
         with patch("linker.steps.program_linker.search_minstrs_back", return_value=0):
             with patch("linker.steps.program_linker.remove_csyncm", return_value=(-1, 2)) as mock_remove:
-                self.program.prune_cinst_kernel_hbm(mock_kernel)
+                self.program.prune_cinst_kernel_hbm(mock_kernel, None)
 
                 # Should call remove_csyncm for intermediate variable
                 mock_remove.assert_called_with(mock_kernel.cinstrs, mock_kernel.cinstrs_map, -1)
-
-    def test_prune_cinst_kernel_hbm_cstore_with_skipped_minstr(self):
-        """@brief Test CStore handling when corresponding minstr is skipped in HBM mode."""
-        # Create mock CStore
-        mock_cstore = MagicMock(spec=cinst.CStore)
-        mock_cstore.spad_address = 20
-        mock_cstore.var_name = "output_var"
-        mock_cstore.idx = 1
-
-        # Create mock kernel
-        mock_kernel = MagicMock()
-        mock_kernel.cinstrs = [mock_cstore]
-        mock_kernel.cinstrs_map = [MagicMock()]
-
-        # Mock minstr that is skipped
-        mock_minstr = MagicMock()
-        mock_minstr.var_name = "output_var"
-        mock_minstr_entry = MagicMock()
-        mock_minstr_entry.minstr = mock_minstr
-        mock_minstr_entry.action = InstrAct.SKIP
-        mock_kernel.minstrs_map = [mock_minstr_entry]
-
-        with patch("linker.steps.program_linker.search_minstrs_forward", return_value=0):
-            with patch("assembler.instructions.cinst.CStore.get_latency", return_value=4):
-                self.program.prune_cinst_kernel_hbm(mock_kernel)
-
-        # CStore should be marked as SKIP
-        self.assertEqual(mock_kernel.cinstrs_map[0].action, InstrAct.SKIP)
 
     def test_prune_cinst_kernel_hbm_cstore_with_intermediate_var(self):
         """@brief Test CStore handling with intermediate variable in HBM mode."""
@@ -1210,6 +1194,7 @@ class TestPruneCinstKernel(unittest.TestCase):
 
         # Create mock CStore
         mock_cstore = MagicMock(spec=cinst.CStore)
+        mock_cstore.comment = ""
         mock_cstore.var_name = "intermediate_var"
 
         # Create mock kernel
@@ -1227,7 +1212,7 @@ class TestPruneCinstKernel(unittest.TestCase):
 
         with patch("linker.steps.program_linker.search_minstrs_forward", return_value=0):
             with patch("linker.steps.program_linker.remove_csyncm", return_value=(-1, 2)) as mock_remove:
-                self.program.prune_cinst_kernel_hbm(mock_kernel)
+                self.program.prune_cinst_kernel_hbm(mock_kernel, None)
 
                 # Should call remove_csyncm for intermediate variable
                 mock_remove.assert_called_with(mock_kernel.cinstrs, mock_kernel.cinstrs_map, 1)
@@ -1247,7 +1232,7 @@ class TestPruneCinstKernel(unittest.TestCase):
         mock_kernel.cinstrs = [MagicMock()]
 
         # Should return early without processing
-        program.prune_cinst_kernel_no_hbm(mock_kernel)
+        program.prune_cinst_kernel_no_hbm(mock_kernel, None)
 
         # No changes should be made to the kernel
         self.assertIsNotNone(mock_kernel.cinstrs)
@@ -1257,6 +1242,7 @@ class TestPruneCinstKernel(unittest.TestCase):
         with patch.object(GlobalConfig, "hasHBM", False):
             # Create mock instructions
             mock_ifetch = MagicMock(spec=cinst.IFetch)
+            mock_ifetch.bundle = 1
             mock_cnop = MagicMock(spec=cinst.CNop)
             mock_cnop.cycles = 5
 
@@ -1265,7 +1251,7 @@ class TestPruneCinstKernel(unittest.TestCase):
             mock_kernel.cinstrs = [mock_ifetch, mock_cnop]
             mock_kernel.cinstrs_map = [MagicMock(), MagicMock()]
 
-            self.program.prune_cinst_kernel_no_hbm(mock_kernel)
+            self.program.prune_cinst_kernel_no_hbm(mock_kernel, None)
 
             # CNop cycles should remain unchanged since adjust_cycles is reset by IFetch
             self.assertEqual(mock_cnop.cycles, 5)
@@ -1282,10 +1268,10 @@ class TestPruneCinstKernel(unittest.TestCase):
             mock_kernel.cinstrs = [mock_bload]
             mock_kernel.cinstrs_map = [MagicMock()]
 
-            with patch("linker.steps.program_linker.process_bload_instructions", return_value=0) as mock_process:
-                self.program.prune_cinst_kernel_no_hbm(mock_kernel)
+            with patch("linker.steps.program_linker.proc_seq_bloads", return_value=(0, 0)) as mock_process:
+                self.program.prune_cinst_kernel_no_hbm(mock_kernel, None)
 
-                # Should call process_bload_instructions
+                # Should call proc_seq_bloads
                 mock_process.assert_called_with(mock_kernel.cinstrs, mock_kernel.cinstrs_map, self.program._cinst_in_var_tracker, 0)
 
                 # Variable should be added to tracker
@@ -1306,8 +1292,8 @@ class TestPruneCinstKernel(unittest.TestCase):
             mock_kernel.cinstrs = [mock_cload]
             mock_kernel.cinstrs_map = [MagicMock()]
 
-            with patch("linker.steps.program_linker_utils.calculate_instruction_latency_adjustment", return_value=3):
-                self.program.prune_cinst_kernel_no_hbm(mock_kernel)
+            with patch("linker.steps.program_linker_utils.get_instruction_tp", return_value=3):
+                self.program.prune_cinst_kernel_no_hbm(mock_kernel, None)
 
             # CLoad should be marked as SKIP
             self.assertEqual(mock_kernel.cinstrs_map[0].action, InstrAct.SKIP)
@@ -1327,7 +1313,12 @@ class TestPruneCinstKernel(unittest.TestCase):
             mock_kernel.cinstrs = [mock_cload]
             mock_kernel.cinstrs_map = [MagicMock()]
 
-            self.program.prune_cinst_kernel_no_hbm(mock_kernel)
+            # Provide corresponding _xstores_map entry on the program instance
+            xstore_entry = MagicMock()
+            xstore_entry.action = InstrAct.SKIP
+            self.program._xstores_map["intermediate_var"] = xstore_entry
+
+            self.program.prune_cinst_kernel_no_hbm(mock_kernel, None)
 
             # CLoad should be marked as SKIP
             self.assertEqual(mock_kernel.cinstrs_map[0].action, InstrAct.SKIP)
@@ -1337,7 +1328,7 @@ class TestPruneCinstKernel(unittest.TestCase):
         with patch.object(GlobalConfig, "hasHBM", False):
             # Create mock CLoad
             mock_cload = MagicMock(spec=cinst.CLoad)
-            mock_cload.var_name = "new_var"
+            mock_cload.var_name = "ct_new_var"
             mock_cload.spad_address = 10
 
             # Create mock kernel
@@ -1345,10 +1336,10 @@ class TestPruneCinstKernel(unittest.TestCase):
             mock_kernel.cinstrs = [mock_cload]
             mock_kernel.cinstrs_map = [MagicMock()]
 
-            self.program.prune_cinst_kernel_no_hbm(mock_kernel)
+            self.program.prune_cinst_kernel_no_hbm(mock_kernel, None)
 
             # Variable should be added to tracker
-            self.assertEqual(self.program._cinst_in_var_tracker["new_var"], 10)
+            self.assertEqual(self.program._cinst_in_var_tracker["ct_new_var"], 10)
 
     def test_prune_cinst_kernel_no_hbm_bones_already_loaded(self):
         """@brief Test BOnes handling when variable already loaded in no-HBM mode."""
@@ -1365,8 +1356,8 @@ class TestPruneCinstKernel(unittest.TestCase):
             mock_kernel.cinstrs = [mock_bones]
             mock_kernel.cinstrs_map = [MagicMock()]
 
-            with patch("linker.steps.program_linker_utils.calculate_instruction_latency_adjustment", return_value=2):
-                self.program.prune_cinst_kernel_no_hbm(mock_kernel)
+            with patch("linker.steps.program_linker_utils.get_instruction_tp", return_value=2):
+                self.program.prune_cinst_kernel_no_hbm(mock_kernel, None)
 
             # BOnes should be marked as SKIP
             self.assertEqual(mock_kernel.cinstrs_map[0].action, InstrAct.SKIP)
@@ -1386,7 +1377,13 @@ class TestPruneCinstKernel(unittest.TestCase):
             mock_kernel.cinstrs = [mock_cstore]
             mock_kernel.cinstrs_map = [MagicMock()]
 
-            self.program.prune_cinst_kernel_no_hbm(mock_kernel)
+            # _xstores_map is maintained by the LinkedProgram (self.program).
+            # Provide an entry for the intermediate var so prune_cinst_kernel_no_hbm
+            # can look it up on the program instance.
+            xstore_entry = MagicMock()
+            xstore_entry.action = InstrAct.SKIP
+            self.program._xstores_map["intermediate_var"] = xstore_entry
+            self.program.prune_cinst_kernel_no_hbm(mock_kernel, None)
 
             # CStore should be marked as SKIP
             self.assertEqual(mock_kernel.cinstrs_map[0].action, InstrAct.SKIP)
@@ -1413,7 +1410,7 @@ class TestPruneCinstKernel(unittest.TestCase):
             mock_kernel.cinstrs = [mock_cstore]
             mock_kernel.cinstrs_map = [MagicMock()]
 
-            program.prune_cinst_kernel_no_hbm(mock_kernel)
+            program.prune_cinst_kernel_no_hbm(mock_kernel, None)
 
             # CStore should NOT be marked as SKIP due to keep_spad_boundary
             self.assertNotEqual(mock_kernel.cinstrs_map[0].action, InstrAct.SKIP)
@@ -1597,11 +1594,11 @@ class TestPruneMinstKernel(unittest.TestCase):
     def test_prune_minst_kernel_mload_already_loaded(self):
         """@brief Test MLoad handling when variable already loaded."""
         # Set up variable tracker
-        self.program._minst_in_var_tracker = {"loaded_var": 5}
+        self.program._minst_in_var_tracker = {"pt_loaded_var": 5}
 
         # Create mock MLoad
         mock_mload = MagicMock(spec=minst.MLoad)
-        mock_mload.var_name = "loaded_var"
+        mock_mload.var_name = "pt_loaded_var"
         mock_mload.spad_address = 10
         mock_mload.comment = ""
         mock_mload.idx = 0
@@ -1697,7 +1694,7 @@ class TestPruneMinstKernel(unittest.TestCase):
     def test_prune_minst_kernel_mixed_instructions(self):
         """@brief Test processing multiple mixed instruction types."""
         # Set up trackers and intermediate variables
-        self.program._minst_in_var_tracker = {"already_loaded": 5}
+        self.program._minst_in_var_tracker = {"ct_already_loaded": 5}
         self.program._intermediate_vars = ["intermediate_var"]
 
         # Create mock instructions
@@ -1706,7 +1703,7 @@ class TestPruneMinstKernel(unittest.TestCase):
         mock_msyncc.comment = "MSyncc instruction"
 
         mock_mload1 = MagicMock(spec=minst.MLoad)  # Already loaded
-        mock_mload1.var_name = "already_loaded"
+        mock_mload1.var_name = "ct_already_loaded"
         mock_mload1.spad_address = 10
         mock_mload1.comment = ""
         mock_mload1.idx = 1
@@ -1718,7 +1715,7 @@ class TestPruneMinstKernel(unittest.TestCase):
         mock_mstore.idx = 2
 
         mock_mload2 = MagicMock(spec=minst.MLoad)  # New variable
-        mock_mload2.var_name = "new_var"
+        mock_mload2.var_name = "ct_new_var"
         mock_mload2.spad_address = 20
         mock_mload2.comment = ""
         mock_mload2.idx = 3
@@ -1738,7 +1735,7 @@ class TestPruneMinstKernel(unittest.TestCase):
         self.assertNotEqual(mock_kernel.minstrs_map[3].action, InstrAct.SKIP)  # MLoad2 (new var)
 
         # Check variable tracking
-        self.assertEqual(self.program._minst_in_var_tracker["new_var"], 18)  # 20 - 2 (adjust_spad)
+        self.assertEqual(self.program._minst_in_var_tracker["ct_new_var"], 18)  # 20 - 2 (adjust_spad)
 
     def test_prune_minst_kernel_spad_size_tracking(self):
         """@brief Test that SPAD size is correctly tracked and updated."""

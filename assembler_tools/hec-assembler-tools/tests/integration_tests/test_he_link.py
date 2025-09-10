@@ -646,8 +646,12 @@ class TestHeLinkIntegration:
                 csyncm_count += 1
                 # Assert csyncm targets are digits
                 assert tokens[2].isdigit(), f"Expected csyncm target to be digit in line: {', '.join(tokens)}"
-                # Not second last instruction
+                # If not the second last instruction
                 if i < len(cinstrs) - 2:
+                    assert int(tokens[2]) < len(minstrs) - 1, (
+                        f"Expected csyncm target {tokens[2]} to be less than last minst index "
+                        f"{len(minstrs) - 1} in line: {', '.join(tokens)}"
+                    )
                     target_minst = minstrs[int(tokens[2])]
                     last_minstr_spad = target_minst[2]
 

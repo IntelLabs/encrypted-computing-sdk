@@ -94,7 +94,7 @@ def main(run_config: LinkerRunConfig, verbose_stream=None):
     print("", file=verbose_stream)
     print("Interpreting variable meta information...", file=verbose_stream)
 
-    p_linker = LinkedProgram(keep_spad_boundary=True, keep_hbm_boundary=run_config.keep_hbm_boundary)
+    p_linker = LinkedProgram(keep_spad_boundary=run_config.keep_spad_boundary, keep_hbm_boundary=run_config.keep_hbm_boundary)
 
     # Process kernel DInstructions when using trace file
     program_dinstrs = []
@@ -116,6 +116,9 @@ def main(run_config: LinkerRunConfig, verbose_stream=None):
 
     # Initialize memory model
     mem_model = initialize_memory_model(run_config, program_dinstrs, verbose_stream)
+
+    # Preload xinst and pre-process intermediate variables for future cinst pruning
+    p_linker.preload_kernels(kernels_info)
 
     # Discover variables
     print("  Finding all program variables...", file=verbose_stream)

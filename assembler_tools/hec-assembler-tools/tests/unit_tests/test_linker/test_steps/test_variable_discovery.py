@@ -311,14 +311,6 @@ class TestVariableDiscovery(unittest.TestCase):
                 # Act
                 with (
                     patch(
-                        "linker.steps.variable_discovery.Loader.load_minst_kernel_from_file",
-                        return_value=[],
-                    ),
-                    patch(
-                        "linker.steps.variable_discovery.Loader.load_cinst_kernel_from_file",
-                        return_value=[],
-                    ),
-                    patch(
                         "linker.steps.variable_discovery.discover_variables",
                         return_value=["var1", "var2"],
                     ),
@@ -326,7 +318,6 @@ class TestVariableDiscovery(unittest.TestCase):
                         "linker.steps.variable_discovery.discover_variables_spad",
                         return_value=["var1", "var2"],
                     ),
-                    patch("linker.steps.variable_discovery.remap_m_c_instrs_vars"),
                 ):
                     scan_variables(mock_linker, input_files, mock_mem_model, mock_verbose)
 
