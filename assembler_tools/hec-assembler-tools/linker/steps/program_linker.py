@@ -955,7 +955,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
 
             idx += 1  # next instruction
 
-    def preprocess_cinst_kernel(self, kernel: KernelInfo):
+    def _preprocess_cinst_kernel(self, kernel: KernelInfo):
         """
         @brief Preprocesses CInsts in the kernel to build a map of cstores by bundle.
 
@@ -1003,7 +1003,7 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
 
             idx += 1
 
-    def preprocess_xinst_kernel(self, kernel: KernelInfo, kernel_idx: int):
+    def _preprocess_xinst_kernel(self, kernel: KernelInfo, kernel_idx: int):
         """
         @brief Removes unnecessary XInsts from the kernel.
         @param kernel KernelInfo object containing the kernel's XInsts.
@@ -1097,12 +1097,12 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 kern_mapper.remap_m_c_instrs_vars(kernel.cinstrs, kernel.hbm_remap_dict)
             else:
                 kern_mapper.remap_cinstrs_vars_hbm(kernel.cinstrs, kernel.hbm_remap_dict)
-            self.preprocess_cinst_kernel(kernel)
+            self._preprocess_cinst_kernel(kernel)
 
             # xinst
             kernel.xinstrs = Loader.load_xinst_kernel_from_file(kernel.xinst)
             kern_mapper.remap_xinstrs_vars(kernel.xinstrs, kernel.hbm_remap_dict)
-            self.preprocess_xinst_kernel(kernel, kernel_idx)
+            self._preprocess_xinst_kernel(kernel, kernel_idx)
 
     def link_kernels_to_files(
         self,
