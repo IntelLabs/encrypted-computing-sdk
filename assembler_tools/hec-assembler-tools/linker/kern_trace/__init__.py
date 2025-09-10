@@ -8,10 +8,11 @@ This package provides utilities for parsing trace files and extracting kernel op
 """
 
 from linker.kern_trace.context_config import ContextConfig
-from linker.kern_trace.kern_remap import remap_dinstrs_vars, remap_m_c_instrs_vars
+from linker.kern_trace.kern_remap import remap_cinstrs_vars_hbm, remap_dinstrs_vars, remap_m_c_instrs_vars
 from linker.kern_trace.kern_var import KernVar
+from linker.kern_trace.kernel_info import CinstrMapEntry, InstrAct, KernelInfo, MinstrMapEntry
 from linker.kern_trace.kernel_op import KernelOp
-from linker.kern_trace.trace_info import KernelInfo, TraceInfo
+from linker.kern_trace.trace_info import TraceInfo
 
 __all__ = [
     "KernVar",
@@ -20,5 +21,9 @@ __all__ = [
     "TraceInfo",
     "remap_dinstrs_vars",
     "remap_m_c_instrs_vars",
+    "remap_cinstrs_vars_hbm",
     "KernelInfo",
+    "InstrAct",
+    "MinstrMapEntry",
+    "CinstrMapEntry",
 ]

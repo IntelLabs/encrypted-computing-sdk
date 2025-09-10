@@ -61,3 +61,23 @@ class MInstruction(BaseInstruction):
             str: The string representation of the instruction, excluding the first token.
         """
         return ", ".join(self.tokens[1:])
+
+    @property
+    def idx(self) -> int:
+        """
+        @brief Gets the instruction index.
+
+        This is the line number in the MInstruction file.
+
+        @return The instruction index.
+        """
+        return int(self.tokens[0])
+
+    @idx.setter
+    def idx(self, value: int):
+        """
+        @brief Sets the instruction index.
+
+        @param value The instruction index to set.
+        """
+        self.tokens[0] = str(value)

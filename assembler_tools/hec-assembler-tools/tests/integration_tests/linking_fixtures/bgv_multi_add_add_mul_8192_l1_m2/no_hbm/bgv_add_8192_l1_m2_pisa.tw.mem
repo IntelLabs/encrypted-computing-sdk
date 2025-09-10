@@ -1,0 +1,19 @@
+dload, ntt_auxiliary_table, 0
+dload, ntt_routing_table, 1
+dload, intt_auxiliary_table, 2
+dload, intt_routing_table, 3
+dload, twid, 4
+dload, twid, 5
+dload, twid, 6
+dload, twid, 7
+dload, twid, 8
+dload, twid, 9
+dload, twid, 10
+dload, twid, 11
+dload, ones, 12
+dload, poly, 13, ct0_0_0_0
+dload, poly, 14, ct1_0_0_0
+dload, poly, 15, ct0_1_0_0
+dload, poly, 16, ct1_1_0_0
+dstore, ct2_0_0_0, 17
+dstore, ct2_1_0_0, 18

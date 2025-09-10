@@ -46,3 +46,19 @@ class Instruction(XInstruction):
         @throws ValueError If the number of tokens is invalid or the instruction name is incorrect.
         """
         super().__init__(tokens, comment=comment)
+
+    @property
+    def dest(self) -> str:
+        """
+        @brief Retrieves the destination register of the instruction.
+        @return The destination register as a string.
+        """
+        return self.tokens[3]
+
+    @dest.setter
+    def dest(self, value: str):
+        """
+        @brief Sets the destination register of the instruction.
+        @param value The new destination register as a string.
+        """
+        self.tokens[3] = value

@@ -40,7 +40,7 @@ class Loader:
         @return A list of MInstruction objects.
         @throws RuntimeError If a line cannot be parsed into an MInstruction.
         """
-        retval = []
+        retval: list = []
         for idx, s_line in enumerate(line_iter):
             minstr = instructions.create_from_str_line(s_line, minst.factory())
             if not minstr:

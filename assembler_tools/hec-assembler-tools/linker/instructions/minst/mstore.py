@@ -48,24 +48,66 @@ class Instruction(MInstruction):
         @param comment An optional comment for the instruction.
         @throws ValueError If the number of tokens is invalid or the instruction name is incorrect.
         """
+        self._var_name = tokens[2]
         super().__init__(tokens, comment=comment)
+        self.tokens[2] = "0"  # Should be set to HBM address to write back.
 
     @property
-    def dest(self) -> str:
+    def var_name(self) -> str:
         """
-        @brief Gets the name of the destination.
+        @brief Gets the name of the destination variable.
 
-        This is a Variable name when loaded. Should be set to HBM address to write back.
+        This is a Variable name when loaded.
 
-        @return The name of the destination.
+        @return The name of the variable.
         """
-        return self.tokens[2]
+        return self._var_name
 
-    @dest.setter
-    def dest(self, value: str):
+    @var_name.setter
+    def var_name(self, value: str):
         """
-        @brief Sets the name of the destination.
+        @brief Sets the name of the variable.
 
-        @param value The name of the destination to set.
+        @param value The name of the variable to set.
         """
-        self.tokens[2] = value
+        self._var_name = value
+
+    @property
+    def spad_address(self) -> int:
+        """
+        @brief Gets the source index.
+
+        This is the index in the scratchpad from which data will be stored.
+
+        @return The source index.
+        """
+        return int(self.tokens[3])
+
+    @spad_address.setter
+    def spad_address(self, value: int):
+        """
+        @brief Sets the source index.
+
+        @param value The source index to set.
+        """
+        self.tokens[3] = str(value)
+
+    @property
+    def hbm_address(self) -> int:
+        """
+        @brief Gets the address of the destination.
+
+        Should be set to HBM address to write back.
+
+        @return The address of the destination.
+        """
+        return int(self.tokens[2])
+
+    @hbm_address.setter
+    def hbm_address(self, value: int):
+        """
+        @brief Sets the address of the destination.
+
+        @param value The address of the destination to set.
+        """
+        self.tokens[2] = str(value)

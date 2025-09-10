@@ -9,7 +9,6 @@
 """
 
 import unittest
-from collections import namedtuple
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -29,20 +28,80 @@ class TestVariableDiscovery(unittest.TestCase):
         """@brief Set up test fixtures."""
         # Group MInstructions in a dictionary
         self.m_instrs = {
-            "load": MagicMock(source="var1"),
-            "store": MagicMock(dest="var2"),
+            "load": MagicMock(var_name="var1"),
+            "store": MagicMock(var_name="var2"),
             "other": MagicMock(),  # MInstruction that's neither MLoad nor MStore
         }
 
         # Group CInstructions in a dictionary
         self.c_instrs = {
-            "bload": MagicMock(source="var3"),
-            "cload": MagicMock(source="var4"),
-            "bones": MagicMock(source="var5"),
-            "nload": MagicMock(source="var6"),
-            "cstore": MagicMock(dest="var7"),
+            "bload": MagicMock(var_name="var3"),
+            "cload": MagicMock(var_name="var4"),
+            "bones": MagicMock(var_name="var5"),
+            "nload": MagicMock(var_name="var6"),
+            "cstore": MagicMock(var_name="var7"),
             "other": MagicMock(),  # CInstruction that's none of the above
         }
+
+    def _create_is_instance_mock(
+        self,
+        mock_minst_class=None,
+        mock_cinst_class=None,
+        mock_minst=None,
+        mock_cinst=None,
+    ):
+        """@brief Create a mock for isinstance that handles tuples of classes."""
+        cinstrs = [
+            self.c_instrs["bload"],
+            self.c_instrs["cload"],
+            self.c_instrs["bones"],
+            self.c_instrs["nload"],
+            self.c_instrs["cstore"],
+            self.c_instrs["other"],
+        ]
+
+        minstrs = [
+            self.m_instrs["load"],
+            self.m_instrs["store"],
+            self.m_instrs["other"],
+        ]
+
+        # Improved mock for isinstance that handles tuples of classes
+        def mock_isinstance(obj, cls):
+            # Handle tuple case first
+            if isinstance(cls, tuple):
+                return any(mock_isinstance(obj, c) for c in cls)
+
+            # Use a dictionary to map class types to their respective checks
+            class_checks = {}
+
+            # Only add cinst-related checks if mock_cinst is not None
+            if mock_cinst is not None and mock_cinst_class is not None:
+                class_checks.update(
+                    {
+                        mock_cinst_class: lambda: obj in cinstrs,
+                        mock_cinst.BLoad: lambda: obj is self.c_instrs["bload"],
+                        mock_cinst.CLoad: lambda: obj is self.c_instrs["cload"],
+                        mock_cinst.BOnes: lambda: obj is self.c_instrs["bones"],
+                        mock_cinst.NLoad: lambda: obj is self.c_instrs["nload"],
+                        mock_cinst.CStore: lambda: obj is self.c_instrs["cstore"],
+                    }
+                )
+
+            # Only add minst-related checks if mock_minst is not None
+            if mock_minst is not None and mock_minst_class is not None:
+                class_checks.update(
+                    {
+                        mock_minst_class: lambda: obj in minstrs,
+                        mock_minst.MLoad: lambda: obj is self.m_instrs["load"],
+                        mock_minst.MStore: lambda: obj is self.m_instrs["store"],
+                    }
+                )
+
+            # Check if cls is in our mapping and return the result of its check function
+            return class_checks.get(cls, lambda: False)()
+
+        return mock_isinstance
 
     @patch("linker.steps.variable_discovery.minst")
     @patch("linker.steps.variable_discovery.MInstruction")
@@ -56,38 +115,20 @@ class TestVariableDiscovery(unittest.TestCase):
         mock_minst.MLoad = MagicMock()
         mock_minst.MStore = MagicMock()
 
-        # Configure type checking at the module level, avoiding patching isinstance
-        def is_minst_side_effect(obj):
-            return obj in [
-                self.m_instrs["load"],
-                self.m_instrs["store"],
-                self.m_instrs["other"],
-            ]
+        # Test with a list containing both MLoad and MStore
+        minstrs = [
+            self.m_instrs["load"],
+            self.m_instrs["store"],
+            self.m_instrs["other"],
+        ]
 
-        def is_mload_side_effect(obj):
-            return obj is self.m_instrs["load"]
+        # Get the mock_isinstance function
+        mock_isinstance = self._create_is_instance_mock(mock_minst_class=mock_minst_class, mock_minst=mock_minst)
 
-        def is_mstore_side_effect(obj):
-            return obj is self.m_instrs["store"]
-
-        # Replace the actual isinstance calls in the module with our mock functions
-        with patch(
-            "linker.steps.variable_discovery.isinstance",
-            side_effect=lambda obj, cls: {
-                mock_minst_class: is_minst_side_effect(obj),
-                mock_minst.MLoad: is_mload_side_effect(obj),
-                mock_minst.MStore: is_mstore_side_effect(obj),
-            }.get(cls, False),
-        ):
+        # Patch the isinstance calls at the module level
+        with patch("linker.steps.variable_discovery.isinstance", side_effect=mock_isinstance):
             # Configure validateName to return True
             mock_validate.return_value = True
-
-            # Test with a list containing both MLoad and MStore
-            minstrs = [
-                self.m_instrs["load"],
-                self.m_instrs["store"],
-                self.m_instrs["other"],
-            ]
 
             # Call the function
             result = list(discover_variables(minstrs))
@@ -125,8 +166,9 @@ class TestVariableDiscovery(unittest.TestCase):
             self.assertIn("not a valid MInstruction", str(context.exception))
 
     @patch("linker.steps.variable_discovery.minst")
+    @patch("linker.steps.variable_discovery.MInstruction")
     @patch("assembler.memory_model.variable.Variable.validateName")
-    def test_discover_variables_invalid_variable_name(self, mock_validate, mock_minst):
+    def test_discover_variables_hbm_invalid(self, mock_validate, mock_minst_class, mock_minst):
         """@brief Test discovering variables with an invalid variable name.
 
         @test Verifies that a RuntimeError is raised when a variable name is invalid
@@ -134,13 +176,14 @@ class TestVariableDiscovery(unittest.TestCase):
         # Setup mocks
         mock_minst.MLoad = MagicMock()
 
-        # Configure validateName to return False
+        # Configure validateName to return True
         mock_validate.return_value = False
 
-        with patch(
-            "linker.steps.variable_discovery.isinstance",
-            side_effect=lambda obj, cls: True,
-        ):
+        # Get the mock_isinstance function
+        mock_isinstance = self._create_is_instance_mock(mock_minst_class=mock_minst_class, mock_minst=mock_minst)
+
+        # Patch the isinstance calls at the module level
+        with patch("linker.steps.variable_discovery.isinstance", side_effect=mock_isinstance):
             # Call the function
             with self.assertRaises(RuntimeError) as context:
                 list(discover_variables([self.m_instrs["load"]]))
@@ -176,24 +219,8 @@ class TestVariableDiscovery(unittest.TestCase):
             self.c_instrs["other"],
         ]
 
-        # Improved mock for isinstance that handles tuples of classes
-        def mock_isinstance(obj, cls):
-            # Handle tuple case first
-            if isinstance(cls, tuple):
-                return any(mock_isinstance(obj, c) for c in cls)
-
-            # Use a dictionary to map class types to their respective checks
-            class_checks = {
-                mock_cinst_class: lambda: obj in cinstrs,
-                mock_cinst.BLoad: lambda: obj is self.c_instrs["bload"],
-                mock_cinst.CLoad: lambda: obj is self.c_instrs["cload"],
-                mock_cinst.BOnes: lambda: obj is self.c_instrs["bones"],
-                mock_cinst.NLoad: lambda: obj is self.c_instrs["nload"],
-                mock_cinst.CStore: lambda: obj is self.c_instrs["cstore"],
-            }
-
-            # Check if cls is in our mapping and return the result of its check function
-            return class_checks.get(cls, lambda: False)()
+        # Get the mock_isinstance function
+        mock_isinstance = self._create_is_instance_mock(mock_cinst_class=mock_cinst_class, mock_cinst=mock_cinst)
 
         # Patch the isinstance calls at the module level
         with patch("linker.steps.variable_discovery.isinstance", side_effect=mock_isinstance):
@@ -246,22 +273,14 @@ class TestVariableDiscovery(unittest.TestCase):
         # Setup mocks
         mock_cinst.BLoad = MagicMock()
 
-        # Configure validateName to return False
+        # Configure validateName to return True
         mock_validate.return_value = False
 
-        # Mock isinstance to make our mock object appear as CInstruction and BLoad
-        with patch(
-            "linker.steps.variable_discovery.isinstance",
-            side_effect=lambda obj, cls: {
-                mock_cinst_class: True,
-                (
-                    mock_cinst.BLoad,
-                    mock_cinst.CLoad,
-                    mock_cinst.BOnes,
-                    mock_cinst.NLoad,
-                ): True,
-            }.get(cls, False),
-        ):
+        # Get the mock_isinstance function
+        mock_isinstance = self._create_is_instance_mock(mock_cinst_class=mock_cinst_class, mock_cinst=mock_cinst)
+
+        # Patch the isinstance calls at the module level
+        with patch("linker.steps.variable_discovery.isinstance", side_effect=mock_isinstance):
             # Call the function
             with self.assertRaises(RuntimeError) as context:
                 list(discover_variables_spad([self.c_instrs["bload"]]))
@@ -276,22 +295,9 @@ class TestVariableDiscovery(unittest.TestCase):
         @test Verifies that scan_variables correctly processes input files and updates the memory model
               in both HBM and non-HBM modes
         """
-        # Create a namedtuple similar to KernelInfo for testing
-        KernelInfo = namedtuple(
-            "KernelInfo",
-            ["directory", "prefix", "minst", "cinst", "xinst", "mem", "remap_dict"],
-        )
-        input_files = [
-            KernelInfo(
-                directory="/tmp",
-                prefix="input1",
-                minst="/tmp/input1.minst",
-                cinst="/tmp/input1.cinst",
-                xinst="/tmp/input1.xinst",
-                mem=None,
-                remap_dict=None,
-            )
-        ]
+        # Create proper mock KernelInfo objects instead of namedtuples
+        mock_kernel_info = MagicMock()
+        input_files = [mock_kernel_info]
 
         # Test with both True and False for hasHBM
         for has_hbm in [True, False]:
@@ -300,17 +306,10 @@ class TestVariableDiscovery(unittest.TestCase):
                 GlobalConfig.hasHBM = has_hbm
                 mock_mem_model = MagicMock()
                 mock_verbose = MagicMock()
+                mock_linker = MagicMock()
 
                 # Act
                 with (
-                    patch(
-                        "linker.steps.variable_discovery.Loader.load_minst_kernel_from_file",
-                        return_value=[],
-                    ),
-                    patch(
-                        "linker.steps.variable_discovery.Loader.load_cinst_kernel_from_file",
-                        return_value=[],
-                    ),
                     patch(
                         "linker.steps.variable_discovery.discover_variables",
                         return_value=["var1", "var2"],
@@ -320,7 +319,7 @@ class TestVariableDiscovery(unittest.TestCase):
                         return_value=["var1", "var2"],
                     ),
                 ):
-                    scan_variables(input_files, mock_mem_model, mock_verbose)
+                    scan_variables(mock_linker, input_files, mock_mem_model, mock_verbose)
 
                 # Assert
                 self.assertEqual(mock_mem_model.add_variable.call_count, 2)

@@ -1,0 +1,4 @@
+instruction,scheme,poly_modulus_degree,keyrns_terms,arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+add,BGV,8192,2,ct4-2-1,ct0-2-1,ct1-2-1
+add,BGV,8192,2,ct5-2-1,ct2-2-1,ct3-2-1
+mul,BGV,8192,2,ct6-3-1,ct4-2-1,ct5-2-1
