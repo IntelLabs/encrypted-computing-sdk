@@ -8,7 +8,7 @@
 import re
 
 from const.options import LoopKey
-from high_parser.pisa_operations import BinaryOp, PIsaOp, Comment, NTT as NTTOp
+from high_parser.pisa_operations import NTT, BinaryOp, Comment, PIsaOp
 
 
 class PIsaOpGroup:
@@ -59,52 +59,42 @@ def reuse_rns_label(pisa: PIsaOp, current_rns: int) -> PIsaOp:
         if "x_" in pisa.input0 or "y_" in pisa.input0 or "outtmp_" in pisa.input0:
             pisa.input0 = re.sub(
                 "(x|y|outtmp)_([0-9]+)_[0-9]+_",
-                r"\1_\2_" + f"{current_rns}_",
+                r"\1_\2_" + f"{current_rns-1}_",
                 pisa.input0,
             )
         if "x_" in pisa.input1 or "y_" in pisa.input1 or "outtmp_" in pisa.input1:
             pisa.input1 = re.sub(
                 "(x|y|outtmp)_([0-9]+)_[0-9]+_",
-                r"\1_\2_" + f"{current_rns}_",
+                r"\1_\2_" + f"{current_rns-1}_",
                 pisa.input1,
             )
         if "x_" in pisa.output or "y_" in pisa.output or "outtmp_" in pisa.output:
             pisa.output = re.sub(
                 "(x|y|outtmp)_([0-9]+)_[0-9]+_",
-                r"\1_\2_" + f"{current_rns}_",
+                r"\1_\2_" + f"{current_rns-1}_",
                 pisa.output,
             )
-    if isinstance(pisa, NTTOp):
-        if (
-            "x_" in pisa.input0
-            and "x_" in pisa.input1
-            or "outtmp_" in pisa.input0
-            and "outtmp_" in pisa.input1
-        ):
+    if isinstance(pisa, NTT):
+        if "x_" in pisa.input0 and "x_" in pisa.input1 or "outtmp_" in pisa.input0 and "outtmp_" in pisa.input1:
             pisa.input0 = re.sub(
                 "(x|outtmp|y)_([0-9]+)_[0-9]+_",
-                r"\1_\2_" + f"{current_rns}_",
+                r"\1_\2_" + f"{current_rns-1}_",
                 pisa.input0,
             )
             pisa.input1 = re.sub(
                 "(x|outtmp|y)_([0-9]+)_[0-9]+_",
-                r"\1_\2_" + f"{current_rns}_",
+                r"\1_\2_" + f"{current_rns-1}_",
                 pisa.input1,
             )
-        if (
-            "x_" in pisa.output0
-            and "x_" in pisa.output1
-            or "outtmp_" in pisa.output0
-            and "outtmp_" in pisa.output1
-        ):
+        if "x_" in pisa.output0 and "x_" in pisa.output1 or "outtmp_" in pisa.output0 and "outtmp_" in pisa.output1:
             pisa.output0 = re.sub(
                 "(x|outtmp|y)_([0-9]+)_[0-9]+_",
-                r"\1_\2_" + f"{current_rns}_",
+                r"\1_\2_" + f"{current_rns-1}_",
                 pisa.output0,
             )
             pisa.output1 = re.sub(
                 "(x|outtmp|y)_([0-9]+)_[0-9]+_",
-                r"\1_\2_" + f"{current_rns}_",
+                r"\1_\2_" + f"{current_rns-1}_",
                 pisa.output1,
             )
 
@@ -153,7 +143,6 @@ def split_by_reorderable(pisa_list: list[PIsaOp]) -> list[PIsaOpGroup]:
     if no_reoderable_group:
         for group in groups:
             group.is_reorderable = True
-
     return groups
 
 
