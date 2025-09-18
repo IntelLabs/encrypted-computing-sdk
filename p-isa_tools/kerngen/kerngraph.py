@@ -34,11 +34,7 @@ import sys
 
 from const.options import LoopKey
 from high_parser.config import Config
-from kernel_optimization.loops import (
-    loop_interchange,
-    reuse_rns_label,
-    split_by_reorderable,
-)
+from kernel_optimization.loops import loop_interchange, reuse_rns_label, split_by_reorderable
 from kernel_parser.parser import KernelParser
 from pisa_generators.basic import mixed_to_pisa_ops
 
@@ -105,6 +101,8 @@ def process_kernel_with_reordering(kernel, args):
             if "mod" in args.target or "relin" in args.target:
                 for pisa in mixed_to_pisa_ops(interchanged_pisa):
                     processed_kernel.append(reuse_rns_label(pisa, kernel.context.current_rns))
+            else:
+                processed_kernel.append(interchanged_pisa)
         else:
             processed_kernel.append(group.pisa_list)
 
