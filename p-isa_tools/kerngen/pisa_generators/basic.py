@@ -6,7 +6,6 @@
 import itertools as it
 from collections.abc import Iterable
 from dataclasses import dataclass
-from string import ascii_letters
 from typing import ClassVar
 
 import high_parser.pisa_operations as pisa_op
@@ -244,7 +243,7 @@ class KeyMul(HighOp):
         ls: list[pisa_op] = []
         for digit, op in get_pisa_op(self.input1.digits):
             input0_tmp = Polys.from_polys(self.input0)
-            input0_tmp.name += "_" + ascii_letters[digit]
+            input0_tmp.name += f"_{digit}"
 
             # mul/mac for 0-current_rns
             ls.extend(
