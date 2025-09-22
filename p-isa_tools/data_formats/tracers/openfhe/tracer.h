@@ -728,6 +728,176 @@ private:
                 if (i < sizeQ - 1)
                     ckks_info->add_scaling_factor_real_big(cc_rns->GetScalingFactorRealBig(i));
             }
+
+            // Populate metadata_extra map with key-switching parameters
+            auto metadata_extra = ckks_info->mutable_metadata_extra();
+
+            // Get key parameters
+            uint32_t dnum = cc_rns->GetNumPartQ();  // number of digits
+            uint32_t alpha = cc_rns->GetNumPerPartQ();  // towers per digit
+            auto elementParams = m_context->GetElementParams()->GetParams();
+            size_t sizeP = key_rns.size() - sizeQ;  // number of special primes
+
+            // Helper to create string keys for multi-index metadata
+            auto toStrKey = [](std::initializer_list<uint32_t> indices) {
+                std::string key;
+                for (auto idx : indices) {
+                    if (!key.empty()) key += "_";
+                    key += std::to_string(idx);
+                }
+                return key;
+            };
+
+            // 1. Compute partQHatInvModq_{i}_{j} = (Q/Qi)^-1 mod qj
+            // This is NOT available from OpenFHE API, must compute manually
+            for (uint32_t i = 0; i < dnum; ++i)
+            {
+                for (uint32_t j = 0; j < sizeQ; ++j)
+                {
+                    uint32_t value = 0;
+
+                    // Check if qj is in digit i
+                    uint32_t digitStart = i * alpha;
+                    uint32_t digitEnd = std::min((i + 1) * alpha, static_cast<uint32_t>(sizeQ));
+
+                    if (j < digitStart || j >= digitEnd)
+                    {
+                        // qj is not in Qi, so we need to compute (Q/Qi)^-1 mod qj
+                        // Q/Qi is the product of all primes NOT in digit i
+
+                        // Get modulus qj
+                        auto qj = elementParams[j]->GetModulus();
+
+                        // Compute QHati mod qj (product of primes not in digit i, taken mod qj at each step)
+                        // We need to be careful to reduce mod qj at each step to avoid overflow
+                        NativeInteger qHatiModqj = 1;
+                        for (uint32_t k = 0; k < sizeQ; ++k)
+                        {
+                            if (k < digitStart || k >= digitEnd)
+                            {
+                                // For k != j, multiply by (qk mod qj)
+                                // For k == j, this would give 0, so skip it
+                                if (k != j)
+                                {
+                                    auto qk = elementParams[k]->GetModulus();
+                                    NativeInteger qkModqj = qk.Mod(qj);
+                                    qHatiModqj = qHatiModqj.ModMul(qkModqj, qj);
+                                }
+                            }
+                        }
+
+                        // Compute modular inverse only if qHatiModqj is non-zero
+                        if (qHatiModqj != 0)
+                        {
+                            value = qHatiModqj.ModInverse(qj).ConvertToInt();
+                        }
+                        // If qHatiModqj is 0, value remains 0
+                    }
+                    // If j is in digit i, value remains 0
+
+                    (*metadata_extra)["partQHatInvModq_" + toStrKey({i, j})] = value;
+                }
+            }
+
+            // 2. Extract partQlHatInvModq from OpenFHE API
+            for (uint32_t i = 0; i < dnum; ++i)
+            {
+                uint32_t digitSize = i < (dnum - 1) ? alpha : sizeQ - alpha * (dnum - 1);
+                for (uint32_t j = 0; j < digitSize; ++j)
+                {
+                    auto& values = cc_rns->GetPartQlHatInvModq(i, j);
+                    for (uint32_t l = 0; l < values.size() && l <= j; ++l)
+                    {
+                        (*metadata_extra)["partQlHatInvModq_" + toStrKey({i, j, l})] =
+                            values[l].ConvertToInt();
+                    }
+                }
+            }
+
+            // 3. Extract partQlHatModp from OpenFHE API
+            for (uint32_t i = 0; i < sizeQ; ++i)
+            {
+                uint32_t beta = std::ceil(static_cast<float>(i + 1) / static_cast<float>(alpha));
+                for (uint32_t j = 0; j < beta; ++j)
+                {
+                    uint32_t digitSize = j < beta - 1 ? alpha : (i + 1) - alpha * (beta - 1);
+                    auto& matrix = cc_rns->GetPartQlHatModp(i, j);
+                    for (uint32_t l = 0; l < digitSize && l < matrix.size(); ++l)
+                    {
+                        for (uint32_t s = 0; s < matrix[l].size(); ++s)
+                        {
+                            (*metadata_extra)["partQlHatModp_" + toStrKey({i, j, l, s})] =
+                                matrix[l][s].ConvertToInt();
+                        }
+                    }
+                }
+            }
+
+            // 4. Extract pInvModq from OpenFHE API
+            auto& pInvModq = cc_rns->GetPInvModq();
+            for (uint32_t i = 0; i < sizeQ && i < pInvModq.size(); ++i)
+            {
+                (*metadata_extra)["pInvModq_" + std::to_string(i)] = pInvModq[i].ConvertToInt();
+            }
+
+            // 5. Extract pModq from OpenFHE API
+            auto& pModq = cc_rns->GetPModq();
+            for (uint32_t i = 0; i < sizeQ && i < pModq.size(); ++i)
+            {
+                (*metadata_extra)["pModq_" + std::to_string(i)] = pModq[i].ConvertToInt();
+            }
+
+            // 6. Extract pHatInvModp from OpenFHE API
+            auto& pHatInvModp = cc_rns->GetPHatInvModp();
+            for (uint32_t i = 0; i < sizeP && i < pHatInvModp.size(); ++i)
+            {
+                (*metadata_extra)["pHatInvModp_" + std::to_string(i)] = pHatInvModp[i].ConvertToInt();
+            }
+
+            // 7. Extract pHatModq from OpenFHE API - P/pi mod qj
+            auto& pHatModq = cc_rns->GetPHatModq();
+            for (uint32_t i = 0; i < sizeP && i < pHatModq.size(); ++i)
+            {
+                for (uint32_t j = 0; j < sizeQ && j < pHatModq[i].size(); ++j)
+                {
+                    (*metadata_extra)["pHatModq_" + toStrKey({i, j})] = pHatModq[i][j].ConvertToInt();
+                }
+            }
+
+            // 8. Compute rescale metadata - qlInvModq_{i}_{j} = q_{sizeQ-(i+1)}^{-1} mod qj
+            for (uint32_t i = 0; i < sizeQ - 1; ++i)
+            {
+                // q_l is the prime to be dropped (from the end)
+                uint32_t qlIndex = sizeQ - (i + 1);
+                auto ql = elementParams[qlIndex]->GetModulus();
+
+                for (uint32_t j = 0; j < sizeQ - (i + 1); ++j)
+                {
+                    auto qj = elementParams[j]->GetModulus();
+                    // Compute q_l^{-1} mod qj
+                    NativeInteger qlModqj = ql.Mod(qj);
+                    uint32_t value = 0;
+                    if (qlModqj != 0) {
+                        value = qlModqj.ModInverse(qj).ConvertToInt();
+                    }
+                    (*metadata_extra)["qlInvModq_" + toStrKey({i, j})] = value;
+                }
+            }
+
+            // 9. Extract QlQlInvModqlDivqlModq from OpenFHE API
+            for (uint32_t i = 0; i < sizeQ - 1; ++i)
+            {
+                auto& values = cc_rns->GetQlQlInvModqlDivqlModq(i);
+                for (uint32_t j = 0; j < values.size() && j < sizeQ - (i + 1); ++j)
+                {
+                    (*metadata_extra)["QlQlInvModqlDivqlModq_" + toStrKey({i, j})] = values[j].ConvertToInt();
+                }
+            }
+
+            // 10. Add boot_correction placeholder - this is related to bootstrapping
+            // OpenFHE 1.3 doesn't expose this directly, using a reasonable default
+            // This may need to be adjusted based on specific bootstrapping parameters
+            (*metadata_extra)["boot_correction"] = 0; // Default value when bootstrapping is not used
         }
         break;
         case SCHEME::BGVRNS_SCHEME:
