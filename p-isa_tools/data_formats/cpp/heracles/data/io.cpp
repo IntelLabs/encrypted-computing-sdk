@@ -89,7 +89,10 @@ void generate_manifest(const std::string &filename, const hdf_manifest &manifest
 bool store_hec_context_json(const std::string &filename, const heracles::data::FHEContext &context)
 {
     std::string json_str;
-    auto rc = ::google::protobuf::util::MessageToJsonString(context, &json_str);
+    google::protobuf::util::JsonPrintOptions options;
+    options.add_whitespace = true;
+    options.always_print_primitive_fields = true;
+    auto rc = ::google::protobuf::util::MessageToJsonString(context, &json_str, options);
     std::ofstream json_ofile(filename, std::ios::out);
     json_ofile << json_str;
 
@@ -99,7 +102,10 @@ bool store_hec_context_json(const std::string &filename, const heracles::data::F
 bool store_testvector_json(const std::string &filename, const heracles::data::TestVector &test_vector)
 {
     std::string json_str;
-    auto rc = ::google::protobuf::util::MessageToJsonString(test_vector, &json_str);
+    google::protobuf::util::JsonPrintOptions options;
+    options.add_whitespace = true;
+    options.always_print_primitive_fields = true;
+    auto rc = ::google::protobuf::util::MessageToJsonString(test_vector, &json_str, options);
     std::ofstream json_ofile(filename, std::ios::out);
 
     json_ofile << json_str;

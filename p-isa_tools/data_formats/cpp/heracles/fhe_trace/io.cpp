@@ -28,7 +28,10 @@ heracles::fhe_trace::Trace load_trace(const std::string &filename)
 bool store_json_trace(const std::string &filename, const heracles::fhe_trace::Trace &trace)
 {
     std::string str;
-    auto status = google::protobuf::util::MessageToJsonString(trace, &str);
+    google::protobuf::util::JsonPrintOptions options;
+    options.add_whitespace = true;
+    options.always_print_primitive_fields = true;
+    auto status = google::protobuf::util::MessageToJsonString(trace, &str, options);
     if (!status.ok())
         return false;
     std::ofstream json_ofile(filename, std::ios::out);
