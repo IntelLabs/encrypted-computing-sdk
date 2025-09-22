@@ -733,16 +733,18 @@ private:
             auto metadata_extra = ckks_info->mutable_metadata_extra();
 
             // Get key parameters
-            uint32_t dnum = cc_rns->GetNumPartQ();  // number of digits
-            uint32_t alpha = cc_rns->GetNumPerPartQ();  // towers per digit
+            uint32_t dnum      = cc_rns->GetNumPartQ(); // number of digits
+            uint32_t alpha     = cc_rns->GetNumPerPartQ(); // towers per digit
             auto elementParams = m_context->GetElementParams()->GetParams();
-            size_t sizeP = key_rns.size() - sizeQ;  // number of special primes
+            size_t sizeP       = key_rns.size() - sizeQ; // number of special primes
 
             // Helper to create string keys for multi-index metadata
             auto toStrKey = [](std::initializer_list<uint32_t> indices) {
                 std::string key;
-                for (auto idx : indices) {
-                    if (!key.empty()) key += "_";
+                for (auto idx : indices)
+                {
+                    if (!key.empty())
+                        key += "_";
                     key += std::to_string(idx);
                 }
                 return key;
@@ -758,7 +760,7 @@ private:
 
                     // Check if qj is in digit i
                     uint32_t digitStart = i * alpha;
-                    uint32_t digitEnd = std::min((i + 1) * alpha, static_cast<uint32_t>(sizeQ));
+                    uint32_t digitEnd   = std::min((i + 1) * alpha, static_cast<uint32_t>(sizeQ));
 
                     if (j < digitStart || j >= digitEnd)
                     {
@@ -779,9 +781,9 @@ private:
                                 // For k == j, this would give 0, so skip it
                                 if (k != j)
                                 {
-                                    auto qk = elementParams[k]->GetModulus();
+                                    auto qk               = elementParams[k]->GetModulus();
                                     NativeInteger qkModqj = qk.Mod(qj);
-                                    qHatiModqj = qHatiModqj.ModMul(qkModqj, qj);
+                                    qHatiModqj            = qHatiModqj.ModMul(qkModqj, qj);
                                 }
                             }
                         }
@@ -795,7 +797,7 @@ private:
                     }
                     // If j is in digit i, value remains 0
 
-                    (*metadata_extra)["partQHatInvModq_" + toStrKey({i, j})] = value;
+                    (*metadata_extra)["partQHatInvModq_" + toStrKey({ i, j })] = value;
                 }
             }
 
@@ -805,10 +807,10 @@ private:
                 uint32_t digitSize = i < (dnum - 1) ? alpha : sizeQ - alpha * (dnum - 1);
                 for (uint32_t j = 0; j < digitSize; ++j)
                 {
-                    auto& values = cc_rns->GetPartQlHatInvModq(i, j);
+                    auto &values = cc_rns->GetPartQlHatInvModq(i, j);
                     for (uint32_t l = 0; l < values.size() && l <= j; ++l)
                     {
-                        (*metadata_extra)["partQlHatInvModq_" + toStrKey({i, j, l})] =
+                        (*metadata_extra)["partQlHatInvModq_" + toStrKey({ i, j, l })] =
                             values[l].ConvertToInt();
                     }
                 }
@@ -821,12 +823,12 @@ private:
                 for (uint32_t j = 0; j < beta; ++j)
                 {
                     uint32_t digitSize = j < beta - 1 ? alpha : (i + 1) - alpha * (beta - 1);
-                    auto& matrix = cc_rns->GetPartQlHatModp(i, j);
+                    auto &matrix       = cc_rns->GetPartQlHatModp(i, j);
                     for (uint32_t l = 0; l < digitSize && l < matrix.size(); ++l)
                     {
                         for (uint32_t s = 0; s < matrix[l].size(); ++s)
                         {
-                            (*metadata_extra)["partQlHatModp_" + toStrKey({i, j, l, s})] =
+                            (*metadata_extra)["partQlHatModp_" + toStrKey({ i, j, l, s })] =
                                 matrix[l][s].ConvertToInt();
                         }
                     }
@@ -834,33 +836,33 @@ private:
             }
 
             // 4. Extract pInvModq from OpenFHE API
-            auto& pInvModq = cc_rns->GetPInvModq();
+            auto &pInvModq = cc_rns->GetPInvModq();
             for (uint32_t i = 0; i < sizeQ && i < pInvModq.size(); ++i)
             {
                 (*metadata_extra)["pInvModq_" + std::to_string(i)] = pInvModq[i].ConvertToInt();
             }
 
             // 5. Extract pModq from OpenFHE API
-            auto& pModq = cc_rns->GetPModq();
+            auto &pModq = cc_rns->GetPModq();
             for (uint32_t i = 0; i < sizeQ && i < pModq.size(); ++i)
             {
                 (*metadata_extra)["pModq_" + std::to_string(i)] = pModq[i].ConvertToInt();
             }
 
             // 6. Extract pHatInvModp from OpenFHE API
-            auto& pHatInvModp = cc_rns->GetPHatInvModp();
+            auto &pHatInvModp = cc_rns->GetPHatInvModp();
             for (uint32_t i = 0; i < sizeP && i < pHatInvModp.size(); ++i)
             {
                 (*metadata_extra)["pHatInvModp_" + std::to_string(i)] = pHatInvModp[i].ConvertToInt();
             }
 
             // 7. Extract pHatModq from OpenFHE API - P/pi mod qj
-            auto& pHatModq = cc_rns->GetPHatModq();
+            auto &pHatModq = cc_rns->GetPHatModq();
             for (uint32_t i = 0; i < sizeP && i < pHatModq.size(); ++i)
             {
                 for (uint32_t j = 0; j < sizeQ && j < pHatModq[i].size(); ++j)
                 {
-                    (*metadata_extra)["pHatModq_" + toStrKey({i, j})] = pHatModq[i][j].ConvertToInt();
+                    (*metadata_extra)["pHatModq_" + toStrKey({ i, j })] = pHatModq[i][j].ConvertToInt();
                 }
             }
 
@@ -869,28 +871,29 @@ private:
             {
                 // q_l is the prime to be dropped (from the end)
                 uint32_t qlIndex = sizeQ - (i + 1);
-                auto ql = elementParams[qlIndex]->GetModulus();
+                auto ql          = elementParams[qlIndex]->GetModulus();
 
                 for (uint32_t j = 0; j < sizeQ - (i + 1); ++j)
                 {
                     auto qj = elementParams[j]->GetModulus();
                     // Compute q_l^{-1} mod qj
                     NativeInteger qlModqj = ql.Mod(qj);
-                    uint32_t value = 0;
-                    if (qlModqj != 0) {
+                    uint32_t value        = 0;
+                    if (qlModqj != 0)
+                    {
                         value = qlModqj.ModInverse(qj).ConvertToInt();
                     }
-                    (*metadata_extra)["qlInvModq_" + toStrKey({i, j})] = value;
+                    (*metadata_extra)["qlInvModq_" + toStrKey({ i, j })] = value;
                 }
             }
 
             // 9. Extract QlQlInvModqlDivqlModq from OpenFHE API
             for (uint32_t i = 0; i < sizeQ - 1; ++i)
             {
-                auto& values = cc_rns->GetQlQlInvModqlDivqlModq(i);
+                auto &values = cc_rns->GetQlQlInvModqlDivqlModq(i);
                 for (uint32_t j = 0; j < values.size() && j < sizeQ - (i + 1); ++j)
                 {
-                    (*metadata_extra)["QlQlInvModqlDivqlModq_" + toStrKey({i, j})] = values[j].ConvertToInt();
+                    (*metadata_extra)["QlQlInvModqlDivqlModq_" + toStrKey({ i, j })] = values[j].ConvertToInt();
                 }
             }
 
