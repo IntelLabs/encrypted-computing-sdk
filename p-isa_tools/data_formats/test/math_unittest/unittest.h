@@ -76,4 +76,3 @@ bool TEST_add_uint64_base();
 bool TEST_sub_uint64_base();
 bool TEST_montgomery_add();
 bool TEST_montgomery_mul();
-#endif // TRACING_DATA_FORMATS_SRC_DATA_FORMATS_TEST_MATH_UNITTEST_UNITTEST_H_
