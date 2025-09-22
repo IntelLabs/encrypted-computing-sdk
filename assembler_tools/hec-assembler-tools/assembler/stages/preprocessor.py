@@ -150,7 +150,9 @@ def reduce_var_deps_by_var(mem_model: MemoryModel, insts_list: list, var_name: s
         last_pos += 1
 
 
-def assign_register_banks_to_vars(mem_model: MemoryModel, insts_list: list, use_bank0: bool, verbose=False) -> str:
+def assign_register_banks_to_vars(
+    mem_model: MemoryModel, insts_list: list, use_bank0: bool, verbose=False, strategy="largest_first", interchange=False
+) -> str:
     """
     Assigns register banks to variables using vertex coloring graph algorithm.
 
@@ -172,6 +174,8 @@ def assign_register_banks_to_vars(mem_model: MemoryModel, insts_list: list, use_
                           should add corresponding `move` instructions to move variables from bank 0 to
                           correct bank.
         verbose (bool, optional): If True, prints verbose output. Defaults to False.
+        strategy (str, optional): Strategy for greedy coloring algorithm. Defaults to "largest_first".
+        interchange (bool, optional): Whether to use interchange in greedy coloring. Defaults to False.
 
     Raises:
         ValueError: Thrown for these cases:
@@ -191,7 +195,7 @@ def assign_register_banks_to_vars(mem_model: MemoryModel, insts_list: list, use_
         # Extract the dependency graph for variables
         dep_graph_vars, dest_names, source_names = dependency_graph_for_vars(insts_list)
         only_sources = source_names - dest_names  # Find which variables are ever only used as sources
-        color_dict = nx.greedy_color(dep_graph_vars)  # Do coloring
+        color_dict = nx.greedy_color(dep_graph_vars, strategy=strategy, interchange=interchange)  # Do coloring
 
         needs_reduction = False
         for var_name, bank in color_dict.items():
