@@ -53,7 +53,7 @@ def save_pisa_listing(out_stream, instr_listing: list):
             print(inst_line, file=out_stream)
 
 
-def main(output_file_name: str, input_file_name: str, b_verbose: bool):
+def main(output_file_name: str, input_file_name: str, b_verbose: bool, strategy: str = "largest_first", interchange: bool = False):
     """
     Preprocesses the P-ISA kernel and saves the output to a specified file.
 
@@ -64,6 +64,8 @@ def main(output_file_name: str, input_file_name: str, b_verbose: bool):
         output_file_name (str): The name of the output file where processed instructions are saved.
         input_file_name (str): The name of the input file containing the P-ISA kernel.
         b_verbose (bool): Flag indicating whether verbose output is enabled.
+        strategy (str, optional): Strategy for greedy coloring algorithm. Defaults to "largest_first".
+        interchange (bool, optional): Whether to use interchange in greedy coloring. Defaults to False.
 
     Returns:
         None
@@ -95,7 +97,9 @@ def main(output_file_name: str, input_file_name: str, b_verbose: bool):
     num_input_instr: int = len(insts_listing)  # track number of instructions in input kernel
     if b_verbose:
         print("Assigning register banks to variables...")
-    preprocessor.assign_register_banks_to_vars(hec_mem_model, insts_listing, use_bank0=False, verbose=b_verbose)
+    preprocessor.assign_register_banks_to_vars(
+        hec_mem_model, insts_listing, use_bank0=False, verbose=b_verbose, strategy=strategy, interchange=interchange
+    )
     insts_end = time.time() - start_time
 
     if b_verbose:
@@ -159,6 +163,17 @@ def parse_args():
             "Increase level of verbosity by specifying flag multiple times, e.g. -vv"
         ),
     )
+    parser.add_argument(
+        "--strategy",
+        default="largest_first",
+        help="Strategy for greedy coloring algorithm. Defaults to 'largest_first'.",
+    )
+    parser.add_argument(
+        "--interchange",
+        action="store_true",
+        default=False,
+        help="Whether to use interchange in greedy coloring. Defaults to False.",
+    )
     p_args = parser.parse_args()
 
     return p_args
@@ -185,6 +200,8 @@ if __name__ == "__main__":
         output_file_name=args.output_file_name,
         input_file_name=args.input_file_name,
         b_verbose=(args.verbose > 1),
+        strategy=args.strategy,
+        interchange=args.interchange,
     )
 
     if args.verbose > 0:
