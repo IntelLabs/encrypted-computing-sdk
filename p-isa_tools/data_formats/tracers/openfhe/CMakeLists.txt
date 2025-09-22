@@ -52,9 +52,13 @@ target_compile_options(tracing_example PRIVATE
 add_custom_target(
   run_tracing_example
   # Run the actual example, which will generate the traces as end-to-end-test/tracing_example.bin and end-to-end-test/tracing_example_data.bin
+  COMMAND ${CMAKE_COMMAND} -E echo "[INFO] Running tracing_example:" $<TARGET_FILE:tracing_example>
+  COMMAND ${CMAKE_COMMAND} -E echo "[INFO] Traces can be found in: ${CMAKE_BINARY_DIR}/end-to-end-test/"
   COMMAND tracing_example
   # Run the program mapper on the instruction trace, generating end-to-end-test/tracing_example.bin.csv
+  COMMAND ${CMAKE_COMMAND} -E echo "[INFO] Running program_mapper."
   COMMAND env VIRTUAL_ENV=${VENV_PATH} PATH=${VENV_PATH}/bin:$ENV{PATH} PYTHONPATH=${VENV_SITE_PACKAGES}:$ENV{PYTHONPATH} $<TARGET_FILE:program_mapper> ${CMAKE_BINARY_DIR}/end-to-end-test/tracing_example.bin ${CMAKE_SOURCE_DIR}/kerngen/kerngen.py
+  COMMAND ${CMAKE_COMMAND} -E echo "[INFO] Running functional_modeler:"
   COMMAND $<TARGET_FILE:functional_modeler> ${CMAKE_BINARY_DIR}/end-to-end-test/tracing_example_pisa.csv --verbose --hec_dataformats_mode --hec_dataformats_poly_program_location ${CMAKE_BINARY_DIR}/end-to-end-test/tracing_example.bin --hec_dataformats_data ${CMAKE_BINARY_DIR}/end-to-end-test/tracing_example_data.bin
   # TODO: Next step: assemble the *.pisa.csv and the *tw.mem using the assembler from https://github.com/IntelLabs/HERACLES-HGCF
   # TODO: Then it's a dead end :( as we don't have any tooling that can support non-toy sized workloads
