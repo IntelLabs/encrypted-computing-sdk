@@ -52,7 +52,7 @@ class KernelParser:
                 poly_order=int(context_match.group("poly_order")),
                 key_rns=int(context_match.group("key_rns")),
                 current_rns=int(context_match.group("current_rns")),
-                max_rns=int(context_match.group("key_rns")) - 1,
+                max_rns=int(context_match.group("key_rns")),
             ),
             label=str(context_match.group("label")),
         )
