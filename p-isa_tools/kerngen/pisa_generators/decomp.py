@@ -4,7 +4,6 @@
 
 import itertools as it
 from dataclasses import dataclass
-from string import ascii_letters
 
 import high_parser.pisa_operations as pisa_op
 from high_parser import HighOp, Immediate, KernelContext, Polys
@@ -66,7 +65,7 @@ class DigitDecompExtend(HighOp):
             )
 
             output_tmp = Polys.from_polys(self.output)
-            output_tmp.name += "_" + ascii_letters[input_rns_index]
+            output_tmp.name += f"_{input_rns_index}"
             output_split = Polys.from_polys(self.output)
             output_split.rns = self.context.current_rns
             # ntt for 0-current_rns
