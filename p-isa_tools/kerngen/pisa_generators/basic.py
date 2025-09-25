@@ -6,7 +6,6 @@
 import itertools as it
 from collections.abc import Iterable
 from dataclasses import dataclass
-from string import ascii_letters
 from typing import ClassVar
 
 import high_parser.pisa_operations as pisa_op
@@ -69,14 +68,18 @@ class CartesianOp(HighOp):
         # Not the same number of parts
         first, second = (self.input0, self.input1) if self.input0.parts < self.input1.parts else (self.input1, self.input0)
 
+        # Preserve the ordering of the inputs (output = input0 op input1) to avoid issues with non-commutative ops (e.g. sub)
+        # For example input0 - input1 != input1 - input0
+        order_preserved = first == self.input0
+
         ls: list[PIsaOp] = []
         for unit, q in it.product(range(self.context.units), range(self.input0.start_rns, self.input0.rns)):
             ls.extend(
                 self.op(
                     self.context.label,
                     self.output(part, q, unit),
-                    first(part, q, unit),
-                    second(0, q, unit),
+                    first(part, q, unit) if order_preserved else second(0, q, unit),
+                    second(0, q, unit) if order_preserved else first(part, q, unit),
                     q,
                 )
                 for part in range(first.parts)
@@ -244,7 +247,7 @@ class KeyMul(HighOp):
         ls: list[pisa_op] = []
         for digit, op in get_pisa_op(self.input1.digits):
             input0_tmp = Polys.from_polys(self.input0)
-            input0_tmp.name += "_" + ascii_letters[digit]
+            input0_tmp.name += f"_{digit}"
 
             # mul/mac for 0-current_rns
             ls.extend(
