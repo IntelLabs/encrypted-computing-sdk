@@ -99,7 +99,6 @@ def get_optimal_loop_order(kernel, debug=False):
         kernel_name = str(kernel).split("(")[0].lower()
         polyorder = getattr(kernel.context, "poly_order", 16384)
         max_rns = getattr(kernel.context, "max_rns", 3)
-        print(max_rns)
         # Get optimal loop order from configuration
         primary_str, secondary_str = get_loop_order(scheme, kernel_name, polyorder, max_rns)
         # Map string values to LoopKey enum
