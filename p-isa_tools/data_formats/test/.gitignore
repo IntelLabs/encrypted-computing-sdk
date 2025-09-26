@@ -1,0 +1,3 @@
+#  test artifacts
+*.program_trace
+*.data_trace*

@@ -3,13 +3,14 @@
 
 #pragma once
 
+#include <nlohmann/json.hpp>
+#include <vector>
+
+#include "common/graph/graph.h"
+#include "common/p_isa/p_isa.h"
 #include "program_mapper/p_isa/tests/pisa_instruction_tests.h"
 #include "program_mapper/p_isa/tests/pisa_kernel_tests.h"
-#include <common/graph/graph.h>
-#include <common/p_isa/p_isa.h>
-#include <nlohmann/json.hpp>
-#include <program_mapper/poly_program/polyprogram.h>
-#include <vector>
+#include "program_mapper/poly_program/polyprogram.h"
 
 using json = nlohmann::json;
 namespace pisa::testgenerator {

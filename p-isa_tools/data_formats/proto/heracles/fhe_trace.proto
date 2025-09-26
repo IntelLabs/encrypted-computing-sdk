@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+import "common.proto";
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.EnumValueOptions {
+    optional string valuetype_name = 123456788;
+}
+package heracles.fhe_trace;
+
+// MAIN INTERFACE FOR BOTH CONSUMERs AND PRODUCERS
+// ROOT TYPE FOR SERIALIZATIONS
+//=================================
+
+// A sequence of instructions at an HE abstraction level.
+// - filename:  <some-user-chosen-prefix>"hec_trace.bin"
+message Trace {
+    // Sequence of HE instructions
+    repeated Instruction   instructions = 1;
+    heracles.common.Scheme scheme       = 2;
+    uint32                 N            = 3;  // poly modulus degree
+    uint32                 key_rns_num  = 4;
+    uint32                 q_size       = 5;  // n(Q)
+    uint32                 dnum         = 6;  // digit size
+    uint32                 alpha        = 7;  // ceil(n(Q)/dnum) Note: key_rns_num=n(Q) + n(P)
+}
+
+message Instruction {
+    string   op              = 1;
+    uint32   plaintext_index = 2;  // which plaintext algebra used, can be ignored for CKKS. Used as index into `plaintext_specific` field of `heracles.data.BGVSpecific` object inside `heracles.data.FHEContext`.
+    Operands args            = 3;  // inputs/outputs and additional params
+    string   evalop_name     = 4;  // (OpenFHE specific) Evaluator level call tracking, helps identifying what eval op invoked atomic ops
+}
+
+message Operands {
+    repeated OperandObject dests  = 1;
+    repeated OperandObject srcs   = 2;
+    map<string, Parameter> params = 3;
+}
+
+message Parameter {
+    string    value = 1;
+    ValueType type  = 2;
+}
+enum ValueType {
+    UINT32 = 0 [
+        (valuetype_name) = "UINT32"
+    ];
+    UINT64 = 1 [
+        (valuetype_name) = "UINT64"
+    ];
+    INT32 = 2 [
+        (valuetype_name) = "INT32"
+    ];
+    INT64 = 3 [
+        (valuetype_name) = "INT64"
+    ];
+    FLOAT = 4 [
+        (valuetype_name) = "FLOAT"
+    ];
+    DOUBLE = 5 [
+        (valuetype_name) = "DOUBLE"
+    ];
+    STRING = 6 [
+        (valuetype_name) = "STRING"
+    ];
+}
+
+message OperandObject {
+    string symbol_name = 1;
+    uint32 num_rns     = 2;  // size = curr_rns of dcrtpoly
+    uint32 order       = 3;  // typically 2 for ct/pt (can be 3), single DCRTPoly will always be 1
+}

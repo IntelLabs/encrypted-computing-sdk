@@ -209,6 +209,10 @@ void PolyOperation::setComponents(const heracles::fhe_trace::Instruction &instr_
             setGaloisElt(stoi(v.value()));
         if (k == "factor")
             setFactor(stoi(v.value()));
+        if (k == "operand")
+            // For muli operations, the operand is the immediate scalar value
+            // Store it as a parameter that will be used when generating the kernel
+            setParam({ k, { v.value(), ValueType::DOUBLE } });
     }
 }
 heracles::fhe_trace::Instruction *PolyOperation::getProtobuffFHETraceInstruction()
