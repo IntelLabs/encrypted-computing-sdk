@@ -50,8 +50,8 @@ def parse_args():
         "--target",
         nargs="*",
         default=[],
-        # Composition high ops such are ntt, mod, and relin are not currently supported
-        choices=["add", "sub", "mul", "muli", "copy", "ntt", "intt", "mod", "relin"],
+        # Composition high ops such are ntt, mod, etc.
+        choices=["add", "sub", "mul", "muli", "copy", "ntt", "intt", "mod", "relin", "rotate", "rescale"],
         help="List of high_op names",
     )
     parser.add_argument(
@@ -150,7 +150,7 @@ def process_kernel_with_reordering(kernel, args):
         if group.is_reorderable:
             interchanged_pisa = loop_interchange(group.pisa_list, primary_key=primary_key, secondary_key=secondary_key)
 
-            if ("mod" in args.target or "relin" in args.target) and (primary_key is not None and secondary_key is not None):
+            if ("mod" in args.target) and (primary_key is not None and secondary_key is not None):
                 for pisa in mixed_to_pisa_ops(interchanged_pisa):
                     processed_kernel.append(reuse_rns_label(pisa, kernel.context.current_rns))
             else:

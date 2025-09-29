@@ -79,6 +79,7 @@ class Rescale(HighOp):
                     input_remaining_rns,
                     last_q,
                 ),
+                Comment("<reorderable>"),
                 Muli(self.context, temp_input_remaining_rns, temp_input_remaining_rns, r2),
                 NTT(self.context, temp_input_remaining_rns, temp_input_remaining_rns),
                 Sub(
@@ -88,6 +89,6 @@ class Rescale(HighOp):
                     temp_input_remaining_rns,
                 ),
                 Muli(self.context, self.output, temp_input_remaining_rns, iq),
-                Comment("End of Rescale kernel."),
+                Comment("End of Rescale kernel </reorderable>"),
             ]
         )
