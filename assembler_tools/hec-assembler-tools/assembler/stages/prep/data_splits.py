@@ -261,11 +261,13 @@ class DataSplits:
             externals (List[Set[str]]): List of sets of external variable names for each split.
             new_inouts (List[Set[Tuple[int, int, str]]]): Optional list of sets of new input/output variable references for each split.
         """
+        print("split mem indo called ROCHA")
         mem_path = Path(mem_path)
         root, ext = mem_path.stem, mem_path.suffix
         long_spad: set[int] = set()
         long_vars: dict[str, tuple[int, set[int]]] = {}
         for idx, ext_vars in enumerate(externals):
+            print(f"  Split {idx}: {len(ext_vars)} external variables: {sorted(ext_vars)}")
             output_mem_fname = mem_path.parent / f"{root}_{idx}{ext}"
             with output_mem_fname.open("w", encoding="utf-8") as f:
                 new_spad_address = 0
@@ -442,9 +444,9 @@ class DataSplits:
             else:
                 ext_mem_usage, externals = self._get_external_mem_usage(t_split)
                 inouts_mem_usage, inouts = self._get_inout_mem_usage(t_set_ids, metaG, externals)
-                print(f"ROCHA {set_id} in sets {t_set_ids}")
-                for v in inouts:
-                    print(f"ROCHA {v} out refs {inouts[v]}")
+                # print(f"ROCHA {set_id} in sets {t_set_ids}")
+                # for v in inouts:
+                #    print(f"ROCHA {v} out refs {inouts[v]}")
                 t_refs = inouts
                 if (ext_mem_usage + inouts_mem_usage) > spad_limit:
                     t_refs.clear()
@@ -486,7 +488,6 @@ class DataSplits:
         externals: list[set[str]] = []
         total_instrs = sum(len(s) for s in final_splits) if final_splits else 0
         if total_instrs == graph.number_of_nodes():
-            """
             print("\n--- Final Splits Summary ---\n")
             for set_id, instr_set in enumerate(final_splits):
                 ext_mem_usage, exts = self._get_external_mem_usage(instr_set)
@@ -496,7 +497,7 @@ class DataSplits:
                     f"Instruction set {set_id:03d}: \t\tTotal Intructions: {len(instr_set):03d} - "
                     f"Total In/Outs/Commons: {ext_mem_usage} + {mem_usage} = {ext_mem_usage + mem_usage}"
                 )
-            """
+
             return final_splits, externals, inout_refs
         else:
             return None, None, None
