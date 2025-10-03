@@ -4,7 +4,6 @@
 """Preprocessing utilities for HERACLES assembler stages."""
 
 import networkx as nx
-
 from assembler.common.constants import Constants
 from assembler.instructions import xinst
 from assembler.instructions.xinst import parse_xntt
@@ -187,6 +186,7 @@ def assign_register_banks_to_vars(mem_model: MemoryModel, insts_list: list, use_
     """
     reduced_vars = set()
     needs_reduction = True
+
     while needs_reduction:
         # Extract the dependency graph for variables
         dep_graph_vars, dest_names, source_names = dependency_graph_for_vars(insts_list)
@@ -227,6 +227,16 @@ def ntt_kernel_grammar(line):
 def intt_kernel_grammar(line):
     """Parse INTT kernel grammar from a line."""
     return parse_xntt.parseXNTTKernelLine(line, xinst.iNTT.op_name_pisa, Constants.TW_GRAMMAR_SEPARATOR)
+
+
+def parse_pisa_kernel_from_lines(line_iter: str) -> list:
+    """Parse a P-ISA kernel line."""
+    parsed_ops = []
+    for line_no, s_line in enumerate(line_iter, 1):
+        op = xinst.getParsedOpFromPISALine(s_line, line_no)
+        if op:
+            parsed_ops.append(op)
+    return parsed_ops
 
 
 def preprocess_pisa_kernel_listing(mem_model: MemoryModel, line_iter, progress_verbose: bool = False) -> list:

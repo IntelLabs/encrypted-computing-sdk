@@ -299,26 +299,6 @@ class KernelInfo:
             raise TypeError("xinstrs must be a list.")
         self._xinstrs = value
 
-    @property
-    def first_vars_bank0(self) -> dict[str, str]:
-        """
-        @brief Returns the mapping of first variables loaded into bank 0.
-
-        @return dict: The mapping of variable names to registers.
-        """
-        return self._first_vars_bank0
-
-    @first_vars_bank0.setter
-    def first_vars_bank0(self, value: dict[str, str]):
-        """
-        @brief Sets the mapping of first variables loaded into bank 0.
-
-        @param value: The mapping of variable names to registers to set.
-        """
-        if not isinstance(value, dict):
-            raise TypeError("first_vars_bank0 must be a dict.")
-        self._first_vars_bank0 = value
-
     def _fill_minstrs_map(self):
         """
         @brief Fills _minstrs_map with MinstrMapEntry for each instruction in _minstrs.

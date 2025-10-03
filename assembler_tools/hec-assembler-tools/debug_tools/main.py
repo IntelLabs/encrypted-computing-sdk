@@ -9,7 +9,7 @@ import argparse
 from assembler.common import constants
 from assembler.common.config import GlobalConfig
 from assembler.instructions import xinst
-from assembler.stages import preprocessor
+from assembler.stages.prep import preprocessor
 from assembler.stages import scheduler
 from assembler.stages.scheduler import schedulePISAInstructions
 from assembler.stages.asm_scheduler import scheduleASMISAInstructions
