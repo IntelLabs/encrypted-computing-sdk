@@ -1,6 +1,12 @@
 // Copyright (C) 2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+/*
+ * Contributors to program_mapper that are not reflected in the Git history
+ * (sorted by last name): Jeremy Bottleson, Jack Crawford, Sejun Kim,
+ * Hamish Hunt, Kylan Race, and Wen Wang.
+ */
+
 #include <algorithm>
 #include <filesystem>
 #include <fstream>

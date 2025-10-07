@@ -3,7 +3,14 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-"""Module for generating p-isa kernels"""
+"""
+Module for generating p-isa kernels
+
+Contributors to kerngen that are not reflected in the Git history
+(sorted by lastname): Rashmi Agrawal, Suvadeep Banerjee,Charlotte Bonte,
+Hamish Hunt, Duhyeon Kim, Yujin Nam, Sejun Kim, Michael Steiner, Kylan Race,
+Adish Vartak, Alexander Viand, Wen Wang, and Chris Wilkerson.
+"""
 
 import argparse
 import sys
