@@ -32,11 +32,12 @@ import os
 import time
 
 from assembler.common import constants
+from assembler.common.config import GlobalConfig
 from assembler.memory_model import MemoryModel
 from assembler.spec_config.isa_spec import ISASpecConfig
 from assembler.spec_config.mem_spec import MemSpecConfig
 from assembler.stages.prep import preprocessor
-from assembler.stages.prep.data_splits import DataSplits
+from assembler.stages.prep.kernel_splitter import KernelSplitter
 
 
 def save_pisa_listing(out_stream, instr_listing: list):
@@ -74,6 +75,7 @@ def _preprocess_and_save(insts, output_file_name: str, b_verbose: bool) -> tuple
         print("Assigning register banks to variables...")
     preprocessor.assign_register_banks_to_vars(hec_mem_model, insts_listing, use_bank0=False, verbose=b_verbose)
     elapsed = time.time() - start_time
+
     if b_verbose:
         print("Saving...")
     with open(output_file_name, "w", encoding="utf-8") as outnum:
@@ -96,61 +98,58 @@ def main(args):
             - mem_file
             - verbose
     """
+    # used for timings
+    insts_end: float = 0.0
+
+    start_time = time.time()
+    hec_mem_model = MemoryModel(
+        constants.MemoryModel.HBM.MAX_CAPACITY_WORDS,
+        constants.MemoryModel.SPAD.MAX_CAPACITY_WORDS,
+        constants.MemoryModel.NUM_REGISTER_BANKS,
+    )
+
+    insts_listing = []
+    start_time = time.time()
+    # read input kernel and pre-process P-ISA:
+    # resulting instructions will be correctly transformed and ready to be converted into ASM-ISA instructions;
+    # variables used in the kernel will be automatically assigned to banks.
+    with open(args.input_file_name, encoding="utf-8") as insts:
+        insts_listing = preprocessor.preprocess_pisa_kernel_listing(hec_mem_model, insts)
+    num_input_instr: int = len(insts_listing)  # track number of instructions in input kernel
+    if args.verbose > 0:
+        print("Assigning register banks to variables...")
+    preprocessor.assign_register_banks_to_vars(hec_mem_model, insts_listing, use_bank0=False)
+
+    # Determine output file name
+    if not args.output_file_name:
+        root, ext = os.path.splitext(args.input_file_name)
+        args.output_file_name = root + ".tw" + ext
+
     sub_kernels: list[tuple[list[int], str]] = []
     if args.split_on:
-        print("Parsing instructions...")
-        with open(args.input_file_name, encoding="utf-8") as insts:
-            insts_listing = preprocessor.parse_pisa_kernel_from_lines(insts)
-        print("Parsed instructions, building dependency graphs...")
-        mem_info = DataSplits()
-        dinstrs = mem_info.load_mem_file(args.mem_file)
-        instrs_graphs = mem_info.build_instrs_dependency_graph(insts_listing)
-        print("Built dependency graphs.")
-        instr_sets, externals = mem_info.get_isolated_instrs_splits(instrs_graphs, insts_listing, 4000, 1000)
-        new_inouts = None
-        if instr_sets is None:
-            instr_sets, externals, new_inouts = mem_info.get_community_instrs_splits(instrs_graphs, insts_listing, 4000, 1000)
-            if instr_sets is None:
-                raise RuntimeError("Could not split instructions into sets that fit memory constraints.")
-
-        if not args.output_file_name:
-            root, ext = os.path.splitext(args.input_file_name)
-            middle = ".tw"
-        else:
-            root, ext = os.path.splitext(args.output_file_name)
-            middle = ""
-
-        mem_info.split_mem_info(args.mem_file, dinstrs, externals, new_inouts)
-
-        print(f"Generated {len(instr_sets)} sub-kernels. Externals per sub-kernel: {[len(e) for e in externals]}")
-        for inst_idx, instr_set in enumerate(instr_sets):
-            output_file_name = root + f"{middle}_{inst_idx}" + ext
-            # output_mem_fname = mem_root + f"_{inst_idx}" + mem_ext
-            # if new_inouts:
-            #    mem_info.write_mem_file(output_mem_fname, dinstrs, externals[inst_idx], new_inouts[inst_idx])
-            # else:
-            #    mem_info.write_mem_file(output_mem_fname, dinstrs, externals[inst_idx])
-
-            lines: list[int] = []
-            for idx in sorted(instr_set):
-                line = mem_info.to_raw_pisa_format(insts_listing[idx])
-                lines.append(line)
-            sub_kernels.append((lines, output_file_name))
-
+        kern_splitter = KernelSplitter()
+        split_entries = kern_splitter.prepare_instruction_splits(args, insts_listing)
+        sub_kernels.extend(split_entries)
     else:
-        if not args.output_file_name:
-            root, ext = os.path.splitext(args.input_file_name)
-            output_file_name = root + ".tw" + ext
-        else:
-            output_file_name = args.output_file_name
+        sub_kernels.append((insts_listing, args.output_file_name))
 
-        lines: list[int] = []
-        with open(args.input_file_name, encoding="utf-8") as insts:
-            lines = insts.readlines()
-        sub_kernels.append((lines, output_file_name))
+    insts_end = time.time() - start_time
 
+    if args.verbose > 0:
+        print(f"\nInstructions in input: {num_input_instr}")
+
+    # Write sub-kernels
+    if args.verbose > 0:
+        print("\tSaving...")
     for insts, out_file in sub_kernels:
-        _preprocess_and_save(insts, out_file, (args.verbose > 1))
+        with open(out_file, "w", encoding="utf-8") as out_split:
+            save_pisa_listing(out_split, insts)
+        if args.verbose > 0:
+            print(f"\tOutput: {out_file}")
+            print(f"\tInstructions in output: {len(insts)}")
+
+    if args.verbose > 0:
+        print(f"--- Generation time: {insts_end} seconds ---")
 
 
 def parse_args():
@@ -197,6 +196,20 @@ def parse_args():
         help=("Input Mem file (.mem) file."),
     )
     parser.add_argument(
+        "--split_vars_limit",
+        type=float,
+        default=float("inf"),
+        dest="split_vars_limit",
+        help="Maximum variable footprint allowed when splitting.",
+    )
+    parser.add_argument(
+        "--split_inst_limit",
+        type=float,
+        default=float("inf"),
+        dest="split_inst_limit",
+        help="Maximum instructions per split when splitting.",
+    )
+    parser.add_argument(
         "--split_on",
         default="",
         action="store_true",
@@ -215,7 +228,7 @@ def parse_args():
         ),
     )
     p_args = parser.parse_args()
-
+    p_args.split_on = bool(p_args.split_inst_limit != float("inf") or p_args.split_vars_limit != float("inf"))
     return p_args
 
 
@@ -228,6 +241,7 @@ if __name__ == "__main__":
     args.isa_spec_file = ISASpecConfig.initialize_isa_spec(module_dir, args.isa_spec_file)
     args.mem_spec_file = MemSpecConfig.initialize_mem_spec(module_dir, args.mem_spec_file)
 
+    GlobalConfig.debugVerbose = args.verbose
     if args.verbose > 0:
         print(module_name)
         print()
@@ -236,6 +250,8 @@ if __name__ == "__main__":
         print(f"Mem File: {args.mem_file}")
         print(f"ISA Spec: {args.isa_spec_file}")
         print(f"Mem Spec: {args.mem_spec_file}")
+        print(f"Split Inst Limit: {args.split_inst_limit}")
+        print(f"Split Vars Limit: {args.split_vars_limit}")
         print(f"Split On: {args.split_on}")
 
     main(args)

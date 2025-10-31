@@ -4,6 +4,7 @@
 """Preprocessing utilities for HERACLES assembler stages."""
 
 import networkx as nx
+from assembler.common.config import GlobalConfig
 from assembler.common.constants import Constants
 from assembler.instructions import xinst
 from assembler.instructions.xinst import parse_xntt
@@ -149,7 +150,7 @@ def reduce_var_deps_by_var(mem_model: MemoryModel, insts_list: list, var_name: s
         last_pos += 1
 
 
-def assign_register_banks_to_vars(mem_model: MemoryModel, insts_list: list, use_bank0: bool, verbose=False) -> str:
+def assign_register_banks_to_vars(mem_model: MemoryModel, insts_list: list, use_bank0: bool) -> str:
     """
     Assigns register banks to variables using vertex coloring graph algorithm.
 
@@ -186,6 +187,7 @@ def assign_register_banks_to_vars(mem_model: MemoryModel, insts_list: list, use_
     """
     reduced_vars = set()
     needs_reduction = True
+    verbose_logs = GlobalConfig.debugVerbose > 1
 
     while needs_reduction:
         # Extract the dependency graph for variables
@@ -198,8 +200,7 @@ def assign_register_banks_to_vars(mem_model: MemoryModel, insts_list: list, use_
             if bank > 2:
                 if var_name in reduced_vars:
                     raise RuntimeError(f"Found invalid bank {bank} > 2 for variable {var_name} already reduced.")
-                # DEBUG print
-                if verbose:
+                if verbose_logs:
                     print(f"Variable {var_name} ({bank}) requires reduction.")
                 reduce_var_deps_by_var(mem_model, insts_list, var_name)
                 reduced_vars.add(var_name)  # Track reduced variable
@@ -239,7 +240,7 @@ def parse_pisa_kernel_from_lines(line_iter: str) -> list:
     return parsed_ops
 
 
-def preprocess_pisa_kernel_listing(mem_model: MemoryModel, line_iter, progress_verbose: bool = False) -> list:
+def preprocess_pisa_kernel_listing(mem_model: MemoryModel, line_iter) -> list:
     """
     Parses a P-ISA kernel listing, given as an iterator for strings, where each is
     a line representing a P-ISA instruction.
@@ -248,13 +249,13 @@ def preprocess_pisa_kernel_listing(mem_model: MemoryModel, line_iter, progress_v
 
     Variables in `mem_model` associated with the output will have assigned banks automatically.
 
+    The global verbosity level is controlled via GlobalConfig.debugVerbose.
+
     Parameters:
         mem_model (MemoryModel): The MemoryModel object, where all variables are kept. Variables parsed from the
                                  input string will be automatically added to the memory model if they do not already
                                  exist. The represented object may be modified if addition is needed.
         line_iter (iterator): Iterator of strings where each is a line of the P-ISA kernel instruction listing.
-        progress_verbose (bool, optional): Specifies whether to output progress every hundred lines processed to stdout.
-                                           Defaults to False.
 
     Returns:
         list: A list of `BaseInstruction`s where each object represents
@@ -265,7 +266,7 @@ def preprocess_pisa_kernel_listing(mem_model: MemoryModel, line_iter, progress_v
               assigned bank in `suggested_bank` attribute.
     """
     retval: list = []
-
+    progress_verbose = GlobalConfig.debugVerbose > 2
     if progress_verbose:
         print("0")
     num_input_insts = 0
