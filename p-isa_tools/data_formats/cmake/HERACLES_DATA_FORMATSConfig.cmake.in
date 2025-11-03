@@ -1,0 +1,25 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+include(${CMAKE_CURRENT_LIST_DIR}/HERACLES_DATA_FORMATSTargets.cmake)
+
+if(TARGET HERACLES_DATA_FORMATS::heracles_data_formats)
+  set(HERACLES_DATA_FORMATS_FOUND TRUE)
+  message(STATUS "Heracles Data Formats Library found")
+else()
+  message(STATUS "Heracles Data Formats Library not found")
+endif()
+
+# Requirement for protobuf
+find_package(ZLIB REQUIRED)
+
+set(HERACLES_DATA_FORMATS_VERSION "@HERACLES_DATA_FORMATS_VERSION")
+set(HERACLES_DATA_FORMATS_VERSION_MAJOR "@HERACLES_DATA_FORMATS_VERSION_MAJOR")
+set(HERACLES_DATA_FORMATS_VERSION_MINOR "@HERACLES_DATA_FORMATS_VERSION")
+set(HERACLES_DATA_FORMATS_VERSION_PATCH "@HERACLES_DATA_FORMATS_VERSION")
+
+set(HERACLES_DATA_FORMATS_DEBUG "@HERACLES_DATA_FORMATS_DEBUG")
