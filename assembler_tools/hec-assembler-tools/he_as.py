@@ -23,6 +23,11 @@ Usage:
     This script is intended to be run as a standalone program. It requires specific command-line arguments
     to specify input and output files and configuration options for the assembly process.
 
+Contributors to the assembler that are not reflected in the Git history
+(sorted by last name): Avinash Alevoor, Rashmi Agrawal, Suvadeep Banerje,
+Flavio Bergamaschi, Jeremy Bottleson, Jack Crawford, Hamish Hunt,
+Michael Steiner, Kylan Race, Ernesto Zamora Ramos, Jose Rojas, Adish Vartak
+Wen Wang, Chris Wilkerson, and Minxuan Zhou.
 """
 
 import argparse
