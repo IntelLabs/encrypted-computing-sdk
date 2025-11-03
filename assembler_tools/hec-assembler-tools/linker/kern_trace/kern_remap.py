@@ -8,9 +8,10 @@
 
 import re
 
+from assembler.common.dinst.dinstruction import DInstruction
+
 from linker.instructions import cinst, minst, xinst
 from linker.instructions.cinst.cinstruction import CInstruction
-from linker.instructions.dinst.dinstruction import DInstruction
 from linker.instructions.minst.minstruction import MInstruction
 from linker.instructions.xinst.xinstruction import XInstruction
 from linker.kern_trace.kernel_op import KernelOp

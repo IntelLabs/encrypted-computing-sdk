@@ -13,9 +13,10 @@ import unittest
 from unittest.mock import MagicMock, call, mock_open, patch
 
 import pytest
+from assembler.common import dinst
 from assembler.common.config import GlobalConfig
 from linker import MemoryModel
-from linker.instructions import cinst, dinst, minst
+from linker.instructions import cinst, minst
 from linker.kern_trace import InstrAct
 from linker.steps.program_linker import LinkedProgram
 

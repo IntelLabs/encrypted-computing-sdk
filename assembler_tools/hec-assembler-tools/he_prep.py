@@ -98,6 +98,9 @@ def main(args):
             - mem_file
             - verbose
     """
+
+    GlobalConfig.debugVerbose = args.verbose
+
     # used for timings
     insts_end: float = 0.0
 
@@ -229,6 +232,9 @@ def parse_args():
     )
     p_args = parser.parse_args()
     p_args.split_on = bool(p_args.split_inst_limit != float("inf") or p_args.split_vars_limit != float("inf"))
+    if p_args.split_on:
+        assert p_args.mem_file, "--mem_file must be specified when --split_on is used."
+
     return p_args
 
 
@@ -241,7 +247,6 @@ if __name__ == "__main__":
     args.isa_spec_file = ISASpecConfig.initialize_isa_spec(module_dir, args.isa_spec_file)
     args.mem_spec_file = MemSpecConfig.initialize_mem_spec(module_dir, args.mem_spec_file)
 
-    GlobalConfig.debugVerbose = args.verbose
     if args.verbose > 0:
         print(module_name)
         print()

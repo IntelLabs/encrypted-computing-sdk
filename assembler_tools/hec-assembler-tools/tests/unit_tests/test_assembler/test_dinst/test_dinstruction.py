@@ -11,7 +11,7 @@ serves as the base for all data instructions.
 import unittest
 from unittest.mock import MagicMock, patch
 
-from linker.instructions.dinst.dinstruction import DInstruction
+from assembler.common.dinst.dinstruction import DInstruction
 
 
 class TestDInstruction(unittest.TestCase):
@@ -28,7 +28,7 @@ class TestDInstruction(unittest.TestCase):
         self.mock_miv.as_dict.return_value = {"var_name": "var1", "hbm_address": 123}
 
         # Patch the MemInfo.get_meminfo_var_from_tokens method
-        self.mem_info_patcher = patch("linker.instructions.dinst.dinstruction.MemInfo.get_meminfo_var_from_tokens")
+        self.mem_info_patcher = patch("assembler.common.dinst.dinstruction.MemInfo.get_meminfo_var_from_tokens")
         self.mock_get_meminfo = self.mem_info_patcher.start()
         self.mock_get_meminfo.return_value = (self.mock_miv, 1)
 

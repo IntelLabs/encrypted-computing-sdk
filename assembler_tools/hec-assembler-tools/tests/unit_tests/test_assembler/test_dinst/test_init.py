@@ -11,7 +11,7 @@ data instructions.
 import unittest
 from unittest.mock import MagicMock, patch
 
-from linker.instructions.dinst import DKeyGen, DLoad, DStore, create_from_mem_line, factory
+from assembler.common.dinst import DKeyGen, DLoad, DStore, create_from_mem_line, factory
 
 
 class TestDInstModule(unittest.TestCase):

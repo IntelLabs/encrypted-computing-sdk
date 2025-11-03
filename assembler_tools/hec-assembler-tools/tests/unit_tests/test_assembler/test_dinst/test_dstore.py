@@ -11,8 +11,8 @@ responsible for storing data to memory locations.
 import unittest
 from unittest.mock import patch
 
+from assembler.common.dinst.dstore import Instruction
 from assembler.memory_model.mem_info import MemInfo
-from linker.instructions.dinst.dstore import Instruction
 
 
 class TestDStoreInstruction(unittest.TestCase):
@@ -102,7 +102,7 @@ class TestDStoreInstruction(unittest.TestCase):
         self.assertEqual(inst_with_extra.tokens, expected_tokens)
 
     @patch(
-        "linker.instructions.dinst.dinstruction.DInstruction.__init__",
+        "assembler.common.dinst.dinstruction.DInstruction.__init__",
         return_value=None,
     )
     def test_inheritance(self, mock_init):

@@ -8,13 +8,14 @@
 
 from typing import Any, cast
 
+from assembler.common import dinst
 from assembler.common.config import GlobalConfig
+from assembler.common.dinst.dinstruction import DInstruction
 from assembler.instructions import cinst as ISACInst
 
 import linker.kern_trace.kern_remap as kern_mapper
 from linker import MemoryModel
-from linker.instructions import cinst, dinst, minst, xinst
-from linker.instructions.dinst.dinstruction import DInstruction
+from linker.instructions import cinst, minst, xinst
 from linker.kern_trace import InstrAct, KernelInfo
 from linker.kern_trace.kernel_info import CinstrMapEntry
 from linker.loader import Loader

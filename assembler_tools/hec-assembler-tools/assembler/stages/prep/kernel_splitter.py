@@ -31,10 +31,10 @@ from typing import TypeAlias
 
 import networkx as nx
 from assembler.common.config import GlobalConfig as Cfg
+from assembler.common.dinst import DLoad, DStore, create_from_mem_line
+from assembler.common.dinst.dinstruction import DInstruction
 from assembler.instructions.xinst import NTT, Maci, iNTT, irShuffle, rShuffle, twiNTT, twNTT
 from assembler.memory_model.variable import Variable
-from linker.instructions.dinst import DLoad, DStore, create_from_mem_line
-from linker.instructions.dinst.dinstruction import DInstruction
 
 # Dict (var_name, producer_instr) -> Dict (consumer_set_id -> Set(consumer_instrs))
 OutRefsMap: TypeAlias = dict[tuple[str, int], dict[int, set[int]]]
