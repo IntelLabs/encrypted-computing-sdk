@@ -15,26 +15,28 @@ version = "0.1.0"
 description = "Encrypted Computing SDK"
 requires-python = ">=3.10"
 dependencies = [
-    "protobuf==4.23.4",
+    "protobuf==4.25.8",
     "regex-spm",
     "numpy",
-]
+    ]
 
 [project.optional-dependencies]
 dev = [
     "grpcio-tools==1.56.2",  # needed for compiling protos from python directly
     "pytest>=7.4.0",
-    "pre-commit>=3.5.0",
+    "pre-commit>=4.3.0",
     # pre-commit installs its own version of the tools below,
     # but it is convenient to have them locally, too
-    "ruff>=0.8.0",
-    "mypy==1.17.0",
+    "ruff>=0.14.2",
+    "mypy==1.17.1",
     "cpplint>=1.6.0",
     "pydantic>=2.0.0",
     # Enables "doxygen" for python
     "doxypypy>=0.8.8.7",
     # For requirements generation
-    "pip-tools>=7.0.0",
+    "pip-tools>=7.5.1",
+    # Dependabot
+    "virtualenv>=20.35.3",
 ]
 
 [tool.ruff]
