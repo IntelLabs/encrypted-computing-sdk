@@ -15,7 +15,7 @@ version = "0.1.0"
 description = "Encrypted Computing SDK"
 requires-python = ">=3.10"
 dependencies = [
-    "protobuf==4.23.4",
+    "protobuf==4.25.8",
     "regex-spm",
     "numpy",
 ]
