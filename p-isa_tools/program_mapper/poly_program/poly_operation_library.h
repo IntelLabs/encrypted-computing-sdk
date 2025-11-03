@@ -13,6 +13,7 @@ static std::map<std::string, PolyOperationDesc> core_operation_library = {
     { "sub", library::core::Sub },
     { "mul", library::core::Mul },
     { "mul_plain", library::core::Mul },
+    { "muli", library::core::Muli }, // Multiply immediate (scalar multiplication)
     { "square", library::core::Square },
     { "ntt", library::core::Ntt },
     { "intt", library::core::Intt },
