@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.EnumValueOptions {
+    optional string string_name = 123456789;
+}
+
+package heracles.common;
+
+enum Scheme {
+    SCHEME_UNSPECIFIED = 0;
+    SCHEME_BGV         = 1 [
+        (string_name) = "bgv"
+    ];
+    SCHEME_BFV = 2 [
+        (string_name) = "bfv"
+    ];
+    SCHEME_CKKS = 3 [
+        (string_name) = "ckks"
+    ];
+    // Specific for OpenFHE_CKKS : To be merged with ckks after
+    SCHEME_OPENFHE_CKKS = 4 [
+        (string_name) = "openfhe_ckks"
+    ];
+}
