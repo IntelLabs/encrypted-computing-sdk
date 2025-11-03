@@ -40,6 +40,19 @@ static const PolyOperationDesc Sub("sub", { OP_NAME, FHE_SCHEME, POLYMOD_DEG_LOG
  * */
 static const PolyOperationDesc Mul("mul", { OP_NAME, FHE_SCHEME, POLYMOD_DEG_LOG2, KEY_RNS, OUTPUT_ARGUMENT, INPUT_ARGUMENT, INPUT_ARGUMENT });
 
+/** \brief PolyOperation multiply immediate (scalar multiplication) PolyOperationDesc
+ *   Op name: muli
+ *  | Param | description |
+ *  | ----- | ----------- |
+ *  | FHE_SCHEME   | specifies the FHE_SCHEME of the poly operation |
+ *  | POLYMOD_DEG_LOG2   | Specifies the modulus degree of the input polynomials |
+ *  | KEY_RNS   | Specifies number of RNS key values |
+ *  | OUTPUT_ARGUMENT   | Destination ciphertext |
+ *  | INPUT_ARGUMENT   | Input ciphertext label |
+ *  | PARAM   | Immediate/scalar value |
+ * */
+static const PolyOperationDesc Muli("muli", { OP_NAME, FHE_SCHEME, POLYMOD_DEG_LOG2, KEY_RNS, OUTPUT_ARGUMENT, INPUT_ARGUMENT, PARAM });
+
 /** \brief PolyOperation Square PolyOperationDesc
  *   Adds two polynomials with specified specified polymodulus degree, RNS terms, and polynomial parts and writes the result to the specified output.
  *  | Param | description |

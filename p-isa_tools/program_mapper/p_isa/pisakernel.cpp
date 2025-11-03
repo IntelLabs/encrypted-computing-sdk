@@ -62,6 +62,24 @@ inline std::string genKernInput(const pisa::poly::PolyOperation &op)
               << " " << inputs[i].num_of_polynomials << "\n";
     }
 
+    // For muli operations, add the immediate value as an additional DATA input
+    bool has_immediate = false;
+    if (op.Name() == "muli")
+    {
+        // Check if we have an operand parameter (immediate value)
+        try
+        {
+            op.getParam("operand");
+            // Add immediate value as input1 with 1 polynomial (scalar)
+            input << "DATA input" << op.numInputOperands() << " 1\n";
+            has_immediate = true;
+        }
+        catch (...)
+        {
+            // No operand parameter, treat as regular operation
+        }
+    }
+
     // OP
     input << std::uppercase << op.Name() << std::nouppercase;
     for (int i = 0; i < op.numOutputOperands(); ++i)
@@ -73,6 +91,11 @@ inline std::string genKernInput(const pisa::poly::PolyOperation &op)
     {
         input << " "
               << "input" << i /*inputs[i].register_name*/;
+    }
+    // For muli, add the immediate as the second input
+    if (has_immediate)
+    {
+        input << " input" << op.numInputOperands();
     }
 
     return input.str();

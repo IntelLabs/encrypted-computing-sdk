@@ -45,15 +45,3 @@ if (NOT snap_POPULATED)
     include_directories(${snap_SOURCE_DIR}/snap-core ${snap_SOURCE_DIR}/glib-core)
     message(STATUS "Finished building SNAP")
 endif()
-
-if(ENABLE_DATA_FORMATS)
-    find_package(HERACLES_DATA_FORMATS CONFIG)
-    if(NOT HERACLES_DATA_FORMATS_FOUND)
-        FetchContent_Declare(
-            heracles_data_formats
-            GIT_REPOSITORY git@github.com:IntelLabs/HERACLES-data-formats.git
-            GIT_TAG main
-        )
-        FetchContent_MakeAvailable(heracles_data_formats)
-    endif()
-endif()
