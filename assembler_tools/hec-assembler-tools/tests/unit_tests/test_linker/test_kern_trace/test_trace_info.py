@@ -14,61 +14,7 @@ from unittest.mock import mock_open, patch
 import pytest
 from linker.kern_trace.context_config import ContextConfig
 from linker.kern_trace.kernel_op import KernelOp
-from linker.kern_trace.trace_info import KernelInfo, TraceInfo
-
-
-class TestKernelInfo:
-    """
-    @class TestKernelInfo
-    @brief Test cases for the KernelInfo class
-    """
-
-    def test_kernel_files_creation(self):
-        """
-        @brief Test KernelInfo creation and attribute access
-        """
-        # Act
-        kernel_files = KernelInfo(
-            {
-                "directory": "/tmp/dir",
-                "prefix": "prefix",
-                "minst": "prefix.minst",
-                "cinst": "prefix.cinst",
-                "xinst": "prefix.xinst",
-                "mem": "prefix.mem",
-            }
-        )
-
-        # Assert
-        assert kernel_files.directory == "/tmp/dir"
-        assert kernel_files.prefix == "prefix"
-        assert kernel_files.minst == "prefix.minst"
-        assert kernel_files.cinst == "prefix.cinst"
-        assert kernel_files.xinst == "prefix.xinst"
-        assert kernel_files.mem == "prefix.mem"
-
-    def test_kernel_files_without_mem(self):
-        """
-        @brief Test KernelInfo creation without mem file
-        """
-        # Act
-        kernel_files = KernelInfo(
-            {
-                "directory": "/tmp/dir",
-                "prefix": "prefix",
-                "minst": "prefix.minst",
-                "cinst": "prefix.cinst",
-                "xinst": "prefix.xinst",
-            }
-        )
-
-        # Assert
-        assert kernel_files.directory == "/tmp/dir"
-        assert kernel_files.prefix == "prefix"
-        assert kernel_files.minst == "prefix.minst"
-        assert kernel_files.cinst == "prefix.cinst"
-        assert kernel_files.xinst == "prefix.xinst"
-        assert kernel_files.mem is None
+from linker.kern_trace.trace_info import TraceInfo
 
 
 class TestTraceInfo:
@@ -257,7 +203,10 @@ class TestTraceInfo:
         trace_file = "/path/to/empty_trace.txt"
 
         # Act
-        with patch("os.path.isfile", return_value=True), patch("builtins.open", mock_open(read_data="")):
+        with (
+            patch("os.path.isfile", return_value=True),
+            patch("builtins.open", mock_open(read_data="")),
+        ):
             trace_info = TraceInfo(trace_file)
             result = trace_info.parse_kernel_ops()
 

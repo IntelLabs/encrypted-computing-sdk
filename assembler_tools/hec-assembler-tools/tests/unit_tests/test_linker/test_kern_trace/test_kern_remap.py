@@ -12,9 +12,9 @@
 from unittest.mock import MagicMock
 
 import pytest
-from linker.instructions.cinst import BLoad, BOnes, CLoad, CStore, NLoad
+from linker.instructions.cinst import CLoad, CStore
 from linker.instructions.minst import MLoad, MStore
-from linker.kern_trace.kern_remap import remap_dinstrs_vars, remap_m_c_instrs_vars
+from linker.kern_trace.kern_remap import remap_cinstrs_vars_hbm, remap_dinstrs_vars, remap_m_c_instrs_vars
 from linker.kern_trace.kern_var import KernVar
 from linker.kern_trace.kernel_op import KernelOp
 
@@ -213,17 +213,17 @@ class TestRemapMCInstrsVars:
         """
         # Arrange
         mock_instr = MagicMock(spec=MLoad)
-        mock_instr.source = "old_source"
+        mock_instr.var_name = "old_source"
         mock_instr.comment = ""
 
         kernel_instrs = [mock_instr]
-        remap_dict = self._create_remap_dict()
+        hbm_remap_dict = self._create_remap_dict()
 
         # Act
-        remap_m_c_instrs_vars(kernel_instrs, remap_dict)
+        remap_m_c_instrs_vars(kernel_instrs, hbm_remap_dict)
 
         # Assert
-        assert mock_instr.source == "new_source"
+        assert mock_instr.var_name == "new_source"
 
     def test_remap_m_store_instructions(self):
         """
@@ -231,40 +231,37 @@ class TestRemapMCInstrsVars:
         """
         # Arrange
         mock_instr = MagicMock(spec=MStore)
-        mock_instr.dest = "old_dest"
+        mock_instr.var_name = "old_dest"
         mock_instr.comment = "Store old_dest"
 
         kernel_instrs = [mock_instr]
-        remap_dict = self._create_remap_dict()
+        hbm_remap_dict = self._create_remap_dict()
 
         # Act
-        remap_m_c_instrs_vars(kernel_instrs, remap_dict)
+        remap_m_c_instrs_vars(kernel_instrs, hbm_remap_dict)
 
         # Assert
-        assert mock_instr.dest == "new_dest"
+        assert mock_instr.var_name == "new_dest"
+        assert mock_instr.comment == "Store new_dest"
 
     def test_remap_c_load_instructions(self):
         """
         @brief Test remapping variables in CLoad, BLoad, BOnes, and NLoad instructions
         """
         # Arrange
-        c_instrs = []
+        mock_instr = MagicMock(spec=CLoad)
+        mock_instr.var_name = "old_source"
+        mock_instr.comment = "old_source"
 
-        # Create mock instructions of each type
-        for instr_class in [CLoad, BLoad, BOnes, NLoad]:
-            mock_instr = MagicMock(spec=instr_class)
-            mock_instr.source = "old_source"
-            mock_instr.comment = ""
-            c_instrs.append(mock_instr)
-
-        remap_dict = self._create_remap_dict()
+        kernel_instrs = [mock_instr]
+        hbm_remap_dict = self._create_remap_dict()
 
         # Act
-        remap_m_c_instrs_vars(c_instrs, remap_dict)
+        remap_m_c_instrs_vars(kernel_instrs, hbm_remap_dict)
 
         # Assert
-        for instr in c_instrs:
-            assert instr.source == "new_source"
+        assert mock_instr.var_name == "new_source"
+        assert mock_instr.comment == "new_source"
 
     def test_remap_c_store_instructions(self):
         """
@@ -272,17 +269,17 @@ class TestRemapMCInstrsVars:
         """
         # Arrange
         mock_instr = MagicMock(spec=CStore)
-        mock_instr.dest = "old_dest"
+        mock_instr.var_name = "old_dest"
         mock_instr.comment = "Store old_dest"
 
         kernel_instrs = [mock_instr]
-        remap_dict = self._create_remap_dict()
+        hbm_remap_dict = self._create_remap_dict()
 
         # Act
-        remap_m_c_instrs_vars(kernel_instrs, remap_dict)
+        remap_m_c_instrs_vars(kernel_instrs, hbm_remap_dict)
 
         # Assert
-        assert mock_instr.dest == "new_dest"
+        assert mock_instr.var_name == "new_dest"
 
     def test_skip_unmapped_variables(self):
         """
@@ -290,20 +287,22 @@ class TestRemapMCInstrsVars:
         """
         # Arrange
         mock_load = MagicMock(spec=MLoad)
-        mock_load.source = "unmapped_source"
+        mock_load.var_name = "unmapped_source"
+        mock_load.comment = "Load unmapped_source"
 
         mock_store = MagicMock(spec=MStore)
-        mock_store.dest = "unmapped_dest"
+        mock_store.var_name = "unmapped_dest"
+        mock_store.comment = ""
 
         kernel_instrs = [mock_load, mock_store]
-        remap_dict = self._create_remap_dict()
+        hbm_remap_dict = self._create_remap_dict()
 
         # Act
-        remap_m_c_instrs_vars(kernel_instrs, remap_dict)
+        remap_m_c_instrs_vars(kernel_instrs, hbm_remap_dict)
 
         # Assert
-        assert mock_load.source == "unmapped_source"  # Unchanged
-        assert mock_store.dest == "unmapped_dest"  # Unchanged
+        assert mock_load.var_name == "unmapped_source"  # Unchanged
+        assert mock_store.var_name == "unmapped_dest"  # Unchanged
 
     def test_empty_remap_dict(self):
         """
@@ -311,16 +310,16 @@ class TestRemapMCInstrsVars:
         """
         # Arrange
         mock_instr = MagicMock(spec=MLoad)
-        mock_instr.source = "source"
+        mock_instr.var_name = "source"
 
         kernel_instrs = [mock_instr]
-        remap_dict = {}  # Empty dict
+        hbm_remap_dict = {}  # Empty dict
 
         # Act
-        remap_m_c_instrs_vars(kernel_instrs, remap_dict)
+        remap_m_c_instrs_vars(kernel_instrs, hbm_remap_dict)
 
         # Assert
-        assert mock_instr.source == "source"  # Unchanged
+        assert mock_instr.var_name == "source"  # Unchanged
 
     def test_invalid_instruction_type(self):
         """
@@ -330,8 +329,27 @@ class TestRemapMCInstrsVars:
         mock_instr = MagicMock()  # Not a proper instruction type
 
         kernel_instrs = [mock_instr]
-        remap_dict = self._create_remap_dict()
+        hbm_remap_dict = self._create_remap_dict()
 
         # Act & Assert
         with pytest.raises(TypeError, match="not a valid M or C Instruction"):
-            remap_m_c_instrs_vars(kernel_instrs, remap_dict)
+            remap_m_c_instrs_vars(kernel_instrs, hbm_remap_dict)
+
+    def test_invalid_var_name(self):
+        """
+        @brief Test comment gets updated even if var_name is not a valid M or C instruction
+        """
+        # Arrange
+        mock_instr = MagicMock(spec=CLoad)
+        mock_instr.var_name = "0"  # Not a var_name
+        mock_instr.comment = "Store old_dest"
+
+        kernel_instrs = [mock_instr]
+        hbm_remap_dict = self._create_remap_dict()
+
+        # Act
+        remap_cinstrs_vars_hbm(kernel_instrs, hbm_remap_dict)
+
+        # Assert
+        assert mock_instr.var_name == "0"  # Unchanged
+        assert mock_instr.comment == "Store new_dest"

@@ -114,6 +114,8 @@ class LinkerRunConfig(RunConfig):
             cls.__default_config["output_dir"] = os.getcwd()
             cls.__default_config["input_dir"] = os.getcwd()
             cls.__default_config["output_prefix"] = None
+            cls.__default_config["keep_spad_boundary"] = False
+            cls.__default_config["keep_hbm_boundary"] = False
 
             cls.__initialized = True
 

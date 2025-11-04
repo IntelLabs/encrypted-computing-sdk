@@ -1,0 +1,64 @@
+F0, 1, move, r0b2, r0b0 # id: (1, 67); variable "ct0_0_0_0"
+F0, 1, move, r0b1, r1b0 # id: (1, 71); variable "ct1_1_0_0"
+F0, 2, move, r1b2, r2b0 # id: (2, 75); variable "ct0_0_0_1"
+F0, 2, move, r1b1, r3b0 # id: (2, 79); variable "ct1_1_0_1"
+F0, 3, move, r2b1, r4b0 # id: (3, 83); variable "ct1_0_0_0"
+F0, 1, nop, 1 # id: (1, 84);  nop for not ready instr (1, 0)
+F0, 1, mul, r0b3, r0b2, r0b1, 0 # id: (1, 0);  id: (1, 0)
+F0, 4, move, r4b1, r5b0 # id: (4, 88); variable "ct1_0_0_1"
+F0, 2, mul, r1b3, r1b2, r1b1, 0 # id: (2, 1);  id: (2, 1)
+F0, 3, mul, r3b1, r0b2, r2b1, 0 # id: (3, 2);  id: (3, 2)
+F0, 5, move, r2b2, r6b0 # id: (5, 93); variable "ct0_1_0_0"
+F0, 6, move, r3b2, r7b0 # id: (6, 97); variable "ct0_1_0_1"
+F0, 4, nop, 0 # id: (4, 98);  nop for not ready instr (4, 3)
+F0, 4, mul, r7b1, r1b2, r4b1, 0 # id: (4, 3);  id: (4, 3)
+F0, 3, nop, 0 # id: (3, 100);  nop for not ready instr (3, 89)
+F0, 3, xstore, r3b1 # id: (3, 89);  flushing output; variable "ct2_0_0_0": SPAD(19) <- r3b1
+F0, 5, mul, r5b1, r2b2, r0b1, 0 # id: (5, 4);  id: (5, 4)
+F0, 6, mul, r6b1, r3b2, r1b1, 0 # id: (6, 5);  id: (6, 5)
+F0, 7, mac, r0b3, r0b3, r2b2, r2b1, 0 # id: (7, 6);  id: (7, 6)
+F0, 8, mac, r1b3, r1b3, r3b2, r4b1, 0 # id: (8, 7);  id: (8, 7)
+F0, 4, nop, 0 # id: (4, 106);  nop for not ready instr (4, 99)
+F0, 4, xstore, r7b1 # id: (4, 99);  flushing output; variable "ct2_0_0_1": SPAD(22) <- r7b1
+F0, 5, nop, 4 # id: (5, 108);  nop for not ready instr (5, 102)
+F0, 5, xstore, r5b1 # id: (5, 102);  flushing output; variable "ct2_2_0_0": SPAD(23) <- r5b1
+F0, 6, nop, 4 # id: (6, 110);  nop for not ready instr (6, 103)
+F0, 6, xstore, r6b1 # id: (6, 103);  flushing output; variable "ct2_2_0_1": SPAD(24) <- r6b1
+F0, 7, nop, 4 # id: (7, 112);  nop for not ready instr (7, 104)
+F0, 7, xstore, r0b3 # id: (7, 104);  flushing output; variable "ct2_1_0_0": SPAD(25) <- r0b3
+F0, 8, nop, 4 # id: (8, 114);  nop for not ready instr (8, 105)
+F0, 8, xstore, r1b3 # id: (8, 105);  flushing output; variable "ct2_1_0_1": SPAD(26) <- r1b3
+F0, 0, bexit # id: (0, 116);  terminating bundle 0
+F0, 0, nop, 0 # id: (0, 117)
+F0, 0, nop, 0 # id: (0, 118)
+F0, 0, nop, 0 # id: (0, 119)
+F0, 0, nop, 0 # id: (0, 120)
+F0, 0, nop, 0 # id: (0, 121)
+F0, 0, nop, 0 # id: (0, 122)
+F0, 0, nop, 0 # id: (0, 123)
+F0, 0, nop, 0 # id: (0, 124)
+F0, 0, nop, 0 # id: (0, 125)
+F0, 0, nop, 0 # id: (0, 126)
+F0, 0, nop, 0 # id: (0, 127)
+F0, 0, nop, 0 # id: (0, 128)
+F0, 0, nop, 0 # id: (0, 129)
+F0, 0, nop, 0 # id: (0, 130)
+F0, 0, nop, 0 # id: (0, 131)
+F0, 0, nop, 0 # id: (0, 132)
+F0, 0, nop, 0 # id: (0, 133)
+F0, 0, nop, 0 # id: (0, 134)
+F0, 0, nop, 0 # id: (0, 135)
+F0, 0, nop, 0 # id: (0, 136)
+F0, 0, nop, 0 # id: (0, 137)
+F0, 0, nop, 0 # id: (0, 138)
+F0, 0, nop, 0 # id: (0, 139)
+F0, 0, nop, 0 # id: (0, 140)
+F0, 0, nop, 0 # id: (0, 141)
+F0, 0, nop, 0 # id: (0, 142)
+F0, 0, nop, 0 # id: (0, 143)
+F0, 0, nop, 0 # id: (0, 144)
+F0, 0, nop, 0 # id: (0, 145)
+F0, 0, nop, 0 # id: (0, 146)
+F0, 0, nop, 0 # id: (0, 147)
+F0, 0, nop, 0 # id: (0, 148)
+F0, 0, nop, 0 # id: (0, 149)

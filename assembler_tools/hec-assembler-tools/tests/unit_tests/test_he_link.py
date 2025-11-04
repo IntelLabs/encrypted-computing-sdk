@@ -11,6 +11,7 @@
 
 import argparse
 import io
+from contextlib import ExitStack
 from unittest.mock import MagicMock, mock_open, patch
 
 import he_link
@@ -36,6 +37,8 @@ class TestMainFunction:
         mock_config.hbm_size = 1024
         mock_config.suppress_comments = False
         mock_config.use_xinstfetch = False
+        mock_config.keep_spad_boundary = not using_trace_file
+        mock_config.keep_hbm_boundary = not using_trace_file
 
         # The expected kernel name pattern from parse_kernel_ops
         expected_kernel_name = "kernel1_pisa.tw"
@@ -54,6 +57,13 @@ class TestMainFunction:
             ),
         ]
 
+        # Setup output files with proper file paths
+        mock_output_files = MagicMock()
+        mock_output_files.minst = "/tmp/output.minst"
+        mock_output_files.cinst = "/tmp/output.cinst"
+        mock_output_files.xinst = "/tmp/output.xinst"
+        mock_output_files.mem = "/tmp/output.mem" if using_trace_file else None
+
         # Create mock DInstructions with proper .var attributes
         mock_dinstr1 = MagicMock()
         mock_dinstr1.var = "ct0_data"
@@ -62,7 +72,7 @@ class TestMainFunction:
 
         # Create a dictionary of mocks to reduce the number of local variables
         mocks = {
-            "prepare_output": MagicMock(),
+            "prepare_output": MagicMock(return_value=mock_output_files),
             "prepare_input": MagicMock(return_value=input_files),
             "scan_variables": MagicMock(),
             "check_unused_variables": MagicMock(),
@@ -88,52 +98,49 @@ class TestMainFunction:
                     )
                 ]
             ),
+            "linked_program": MagicMock(),
+            "mock_open": mock_open(),  # Add a mock_open to handle file operations
         }
 
         # Add trace_file property to mock_config
         mock_config.trace_file = "mock_trace.txt" if using_trace_file else ""
 
         # Act
-        with (
-            patch("assembler.common.constants.convertBytes2Words", return_value=1024),
-            patch("he_link.prepare_output_files", mocks["prepare_output"]),
-            patch("he_link.prepare_input_files", mocks["prepare_input"]),
-            patch("assembler.common.counter.Counter.reset"),
-            patch("he_link.Loader.load_dinst_kernel_from_file", mocks["load_dinst"]),
-            patch(
-                "linker.instructions.BaseInstruction.dump_instructions_to_file",
-                mocks["dump_instructions"],
-            ),
-            patch(
-                "linker.steps.program_linker.LinkedProgram.join_dinst_kernels",
-                mocks["join_dinst"],
-            ),
-            patch(
-                "assembler.memory_model.mem_info.MemInfo.from_dinstrs",
-                mocks["from_dinstrs"],
-            ),
-            patch(
-                "assembler.memory_model.mem_info.MemInfo.from_file_iter",
-                mocks["from_file_iter"],
-            ),
-            patch("linker.MemoryModel"),
-            patch("he_link.scan_variables", mocks["scan_variables"]),
-            patch("he_link.check_unused_variables", mocks["check_unused_variables"]),
-            patch("linker.kern_trace.TraceInfo.parse_kernel_ops", mocks["parse_kernel_ops"]),
-            patch(
-                "os.path.isfile",
-                return_value=True,  # Make all file existence checks return True
-            ),
-            patch(
-                "linker.steps.program_linker.LinkedProgram.link_kernels_to_files",
-                mocks["link_kernels"],
-            ),
-            patch("linker.kern_trace.remap_dinstrs_vars", mocks["remap_dinstrs_vars"]),
-            patch("he_link.update_input_prefixes", mocks["update_input_prefixes"]),
-            patch("he_link.remap_vars", mocks["remap_vars"]),
-            patch("he_link.initialize_memory_model", mocks["initialize_memory_model"]),
-        ):
-            # Run the main function with all patches in place
+        with ExitStack() as stack:
+            stack.enter_context(patch("assembler.common.constants.convertBytes2Words", return_value=1024))
+            stack.enter_context(patch("he_link.prepare_output_files", mocks["prepare_output"]))
+            stack.enter_context(patch("he_link.prepare_input_files", mocks["prepare_input"]))
+            stack.enter_context(patch("assembler.common.counter.Counter.reset"))
+            stack.enter_context(patch("he_link.Loader.load_dinst_kernel_from_file", mocks["load_dinst"]))
+            stack.enter_context(
+                patch(
+                    "linker.instructions.BaseInstruction.dump_instructions_to_file",
+                    mocks["dump_instructions"],
+                )
+            )
+            stack.enter_context(patch("he_link.LinkedProgram", return_value=mocks["linked_program"]))
+            stack.enter_context(patch.object(mocks["linked_program"], "join_n_prune_dinst_kernels", mocks["join_dinst"]))
+            stack.enter_context(patch("assembler.memory_model.mem_info.MemInfo.from_dinstrs", mocks["from_dinstrs"]))
+            stack.enter_context(patch("assembler.memory_model.mem_info.MemInfo.from_file_iter", mocks["from_file_iter"]))
+            stack.enter_context(patch("linker.MemoryModel"))
+            stack.enter_context(patch("he_link.scan_variables", mocks["scan_variables"]))
+            stack.enter_context(patch("he_link.check_unused_variables", mocks["check_unused_variables"]))
+            stack.enter_context(
+                patch(
+                    "linker.kern_trace.TraceInfo.parse_kernel_ops_from_file",
+                    mocks["parse_kernel_ops"],
+                )
+            )
+            stack.enter_context(patch("os.path.isfile", return_value=True))
+            stack.enter_context(patch("linker.kern_trace.remap_dinstrs_vars", mocks["remap_dinstrs_vars"]))
+            stack.enter_context(patch("he_link.update_input_prefixes", mocks["update_input_prefixes"]))
+            stack.enter_context(patch("he_link.remap_vars", mocks["remap_vars"]))
+            stack.enter_context(patch("he_link.initialize_memory_model", mocks["initialize_memory_model"]))
+            stack.enter_context(patch("he_link.Loader.flush_cache"))
+            stack.enter_context(patch("builtins.open", mocks["mock_open"]))
+
+            # Mock link_kernels_to_files directly instead of patching the method
+            mocks["linked_program"].link_kernels_to_files = mocks["link_kernels"]
             he_link.main(mock_config, MagicMock())
 
         # Assert pipeline is run as expected
@@ -145,12 +152,14 @@ class TestMainFunction:
 
         if using_trace_file:
             # Assert that the trace processing flow was used
+            mocks["parse_kernel_ops"].assert_called_once_with(mock_config.trace_file)
             mocks["update_input_prefixes"].assert_called_once()
             mocks["remap_vars"].assert_called_once()
             mocks["initialize_memory_model"].assert_called_once()
             assert not mocks["from_file_iter"].called
         else:
             # Assert that the normal flow was used
+            assert not mocks["parse_kernel_ops"].called
             assert not mocks["update_input_prefixes"].called
             assert not mocks["remap_vars"].called
             mocks["initialize_memory_model"].assert_called_once()
@@ -167,21 +176,46 @@ class TestMainFunction:
         mock_config.suppress_comments = False
         mock_config.use_xinstfetch = True  # Should trigger warning
         mock_config.input_mem_file = "input.mem"
+        mock_config.keep_spad_boundary = True
+        mock_config.keep_hbm_boundary = True
+
+        # Create mock objects for file paths
+        mock_output_files = MagicMock()
+        mock_output_files.minst = "/tmp/output.minst"
+        mock_output_files.cinst = "/tmp/output.cinst"
+        mock_output_files.xinst = "/tmp/output.xinst"
+
+        # Create a LinkedProgram mock
+        mock_linked_program = MagicMock()
+        mock_link_kernels = MagicMock()
+
+        # Create file operation mock
+        mock_file_open = mock_open()
 
         # Act & Assert
-        with (
-            patch("warnings.warn") as mock_warn,
-            patch("assembler.common.constants.convertBytes2Words", return_value=1024),
-            patch("linker.he_link_utils.prepare_output_files"),
-            patch("linker.he_link_utils.prepare_input_files"),
-            patch("assembler.common.counter.Counter.reset"),
-            patch("builtins.open", mock_open()),
-            patch("assembler.memory_model.mem_info.MemInfo.from_file_iter"),
-            patch("linker.MemoryModel"),
-            patch("linker.steps.variable_discovery.scan_variables"),
-            patch("linker.steps.variable_discovery.check_unused_variables"),
-            patch("linker.steps.program_linker.LinkedProgram.link_kernels_to_files"),
-        ):
+        with ExitStack() as stack:
+            mock_warn = stack.enter_context(patch("warnings.warn"))
+            stack.enter_context(patch("assembler.common.constants.convertBytes2Words", return_value=1024))
+            stack.enter_context(patch("he_link.prepare_output_files", return_value=mock_output_files))
+            stack.enter_context(patch("he_link.prepare_input_files", return_value=[]))
+            stack.enter_context(patch("assembler.common.counter.Counter.reset"))
+            stack.enter_context(
+                patch(
+                    "linker.steps.program_linker.LinkedProgram",
+                    return_value=mock_linked_program,
+                )
+            )
+            stack.enter_context(patch("assembler.memory_model.mem_info.MemInfo.from_file_iter"))
+            stack.enter_context(patch("linker.MemoryModel"))
+            stack.enter_context(patch("he_link.scan_variables"))
+            stack.enter_context(patch("he_link.check_unused_variables"))
+            stack.enter_context(patch("he_link.initialize_memory_model"))
+            stack.enter_context(patch("he_link.Loader.flush_cache"))
+            stack.enter_context(patch("builtins.open", mock_file_open))
+
+            # Set link_kernels_to_files method directly to avoid internal file operations
+            mock_linked_program.link_kernels_to_files = mock_link_kernels
+
             he_link.main(mock_config, None)
             mock_warn.assert_called_once()
 
@@ -213,6 +247,8 @@ class TestParseArgs:
                 hbm_size=None,
                 suppress_comments=False,
                 verbose=0,
+                keep_spad_boundary=False,
+                keep_hbm_boundary=False,
             ),
         ):
             args = he_link.parse_args()
@@ -222,6 +258,7 @@ class TestParseArgs:
         assert args.output_prefix == "output_prefix"
         assert args.input_mem_file == "input.mem"
         assert args.using_trace_file is False
+        assert args.keep_spad_boundary is True
 
     def test_parse_args_using_trace_file(self):
         """
@@ -244,6 +281,8 @@ class TestParseArgs:
                 hbm_size=None,
                 suppress_comments=False,
                 verbose=0,
+                keep_spad_boundary=False,
+                keep_hbm_boundary=False,
             ),
         ):
             args = he_link.parse_args()
@@ -252,6 +291,7 @@ class TestParseArgs:
         assert args.output_prefix == "output_prefix"
         assert args.trace_file == "trace_file_path"
         assert args.using_trace_file is True  # Should be computed from trace_file
+        assert args.keep_spad_boundary is False  # Should be False when using trace file
 
     def test_trace_file_with_missing_output_prefix(self):
         """
@@ -299,6 +339,8 @@ class TestParseArgs:
                     hbm_size=None,
                     suppress_comments=False,
                     verbose=0,
+                    keep_spad_boundary=False,
+                    keep_hbm_boundary=False,
                 ),
             ),
             patch("argparse.ArgumentParser.error") as mock_error,
@@ -327,6 +369,8 @@ class TestParseArgs:
                     hbm_size=None,
                     suppress_comments=False,
                     verbose=0,
+                    keep_spad_boundary=False,
+                    keep_hbm_boundary=False,
                 ),
             ),
             patch("argparse.ArgumentParser.error") as mock_error,
@@ -359,6 +403,8 @@ class TestParseArgs:
                     hbm_size=None,
                     suppress_comments=False,
                     verbose=0,
+                    keep_spad_boundary=False,
+                    keep_hbm_boundary=False,
                 ),
             ),
             patch("warnings.warn") as mock_warn,
@@ -396,6 +442,8 @@ class TestParseArgs:
                 hbm_size=2048,  # Valid hbm_size
                 suppress_comments=False,
                 verbose=0,
+                keep_spad_boundary=False,
+                keep_hbm_boundary=False,
             ),
         ):
             args = he_link.parse_args()
@@ -419,6 +467,8 @@ class TestParseArgs:
                 hbm_size=None,
                 suppress_comments=False,
                 verbose=0,
+                keep_spad_boundary=False,
+                keep_hbm_boundary=False,
             ),
         ):
             args = he_link.parse_args()
@@ -441,6 +491,8 @@ class TestParseArgs:
                 hbm_size=0,  # Edge case: zero
                 suppress_comments=False,
                 verbose=0,
+                keep_spad_boundary=False,
+                keep_hbm_boundary=False,
             ),
         ):
             args = he_link.parse_args()
@@ -467,6 +519,8 @@ class TestParseArgs:
                 hbm_size=None,
                 suppress_comments=False,
                 verbose=0,  # Default level
+                keep_spad_boundary=False,
+                keep_hbm_boundary=False,
             ),
         ):
             args = he_link.parse_args()
@@ -489,6 +543,8 @@ class TestParseArgs:
                 hbm_size=None,
                 suppress_comments=False,
                 verbose=1,  # Single -v
+                keep_spad_boundary=False,
+                keep_hbm_boundary=False,
             ),
         ):
             args = he_link.parse_args()
@@ -511,6 +567,8 @@ class TestParseArgs:
                 hbm_size=None,
                 suppress_comments=False,
                 verbose=2,  # Double -vv
+                keep_spad_boundary=False,
+                keep_hbm_boundary=False,
             ),
         ):
             args = he_link.parse_args()
@@ -533,6 +591,8 @@ class TestParseArgs:
                 hbm_size=None,
                 suppress_comments=False,
                 verbose=5,  # High verbosity
+                keep_spad_boundary=False,
+                keep_hbm_boundary=False,
             ),
         ):
             args = he_link.parse_args()
@@ -560,6 +620,8 @@ class TestParseArgs:
                     hbm_size=None,
                     suppress_comments=False,
                     verbose=0,
+                    keep_spad_boundary=False,
+                    keep_hbm_boundary=False,
                 ),
             ),
             patch("os.path.dirname", return_value="/path/to") as mock_dirname,
@@ -588,6 +650,8 @@ class TestParseArgs:
                     hbm_size=None,
                     suppress_comments=False,
                     verbose=0,
+                    keep_spad_boundary=False,
+                    keep_hbm_boundary=False,
                 ),
             ),
             patch("os.path.dirname") as mock_dirname,
@@ -598,3 +662,82 @@ class TestParseArgs:
             mock_dirname.assert_not_called()
             # Input_dir should remain as specified
             assert args.input_dir == "/custom/path"
+
+    def test_boundary_flags_parsing(self):
+        """
+        @brief Test the parsing of --keep_spad_boundary and --keep_hbm_boundary flags
+        """
+        # Test with keep_spad_boundary flag set (trace file mode)
+        with patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(
+                input_prefixes=None,
+                output_prefix="output_prefix",
+                input_mem_file="",
+                trace_file="trace_file_path",
+                input_dir="",
+                output_dir="",
+                using_trace_file=None,
+                mem_spec_file="",
+                isa_spec_file="",
+                has_hbm=True,
+                hbm_size=None,
+                suppress_comments=False,
+                verbose=0,
+                keep_spad_boundary=True,
+                keep_hbm_boundary=False,
+            ),
+        ):
+            args = he_link.parse_args()
+            assert args.keep_spad_boundary is True
+            assert args.keep_hbm_boundary is False
+
+        # Test with keep_hbm_boundary flag set (should override keep_spad_boundary)
+        with patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(
+                input_prefixes=None,
+                output_prefix="output_prefix",
+                input_mem_file="",
+                trace_file="trace_file_path",
+                input_dir="",
+                output_dir="",
+                using_trace_file=None,
+                mem_spec_file="",
+                isa_spec_file="",
+                has_hbm=True,
+                hbm_size=None,
+                suppress_comments=False,
+                verbose=0,
+                keep_spad_boundary=False,
+                keep_hbm_boundary=True,
+            ),
+        ):
+            args = he_link.parse_args()
+            assert args.keep_spad_boundary is True  # Should be set to True due to HBM boundary override
+            assert args.keep_hbm_boundary is True
+
+        # Test default behavior when not using trace file (both should be True)
+        with patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(
+                input_prefixes=["input_prefix"],
+                output_prefix="output_prefix",
+                input_mem_file="input.mem",
+                trace_file="",
+                input_dir="",
+                output_dir="",
+                using_trace_file=False,
+                mem_spec_file="",
+                isa_spec_file="",
+                has_hbm=True,
+                hbm_size=None,
+                suppress_comments=False,
+                verbose=0,
+                keep_spad_boundary=False,
+                keep_hbm_boundary=True,
+            ),
+        ):
+            args = he_link.parse_args()
+            assert args.keep_spad_boundary is True  # Should be forced to True when not using trace file
+            assert args.keep_hbm_boundary is True  # Should be forced to True when not using trace file

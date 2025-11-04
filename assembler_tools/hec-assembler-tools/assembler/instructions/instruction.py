@@ -117,6 +117,15 @@ class BaseInstruction(CycleTracker):
 
     # Class methods and properties
     # ----------------------------
+
+    @classmethod
+    def get_latency(cls) -> int:
+        return cls._OP_DEFAULT_LATENCY
+
+    @classmethod
+    def get_throughput(cls) -> int:
+        return cls._OP_DEFAULT_THROUGHPUT
+
     @classmethod
     def isa_spec_as_dict(cls) -> dict:
         """Returns attributes as dictionary."""

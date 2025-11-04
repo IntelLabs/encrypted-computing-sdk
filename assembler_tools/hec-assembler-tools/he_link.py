@@ -50,7 +50,7 @@ from linker.instructions import BaseInstruction
 from linker.kern_trace.trace_info import TraceInfo
 from linker.linker_run_config import LinkerRunConfig
 from linker.loader import Loader
-from linker.steps import program_linker
+from linker.steps.program_linker import LinkedProgram
 from linker.steps.variable_discovery import check_unused_variables, scan_variables
 
 
@@ -100,6 +100,8 @@ def main(run_config: LinkerRunConfig, verbose_stream=None):
     print("", file=verbose_stream)
     print("Interpreting variable meta information...", file=verbose_stream)
 
+    p_linker = LinkedProgram(keep_spad_boundary=run_config.keep_spad_boundary, keep_hbm_boundary=run_config.keep_hbm_boundary)
+
     # Process kernel DInstructions when using trace file
     program_dinstrs = []
     if run_config.using_trace_file:
@@ -111,7 +113,7 @@ def main(run_config: LinkerRunConfig, verbose_stream=None):
         remap_vars(kernels_info, dinstrs_per_kernel, kernel_ops, verbose_stream)
 
         # Concatenate all mem info objects into one
-        program_dinstrs = program_linker.LinkedProgram.join_dinst_kernels(dinstrs_per_kernel)
+        program_dinstrs = p_linker.join_n_prune_dinst_kernels(dinstrs_per_kernel)
 
         # Write new program memory model to an output file
         if program_info.mem is None:
@@ -121,11 +123,14 @@ def main(run_config: LinkerRunConfig, verbose_stream=None):
     # Initialize memory model
     mem_model = initialize_memory_model(run_config, program_dinstrs, verbose_stream)
 
+    # Preload xinst and pre-process intermediate variables for future cinst pruning
+    p_linker.preload_kernels(kernels_info)
+
     # Discover variables
     print("  Finding all program variables...", file=verbose_stream)
     print("  Scanning", file=verbose_stream)
 
-    scan_variables(kernels_info=kernels_info, mem_model=mem_model, verbose_stream=verbose_stream)
+    scan_variables(p_linker, kernels_info, mem_model, verbose_stream)
 
     check_unused_variables(mem_model)
 
@@ -133,7 +138,7 @@ def main(run_config: LinkerRunConfig, verbose_stream=None):
     print("Linking started", file=verbose_stream)
 
     # Link kernels and generate outputs
-    program_linker.LinkedProgram.link_kernels_to_files(kernels_info, program_info, mem_model, verbose_stream=verbose_stream)
+    p_linker.link_kernels_to_files(kernels_info, program_info, mem_model, verbose_stream=verbose_stream)
 
     # Flush cached kernels
     Loader.flush_cache()
@@ -253,7 +258,25 @@ def parse_args():
         "--no_hbm",
         dest="has_hbm",
         action="store_false",
-        help="If set, this flag tells he_prep there is no HBM in the target chip.",
+        help="If set, this flag tells he_link there is no HBM in the target chip.",
+    )
+    parser.add_argument(
+        "--keep_spad_boundary",
+        action="store_true",
+        help=(
+            "If used along with '--use_trace_file', this flag tells he_link to keep a data boundary "
+            "among kernels in the final cinst output. This can be useful for debugging purposes. "
+            "This flag is ignored if '--keep_hbm_boundary' is set."
+        ),
+    )
+    parser.add_argument(
+        "--keep_hbm_boundary",
+        action="store_true",
+        help=(
+            "If used along with '--use_trace_file', this flag tells he_link to keep a data boundary "
+            "among kernels in the final minst output. This can be useful for debugging purposes. "
+            "This flag will override the '--keep_spad_boundary' flag."
+        ),
     )
     parser.add_argument(
         "--suppress_comments",
@@ -281,6 +304,11 @@ def parse_args():
     # Set input_dir to trace_file directory if not provided and trace_file is set
     if p_args.input_dir == "" and p_args.trace_file:
         p_args.input_dir = os.path.dirname(p_args.trace_file)
+
+    # If no trace file is used boundaries should be kept
+    p_args.keep_hbm_boundary = True if not p_args.using_trace_file else p_args.keep_hbm_boundary
+    # If HBM boundary is kept, SPAD boundary is kept as a consequence
+    p_args.keep_spad_boundary = True if p_args.keep_hbm_boundary else p_args.keep_spad_boundary
 
     # Enforce only if use_trace_file is not set
     if not p_args.using_trace_file:

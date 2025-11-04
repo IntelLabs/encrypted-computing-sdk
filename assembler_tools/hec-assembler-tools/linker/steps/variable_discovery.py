@@ -14,8 +14,8 @@ from assembler.memory_model.variable import Variable
 from linker.instructions import cinst, minst
 from linker.instructions.cinst.cinstruction import CInstruction
 from linker.instructions.minst.minstruction import MInstruction
-from linker.kern_trace import KernelInfo, remap_m_c_instrs_vars
-from linker.loader import Loader
+from linker.kern_trace import KernelInfo
+from linker.steps.program_linker import LinkedProgram
 
 
 def discover_variables_spad(cinstrs: list):
@@ -35,10 +35,8 @@ def discover_variables_spad(cinstrs: list):
         # TODO: Implement variable counting for CInst
         ###############
         # Raise NotImplementedError("Implement variable counting for CInst")
-        if isinstance(cinstr, (cinst.BLoad, cinst.CLoad, cinst.BOnes, cinst.NLoad)):
-            retval = cinstr.source
-        elif isinstance(cinstr, cinst.CStore):
-            retval = cinstr.dest
+        if isinstance(cinstr, (cinst.BLoad, cinst.CLoad, cinst.BOnes, cinst.NLoad, cinst.CStore)):
+            retval = cinstr.var_name
 
         if retval is not None:
             if not Variable.validateName(retval):
@@ -60,10 +58,8 @@ def discover_variables(minstrs: list):
         if not isinstance(minstr, MInstruction):
             raise TypeError(f"Item {idx} in list of MInstructions is not a valid MInstruction.")
         retval = None
-        if isinstance(minstr, minst.MLoad):
-            retval = minstr.source
-        elif isinstance(minstr, minst.MStore):
-            retval = minstr.dest
+        if isinstance(minstr, (minst.MLoad, minst.MStore)):
+            retval = minstr.var_name
 
         if retval is not None:
             if not Variable.validateName(retval):
@@ -72,6 +68,7 @@ def discover_variables(minstrs: list):
 
 
 def scan_variables(
+    p_linker: LinkedProgram,
     kernels_info: list[KernelInfo],
     mem_model: MemoryModel,
     verbose_stream: TextIO | None = None,
@@ -83,6 +80,7 @@ def scan_variables(
     @param mem_model Memory model to update.
     @param verbose_stream Stream for verbose output.
     """
+
     for idx, kernel_info in enumerate(kernels_info):
         if not GlobalConfig.hasHBM:
             if verbose_stream:
@@ -91,10 +89,12 @@ def scan_variables(
                     kernel_info.cinst,
                     file=verbose_stream,
                 )
-            kernel_cinstrs = Loader.load_cinst_kernel_from_file(kernel_info.cinst)
-            remap_m_c_instrs_vars(kernel_cinstrs, kernel_info.remap_dict)
-            for var_name in discover_variables_spad(kernel_cinstrs):
+
+            p_linker.prune_cinst_kernel_no_hbm(kernel_info, kernels_info[idx - 1] if idx > 0 else None)
+
+            for var_name in discover_variables_spad(kernel_info.cinstrs):
                 mem_model.add_variable(var_name)
+
         else:
             if verbose_stream:
                 print(
@@ -102,10 +102,13 @@ def scan_variables(
                     kernel_info.minst,
                     file=verbose_stream,
                 )
-            kernel_minstrs = Loader.load_minst_kernel_from_file(kernel_info.minst)
-            remap_m_c_instrs_vars(kernel_minstrs, kernel_info.remap_dict)
-            for var_name in discover_variables(kernel_minstrs):
+            p_linker.prune_minst_kernel(kernel_info)
+
+            for var_name in discover_variables(kernel_info.minstrs):
                 mem_model.add_variable(var_name)
+
+    # Clean p_linker var trackers
+    p_linker.flush_buffers()
 
 
 def check_unused_variables(mem_model):
