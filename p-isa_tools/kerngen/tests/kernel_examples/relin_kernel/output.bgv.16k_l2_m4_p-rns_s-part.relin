@@ -40,136 +40,136 @@
 14, muli, ct_2_1_1, ct_2_1_1, one, 1
 14, muli, coeffs_2_0_0, ct_2_0_0, R2_0, 0
 14, muli, coeffs_2_0_1, ct_2_0_1, R2_0, 0
-14, muli, coeffs_2_1_0, ct_2_0_0, R2_1, 1
-14, muli, coeffs_2_1_1, ct_2_0_1, R2_1, 1
-14, muli, coeffs_2_3_0, ct_2_0_0, R2_3, 3
-14, muli, coeffs_2_3_1, ct_2_0_1, R2_3, 3
-14, mul, coeffs_0_2_0_0, coeffs_2_0_0, psi_0_0_0, 0
-14, mul, coeffs_0_2_1_0, coeffs_2_1_0, psi_0_1_0, 1
-14, mul, coeffs_0_2_0_1, coeffs_2_0_1, psi_0_0_1, 0
-14, mul, coeffs_0_2_1_1, coeffs_2_1_1, psi_0_1_1, 1
-14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_0_2_0_0, coeffs_0_2_0_1, w_0_0_0, 0
-14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_0_2_1_0, coeffs_0_2_1_1, w_1_0_0, 1
-14, ntt, coeffs_0_2_0_0, coeffs_0_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_1_0, 0
-14, ntt, coeffs_0_2_1_0, coeffs_0_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_1_0, 1
-14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_0_2_0_0, coeffs_0_2_0_1, w_0_2_0, 0
-14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_0_2_1_0, coeffs_0_2_1_1, w_1_2_0, 1
-14, ntt, coeffs_0_2_0_0, coeffs_0_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_3_0, 0
-14, ntt, coeffs_0_2_1_0, coeffs_0_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_3_0, 1
-14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_0_2_0_0, coeffs_0_2_0_1, w_0_4_0, 0
-14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_0_2_1_0, coeffs_0_2_1_1, w_1_4_0, 1
-14, ntt, coeffs_0_2_0_0, coeffs_0_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_5_0, 0
-14, ntt, coeffs_0_2_1_0, coeffs_0_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_5_0, 1
-14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_0_2_0_0, coeffs_0_2_0_1, w_0_6_0, 0
-14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_0_2_1_0, coeffs_0_2_1_1, w_1_6_0, 1
-14, ntt, coeffs_0_2_0_0, coeffs_0_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_7_0, 0
-14, ntt, coeffs_0_2_1_0, coeffs_0_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_7_0, 1
-14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_0_2_0_0, coeffs_0_2_0_1, w_0_8_0, 0
-14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_0_2_1_0, coeffs_0_2_1_1, w_1_8_0, 1
-14, ntt, coeffs_0_2_0_0, coeffs_0_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_9_0, 0
-14, ntt, coeffs_0_2_1_0, coeffs_0_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_9_0, 1
-14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_0_2_0_0, coeffs_0_2_0_1, w_0_10_0, 0
-14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_0_2_1_0, coeffs_0_2_1_1, w_1_10_0, 1
-14, ntt, coeffs_0_2_0_0, coeffs_0_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_11_0, 0
-14, ntt, coeffs_0_2_1_0, coeffs_0_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_11_0, 1
-14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_0_2_0_0, coeffs_0_2_0_1, w_0_12_0, 0
-14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_0_2_1_0, coeffs_0_2_1_1, w_1_12_0, 1
-14, ntt, coeffs_0_2_0_0, coeffs_0_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_13_0, 0
-14, ntt, coeffs_0_2_1_0, coeffs_0_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_13_0, 1
-14, mul, coeffs_0_2_3_0, coeffs_2_3_0, psi_0_3_0, 3
-14, mul, coeffs_0_2_3_1, coeffs_2_3_1, psi_0_3_1, 3
-14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_0_2_3_0, coeffs_0_2_3_1, w_3_0_0, 3
-14, ntt, coeffs_0_2_3_0, coeffs_0_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_1_0, 3
-14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_0_2_3_0, coeffs_0_2_3_1, w_3_2_0, 3
-14, ntt, coeffs_0_2_3_0, coeffs_0_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_3_0, 3
-14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_0_2_3_0, coeffs_0_2_3_1, w_3_4_0, 3
-14, ntt, coeffs_0_2_3_0, coeffs_0_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_5_0, 3
-14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_0_2_3_0, coeffs_0_2_3_1, w_3_6_0, 3
-14, ntt, coeffs_0_2_3_0, coeffs_0_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_7_0, 3
-14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_0_2_3_0, coeffs_0_2_3_1, w_3_8_0, 3
-14, ntt, coeffs_0_2_3_0, coeffs_0_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_9_0, 3
-14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_0_2_3_0, coeffs_0_2_3_1, w_3_10_0, 3
-14, ntt, coeffs_0_2_3_0, coeffs_0_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_11_0, 3
-14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_0_2_3_0, coeffs_0_2_3_1, w_3_12_0, 3
-14, ntt, coeffs_0_2_3_0, coeffs_0_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_13_0, 3
+14, mul, coeffs_tmp0_2_0_0, coeffs_2_0_0, psi_0_0_0, 0
+14, mul, coeffs_tmp0_2_0_1, coeffs_2_0_1, psi_0_0_1, 0
+14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_tmp0_2_0_0, coeffs_tmp0_2_0_1, w_0_0_0, 0
+14, ntt, coeffs_tmp0_2_0_0, coeffs_tmp0_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_1_0, 0
+14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_tmp0_2_0_0, coeffs_tmp0_2_0_1, w_0_2_0, 0
+14, ntt, coeffs_tmp0_2_0_0, coeffs_tmp0_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_3_0, 0
+14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_tmp0_2_0_0, coeffs_tmp0_2_0_1, w_0_4_0, 0
+14, ntt, coeffs_tmp0_2_0_0, coeffs_tmp0_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_5_0, 0
+14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_tmp0_2_0_0, coeffs_tmp0_2_0_1, w_0_6_0, 0
+14, ntt, coeffs_tmp0_2_0_0, coeffs_tmp0_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_7_0, 0
+14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_tmp0_2_0_0, coeffs_tmp0_2_0_1, w_0_8_0, 0
+14, ntt, coeffs_tmp0_2_0_0, coeffs_tmp0_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_9_0, 0
+14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_tmp0_2_0_0, coeffs_tmp0_2_0_1, w_0_10_0, 0
+14, ntt, coeffs_tmp0_2_0_0, coeffs_tmp0_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_11_0, 0
+14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_tmp0_2_0_0, coeffs_tmp0_2_0_1, w_0_12_0, 0
+14, ntt, coeffs_tmp0_2_0_0, coeffs_tmp0_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_13_0, 0
 14, muli, coeffs_2_0_0, ct_2_1_0, R2_0, 0
 14, muli, coeffs_2_0_1, ct_2_1_1, R2_0, 0
+14, mul, coeffs_tmp1_2_0_0, coeffs_2_0_0, psi_0_0_0, 0
+14, mul, coeffs_tmp1_2_0_1, coeffs_2_0_1, psi_0_0_1, 0
+14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_tmp1_2_0_0, coeffs_tmp1_2_0_1, w_0_0_0, 0
+14, ntt, coeffs_tmp1_2_0_0, coeffs_tmp1_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_1_0, 0
+14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_tmp1_2_0_0, coeffs_tmp1_2_0_1, w_0_2_0, 0
+14, ntt, coeffs_tmp1_2_0_0, coeffs_tmp1_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_3_0, 0
+14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_tmp1_2_0_0, coeffs_tmp1_2_0_1, w_0_4_0, 0
+14, ntt, coeffs_tmp1_2_0_0, coeffs_tmp1_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_5_0, 0
+14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_tmp1_2_0_0, coeffs_tmp1_2_0_1, w_0_6_0, 0
+14, ntt, coeffs_tmp1_2_0_0, coeffs_tmp1_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_7_0, 0
+14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_tmp1_2_0_0, coeffs_tmp1_2_0_1, w_0_8_0, 0
+14, ntt, coeffs_tmp1_2_0_0, coeffs_tmp1_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_9_0, 0
+14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_tmp1_2_0_0, coeffs_tmp1_2_0_1, w_0_10_0, 0
+14, ntt, coeffs_tmp1_2_0_0, coeffs_tmp1_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_11_0, 0
+14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_tmp1_2_0_0, coeffs_tmp1_2_0_1, w_0_12_0, 0
+14, ntt, coeffs_tmp1_2_0_0, coeffs_tmp1_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_13_0, 0
+14, muli, coeffs_2_1_0, ct_2_0_0, R2_1, 1
+14, muli, coeffs_2_1_1, ct_2_0_1, R2_1, 1
+14, mul, coeffs_tmp0_2_1_0, coeffs_2_1_0, psi_0_1_0, 1
+14, mul, coeffs_tmp0_2_1_1, coeffs_2_1_1, psi_0_1_1, 1
+14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_tmp0_2_1_0, coeffs_tmp0_2_1_1, w_1_0_0, 1
+14, ntt, coeffs_tmp0_2_1_0, coeffs_tmp0_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_1_0, 1
+14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_tmp0_2_1_0, coeffs_tmp0_2_1_1, w_1_2_0, 1
+14, ntt, coeffs_tmp0_2_1_0, coeffs_tmp0_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_3_0, 1
+14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_tmp0_2_1_0, coeffs_tmp0_2_1_1, w_1_4_0, 1
+14, ntt, coeffs_tmp0_2_1_0, coeffs_tmp0_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_5_0, 1
+14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_tmp0_2_1_0, coeffs_tmp0_2_1_1, w_1_6_0, 1
+14, ntt, coeffs_tmp0_2_1_0, coeffs_tmp0_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_7_0, 1
+14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_tmp0_2_1_0, coeffs_tmp0_2_1_1, w_1_8_0, 1
+14, ntt, coeffs_tmp0_2_1_0, coeffs_tmp0_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_9_0, 1
+14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_tmp0_2_1_0, coeffs_tmp0_2_1_1, w_1_10_0, 1
+14, ntt, coeffs_tmp0_2_1_0, coeffs_tmp0_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_11_0, 1
+14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_tmp0_2_1_0, coeffs_tmp0_2_1_1, w_1_12_0, 1
+14, ntt, coeffs_tmp0_2_1_0, coeffs_tmp0_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_13_0, 1
 14, muli, coeffs_2_1_0, ct_2_1_0, R2_1, 1
 14, muli, coeffs_2_1_1, ct_2_1_1, R2_1, 1
+14, mul, coeffs_tmp1_2_1_0, coeffs_2_1_0, psi_0_1_0, 1
+14, mul, coeffs_tmp1_2_1_1, coeffs_2_1_1, psi_0_1_1, 1
+14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_tmp1_2_1_0, coeffs_tmp1_2_1_1, w_1_0_0, 1
+14, ntt, coeffs_tmp1_2_1_0, coeffs_tmp1_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_1_0, 1
+14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_tmp1_2_1_0, coeffs_tmp1_2_1_1, w_1_2_0, 1
+14, ntt, coeffs_tmp1_2_1_0, coeffs_tmp1_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_3_0, 1
+14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_tmp1_2_1_0, coeffs_tmp1_2_1_1, w_1_4_0, 1
+14, ntt, coeffs_tmp1_2_1_0, coeffs_tmp1_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_5_0, 1
+14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_tmp1_2_1_0, coeffs_tmp1_2_1_1, w_1_6_0, 1
+14, ntt, coeffs_tmp1_2_1_0, coeffs_tmp1_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_7_0, 1
+14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_tmp1_2_1_0, coeffs_tmp1_2_1_1, w_1_8_0, 1
+14, ntt, coeffs_tmp1_2_1_0, coeffs_tmp1_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_9_0, 1
+14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_tmp1_2_1_0, coeffs_tmp1_2_1_1, w_1_10_0, 1
+14, ntt, coeffs_tmp1_2_1_0, coeffs_tmp1_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_11_0, 1
+14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_tmp1_2_1_0, coeffs_tmp1_2_1_1, w_1_12_0, 1
+14, ntt, coeffs_tmp1_2_1_0, coeffs_tmp1_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_13_0, 1
+14, muli, coeffs_2_3_0, ct_2_0_0, R2_3, 3
+14, muli, coeffs_2_3_1, ct_2_0_1, R2_3, 3
+14, mul, coeffs_tmp0_2_3_0, coeffs_2_3_0, psi_0_3_0, 3
+14, mul, coeffs_tmp0_2_3_1, coeffs_2_3_1, psi_0_3_1, 3
+14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_tmp0_2_3_0, coeffs_tmp0_2_3_1, w_3_0_0, 3
+14, ntt, coeffs_tmp0_2_3_0, coeffs_tmp0_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_1_0, 3
+14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_tmp0_2_3_0, coeffs_tmp0_2_3_1, w_3_2_0, 3
+14, ntt, coeffs_tmp0_2_3_0, coeffs_tmp0_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_3_0, 3
+14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_tmp0_2_3_0, coeffs_tmp0_2_3_1, w_3_4_0, 3
+14, ntt, coeffs_tmp0_2_3_0, coeffs_tmp0_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_5_0, 3
+14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_tmp0_2_3_0, coeffs_tmp0_2_3_1, w_3_6_0, 3
+14, ntt, coeffs_tmp0_2_3_0, coeffs_tmp0_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_7_0, 3
+14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_tmp0_2_3_0, coeffs_tmp0_2_3_1, w_3_8_0, 3
+14, ntt, coeffs_tmp0_2_3_0, coeffs_tmp0_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_9_0, 3
+14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_tmp0_2_3_0, coeffs_tmp0_2_3_1, w_3_10_0, 3
+14, ntt, coeffs_tmp0_2_3_0, coeffs_tmp0_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_11_0, 3
+14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_tmp0_2_3_0, coeffs_tmp0_2_3_1, w_3_12_0, 3
+14, ntt, coeffs_tmp0_2_3_0, coeffs_tmp0_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_13_0, 3
 14, muli, coeffs_2_3_0, ct_2_1_0, R2_3, 3
 14, muli, coeffs_2_3_1, ct_2_1_1, R2_3, 3
-14, mul, coeffs_1_2_0_0, coeffs_2_0_0, psi_0_0_0, 0
-14, mul, coeffs_1_2_1_0, coeffs_2_1_0, psi_0_1_0, 1
-14, mul, coeffs_1_2_0_1, coeffs_2_0_1, psi_0_0_1, 0
-14, mul, coeffs_1_2_1_1, coeffs_2_1_1, psi_0_1_1, 1
-14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_1_2_0_0, coeffs_1_2_0_1, w_0_0_0, 0
-14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_1_2_1_0, coeffs_1_2_1_1, w_1_0_0, 1
-14, ntt, coeffs_1_2_0_0, coeffs_1_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_1_0, 0
-14, ntt, coeffs_1_2_1_0, coeffs_1_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_1_0, 1
-14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_1_2_0_0, coeffs_1_2_0_1, w_0_2_0, 0
-14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_1_2_1_0, coeffs_1_2_1_1, w_1_2_0, 1
-14, ntt, coeffs_1_2_0_0, coeffs_1_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_3_0, 0
-14, ntt, coeffs_1_2_1_0, coeffs_1_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_3_0, 1
-14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_1_2_0_0, coeffs_1_2_0_1, w_0_4_0, 0
-14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_1_2_1_0, coeffs_1_2_1_1, w_1_4_0, 1
-14, ntt, coeffs_1_2_0_0, coeffs_1_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_5_0, 0
-14, ntt, coeffs_1_2_1_0, coeffs_1_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_5_0, 1
-14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_1_2_0_0, coeffs_1_2_0_1, w_0_6_0, 0
-14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_1_2_1_0, coeffs_1_2_1_1, w_1_6_0, 1
-14, ntt, coeffs_1_2_0_0, coeffs_1_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_7_0, 0
-14, ntt, coeffs_1_2_1_0, coeffs_1_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_7_0, 1
-14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_1_2_0_0, coeffs_1_2_0_1, w_0_8_0, 0
-14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_1_2_1_0, coeffs_1_2_1_1, w_1_8_0, 1
-14, ntt, coeffs_1_2_0_0, coeffs_1_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_9_0, 0
-14, ntt, coeffs_1_2_1_0, coeffs_1_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_9_0, 1
-14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_1_2_0_0, coeffs_1_2_0_1, w_0_10_0, 0
-14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_1_2_1_0, coeffs_1_2_1_1, w_1_10_0, 1
-14, ntt, coeffs_1_2_0_0, coeffs_1_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_11_0, 0
-14, ntt, coeffs_1_2_1_0, coeffs_1_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_11_0, 1
-14, ntt, outtmp_2_0_0, outtmp_2_0_1, coeffs_1_2_0_0, coeffs_1_2_0_1, w_0_12_0, 0
-14, ntt, outtmp_2_1_0, outtmp_2_1_1, coeffs_1_2_1_0, coeffs_1_2_1_1, w_1_12_0, 1
-14, ntt, coeffs_1_2_0_0, coeffs_1_2_0_1, outtmp_2_0_0, outtmp_2_0_1, w_0_13_0, 0
-14, ntt, coeffs_1_2_1_0, coeffs_1_2_1_1, outtmp_2_1_0, outtmp_2_1_1, w_1_13_0, 1
-14, mul, coeffs_1_2_3_0, coeffs_2_3_0, psi_0_3_0, 3
-14, mul, coeffs_1_2_3_1, coeffs_2_3_1, psi_0_3_1, 3
-14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_1_2_3_0, coeffs_1_2_3_1, w_3_0_0, 3
-14, ntt, coeffs_1_2_3_0, coeffs_1_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_1_0, 3
-14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_1_2_3_0, coeffs_1_2_3_1, w_3_2_0, 3
-14, ntt, coeffs_1_2_3_0, coeffs_1_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_3_0, 3
-14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_1_2_3_0, coeffs_1_2_3_1, w_3_4_0, 3
-14, ntt, coeffs_1_2_3_0, coeffs_1_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_5_0, 3
-14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_1_2_3_0, coeffs_1_2_3_1, w_3_6_0, 3
-14, ntt, coeffs_1_2_3_0, coeffs_1_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_7_0, 3
-14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_1_2_3_0, coeffs_1_2_3_1, w_3_8_0, 3
-14, ntt, coeffs_1_2_3_0, coeffs_1_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_9_0, 3
-14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_1_2_3_0, coeffs_1_2_3_1, w_3_10_0, 3
-14, ntt, coeffs_1_2_3_0, coeffs_1_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_11_0, 3
-14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_1_2_3_0, coeffs_1_2_3_1, w_3_12_0, 3
-14, ntt, coeffs_1_2_3_0, coeffs_1_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_13_0, 3
-14, mul, c2_rlk_0_0_0, coeffs_0_2_0_0, rlk_0_0_0_0, 0
-14, mul, c2_rlk_0_0_1, coeffs_0_2_0_1, rlk_0_0_0_1, 0
-14, mul, c2_rlk_0_1_0, coeffs_0_2_1_0, rlk_0_0_1_0, 1
-14, mul, c2_rlk_0_1_1, coeffs_0_2_1_1, rlk_0_0_1_1, 1
-14, mul, c2_rlk_1_0_0, coeffs_0_2_0_0, rlk_1_0_0_0, 0
-14, mul, c2_rlk_1_0_1, coeffs_0_2_0_1, rlk_1_0_0_1, 0
-14, mul, c2_rlk_1_1_0, coeffs_0_2_1_0, rlk_1_0_1_0, 1
-14, mul, c2_rlk_1_1_1, coeffs_0_2_1_1, rlk_1_0_1_1, 1
-14, mul, c2_rlk_0_3_0, coeffs_0_2_3_0, rlk_0_0_3_0, 3
-14, mul, c2_rlk_0_3_1, coeffs_0_2_3_1, rlk_0_0_3_1, 3
-14, mul, c2_rlk_1_3_0, coeffs_0_2_3_0, rlk_1_0_3_0, 3
-14, mul, c2_rlk_1_3_1, coeffs_0_2_3_1, rlk_1_0_3_1, 3
-14, mac, c2_rlk_0_0_0, coeffs_1_2_0_0, rlk_0_1_0_0, 0
-14, mac, c2_rlk_0_0_1, coeffs_1_2_0_1, rlk_0_1_0_1, 0
-14, mac, c2_rlk_0_1_0, coeffs_1_2_1_0, rlk_0_1_1_0, 1
-14, mac, c2_rlk_0_1_1, coeffs_1_2_1_1, rlk_0_1_1_1, 1
-14, mac, c2_rlk_1_0_0, coeffs_1_2_0_0, rlk_1_1_0_0, 0
-14, mac, c2_rlk_1_0_1, coeffs_1_2_0_1, rlk_1_1_0_1, 0
-14, mac, c2_rlk_1_1_0, coeffs_1_2_1_0, rlk_1_1_1_0, 1
-14, mac, c2_rlk_1_1_1, coeffs_1_2_1_1, rlk_1_1_1_1, 1
-14, mac, c2_rlk_0_3_0, coeffs_1_2_3_0, rlk_0_1_3_0, 3
-14, mac, c2_rlk_0_3_1, coeffs_1_2_3_1, rlk_0_1_3_1, 3
-14, mac, c2_rlk_1_3_0, coeffs_1_2_3_0, rlk_1_1_3_0, 3
-14, mac, c2_rlk_1_3_1, coeffs_1_2_3_1, rlk_1_1_3_1, 3
+14, mul, coeffs_tmp1_2_3_0, coeffs_2_3_0, psi_0_3_0, 3
+14, mul, coeffs_tmp1_2_3_1, coeffs_2_3_1, psi_0_3_1, 3
+14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_tmp1_2_3_0, coeffs_tmp1_2_3_1, w_3_0_0, 3
+14, ntt, coeffs_tmp1_2_3_0, coeffs_tmp1_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_1_0, 3
+14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_tmp1_2_3_0, coeffs_tmp1_2_3_1, w_3_2_0, 3
+14, ntt, coeffs_tmp1_2_3_0, coeffs_tmp1_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_3_0, 3
+14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_tmp1_2_3_0, coeffs_tmp1_2_3_1, w_3_4_0, 3
+14, ntt, coeffs_tmp1_2_3_0, coeffs_tmp1_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_5_0, 3
+14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_tmp1_2_3_0, coeffs_tmp1_2_3_1, w_3_6_0, 3
+14, ntt, coeffs_tmp1_2_3_0, coeffs_tmp1_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_7_0, 3
+14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_tmp1_2_3_0, coeffs_tmp1_2_3_1, w_3_8_0, 3
+14, ntt, coeffs_tmp1_2_3_0, coeffs_tmp1_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_9_0, 3
+14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_tmp1_2_3_0, coeffs_tmp1_2_3_1, w_3_10_0, 3
+14, ntt, coeffs_tmp1_2_3_0, coeffs_tmp1_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_11_0, 3
+14, ntt, outtmp_2_3_0, outtmp_2_3_1, coeffs_tmp1_2_3_0, coeffs_tmp1_2_3_1, w_3_12_0, 3
+14, ntt, coeffs_tmp1_2_3_0, coeffs_tmp1_2_3_1, outtmp_2_3_0, outtmp_2_3_1, w_3_13_0, 3
+14, mul, c2_rlk_0_0_0, coeffs_tmp0_2_0_0, rlk_0_0_0_0, 0
+14, mul, c2_rlk_0_0_1, coeffs_tmp0_2_0_1, rlk_0_0_0_1, 0
+14, mul, c2_rlk_0_1_0, coeffs_tmp0_2_1_0, rlk_0_0_1_0, 1
+14, mul, c2_rlk_0_1_1, coeffs_tmp0_2_1_1, rlk_0_0_1_1, 1
+14, mul, c2_rlk_1_0_0, coeffs_tmp0_2_0_0, rlk_1_0_0_0, 0
+14, mul, c2_rlk_1_0_1, coeffs_tmp0_2_0_1, rlk_1_0_0_1, 0
+14, mul, c2_rlk_1_1_0, coeffs_tmp0_2_1_0, rlk_1_0_1_0, 1
+14, mul, c2_rlk_1_1_1, coeffs_tmp0_2_1_1, rlk_1_0_1_1, 1
+14, mul, c2_rlk_0_3_0, coeffs_tmp0_2_3_0, rlk_0_0_3_0, 3
+14, mul, c2_rlk_0_3_1, coeffs_tmp0_2_3_1, rlk_0_0_3_1, 3
+14, mul, c2_rlk_1_3_0, coeffs_tmp0_2_3_0, rlk_1_0_3_0, 3
+14, mul, c2_rlk_1_3_1, coeffs_tmp0_2_3_1, rlk_1_0_3_1, 3
+14, mac, c2_rlk_0_0_0, coeffs_tmp1_2_0_0, rlk_0_1_0_0, 0
+14, mac, c2_rlk_0_0_1, coeffs_tmp1_2_0_1, rlk_0_1_0_1, 0
+14, mac, c2_rlk_0_1_0, coeffs_tmp1_2_1_0, rlk_0_1_1_0, 1
+14, mac, c2_rlk_0_1_1, coeffs_tmp1_2_1_1, rlk_0_1_1_1, 1
+14, mac, c2_rlk_1_0_0, coeffs_tmp1_2_0_0, rlk_1_1_0_0, 0
+14, mac, c2_rlk_1_0_1, coeffs_tmp1_2_0_1, rlk_1_1_0_1, 0
+14, mac, c2_rlk_1_1_0, coeffs_tmp1_2_1_0, rlk_1_1_1_0, 1
+14, mac, c2_rlk_1_1_1, coeffs_tmp1_2_1_1, rlk_1_1_1_1, 1
+14, mac, c2_rlk_0_3_0, coeffs_tmp1_2_3_0, rlk_0_1_3_0, 3
+14, mac, c2_rlk_0_3_1, coeffs_tmp1_2_3_1, rlk_0_1_3_1, 3
+14, mac, c2_rlk_1_3_0, coeffs_tmp1_2_3_0, rlk_1_1_3_0, 3
+14, mac, c2_rlk_1_3_1, coeffs_tmp1_2_3_1, rlk_1_1_3_1, 3
 14, intt, outtmp_0_3_0, outtmp_0_3_1, c2_rlk_0_3_0, c2_rlk_0_3_1, w_3_0_0, 3
 14, intt, y_0_3_0, y_0_3_1, outtmp_0_3_0, outtmp_0_3_1, w_3_1_0, 3
 14, intt, outtmp_0_3_0, outtmp_0_3_1, y_0_3_0, y_0_3_1, w_3_2_0, 3

@@ -65,7 +65,7 @@ class DigitDecompExtend(HighOp):
             )
 
             output_tmp = Polys.from_polys(self.output)
-            output_tmp.name += f"_{input_rns_index}"
+            output_tmp.name += f"_tmp{input_rns_index}"
             output_split = Polys.from_polys(self.output)
             output_split.rns = self.context.current_rns
             # ntt for 0-current_rns
