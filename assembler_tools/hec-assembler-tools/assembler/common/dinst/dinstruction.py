@@ -11,14 +11,13 @@ DInstruction is the parent class for all data instructions used in the
 assembly process, providing common functionality and interfaces.
 """
 
+from assembler.common.config import GlobalConfig
 from assembler.common.counter import Counter
 from assembler.common.decorators import classproperty
 from assembler.memory_model.mem_info import MemInfo
 
-from linker.instructions.instruction import BaseInstruction
 
-
-class DInstruction(BaseInstruction):
+class DInstruction:
     """
     @brief Represents a DInstruction, inheriting from BaseInstruction.
     """
@@ -26,16 +25,6 @@ class DInstruction(BaseInstruction):
     _local_id_count = Counter.count(0)  # Local counter for DInstruction IDs
     _var: str = ""
     _address: int = 0
-
-    @classmethod
-    def _get_name(cls) -> str:
-        """
-        @brief Derived classes should implement this method and return correct
-        name for the instruction.
-
-        @throws NotImplementedError Abstract method. This base method should not be called.
-        """
-        raise NotImplementedError()
 
     @classmethod
     def _get_name_token_index(cls) -> int:
@@ -90,13 +79,13 @@ class DInstruction(BaseInstruction):
         @param tokens List of tokens for the instruction.
         @param comment Optional comment for the instruction.
         """
-        # Do not increment the global instruction count; skip BaseInstruction's __init__ logic for __id
-        # Perform our own initialization
-        super().__init__(tokens, comment=comment, count=False)
+        assert self.name_token_index < self.num_tokens
+
+        self._validate_tokens(tokens)
 
         self.comment = comment
         self._tokens = list(tokens)
-        self._local_id = next(DInstruction._local_id_count)
+        self._id = next(DInstruction._local_id_count)
 
         try:
             miv, _ = MemInfo.get_meminfo_var_from_tokens(tokens)
@@ -107,6 +96,20 @@ class DInstruction(BaseInstruction):
         except RuntimeError as e:
             raise ValueError(f"Failed to parse memory info from tokens: {tokens}. Error: {str(e)}") from e
 
+    def __repr__(self):
+        retval = f"<{type(self).__name__}({self.name}, id={self.id}) object at {hex(id(self))}>(tokens={self.tokens})"
+        return retval
+
+    def __eq__(self, other):
+        # Equality operator== overload
+        return self is other
+
+    def __hash__(self):
+        return hash(self.id)
+
+    def __str__(self):
+        return f"{self.name}({self.id})"
+
     @property
     def id(self):
         """
@@ -116,7 +119,7 @@ class DInstruction(BaseInstruction):
 
         @return (client_id: int, nonce: int) where client_id is the id specified at construction.
         """
-        return self._local_id
+        return self._id
 
     @property
     def var(self) -> str:
@@ -153,3 +156,68 @@ class DInstruction(BaseInstruction):
         @param value The new memory address (string or integer).
         """
         self._address = value
+
+    @classproperty
+    def name(self) -> str:
+        """
+        @brief Name for the instruction.
+
+        @return The name of the instruction.
+        """
+        return self._get_name()
+
+    @classmethod
+    def _get_name(cls) -> str:
+        """
+        @brief Derived classes should implement this method and return correct
+        name for the instruction.
+
+        @throws NotImplementedError Abstract method. This base method should not be called.
+        """
+        raise NotImplementedError()
+
+    @classproperty
+    def name_token_index(self) -> int:
+        """
+        @brief Index for the token containing the name of the instruction
+        in the list of tokens.
+
+        @return The index of the name token.
+        """
+        return self._get_name_token_index()
+
+    @classmethod
+    def dump_instructions_to_file(cls, instructions: list, filename: str):
+        """
+        @brief Writes a list of instruction objects to a file, one per line.
+
+        Each instruction is converted to its string representation using the `to_line()` method.
+
+        @param instructions List of instruction objects (must have a to_line() method).
+        @param filename Path to the output file.
+        """
+        with open(filename, "w", encoding="utf-8") as f:
+            for instr in instructions:
+                f.write(instr.to_line() + "\n")
+
+    @property
+    def tokens(self) -> list:
+        """
+        @brief Gets the list of tokens for the instruction.
+
+        @return The list of tokens.
+        """
+        return self._tokens
+
+    def to_line(self) -> str:
+        """
+        @brief Retrieves the string form of the instruction to write to the instruction file.
+
+        @return The string representation of the instruction.
+        """
+        comment_str = ""
+        if not GlobalConfig.suppress_comments:
+            comment_str = f" # {self.comment}" if self.comment else ""
+
+        tokens_str = ", ".join(self.tokens)
+        return f"{tokens_str}{comment_str}"

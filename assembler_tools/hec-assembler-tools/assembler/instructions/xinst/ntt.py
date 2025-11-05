@@ -85,7 +85,7 @@ class Instruction(XInstruction):
             dst_src = cls.parsePISASourceDestsFromTokens(instr_tokens, cls._OP_NUM_DESTS, cls._OP_NUM_SOURCES, params_start)
             retval.update(dst_src)
             retval["stage"] = int(instr_tokens[params_end])
-            retval["res"] = int(instr_tokens[params_end + 1])
+            retval["res"] = int(instr_tokens[params_end + 1]) if len(instr_tokens) > params_end + 1 else 0
 
             retval = Namespace(**retval)
             assert retval.op_name == cls.op_name_pisa

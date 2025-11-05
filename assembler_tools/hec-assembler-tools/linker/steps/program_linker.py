@@ -8,13 +8,14 @@
 
 from typing import Any, cast
 
+from assembler.common import dinst
 from assembler.common.config import GlobalConfig
+from assembler.common.dinst.dinstruction import DInstruction
 from assembler.instructions import cinst as ISACInst
 
 import linker.kern_trace.kern_remap as kern_mapper
 from linker import MemoryModel
-from linker.instructions import cinst, dinst, minst, xinst
-from linker.instructions.dinst.dinstruction import DInstruction
+from linker.instructions import cinst, minst, xinst
 from linker.kern_trace import InstrAct, KernelInfo
 from linker.kern_trace.kernel_info import CinstrMapEntry
 from linker.loader import Loader
@@ -657,8 +658,8 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             elif isinstance(minstr, minst.MLoad):
                 # Remove MLoad instructions if variable is already loaded
                 if minstr.var_name in self._minst_in_var_tracker:
-                    # Keep psi, rlk and ipsi loads from spad
-                    if minstr.var_name.startswith(("psi", "rlk", "ipsi")):
+                    # Keep psi, rlk, pHalf and ipsi loads from spad
+                    if minstr.var_name.startswith(("psi", "rlk", "ipsi", "phalf")):
                         kernel_info.minstrs_map[idx].action = InstrAct.KEEP_SPAD
                     else:
                         kernel_info.minstrs_map[idx].action = InstrAct.SKIP
@@ -885,8 +886,8 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
                 removed_delta += ISACInst.CLoad.get_throughput()
             return removed_delta
 
-        # Track new load unless special table (psi / rlk / ipsi)
-        if not cinstr.var_name.startswith(("psi", "rlk", "ipsi")):
+        # Track new load unless special table (psi / rlk / ipsi / pHalf)
+        if not cinstr.var_name.startswith(("psi", "rlk", "ipsi", "phalf")):
             self._cinst_in_var_tracker[cinstr.var_name] = cinstr.spad_address
             self._last_cq_tp += ISACInst.CLoad.get_throughput()
         return removed_delta

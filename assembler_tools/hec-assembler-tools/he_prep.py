@@ -10,8 +10,8 @@ Functions:
     save_pisa_listing(out_stream, instr_listing: list)
         Stores instructions to a stream in P-ISA format.
 
-    main(output_file_name: str, input_file_name: str, b_verbose: bool)
-        Preprocesses the P-ISA kernel and saves the output to a specified file.
+    main(args)
+        Preprocesses the P-ISA kernel using parsed CLI args.
 
     parse_args() -> argparse.Namespace
         Parses command-line arguments for the preprocessing script.
@@ -32,10 +32,12 @@ import os
 import time
 
 from assembler.common import constants
+from assembler.common.config import GlobalConfig
 from assembler.memory_model import MemoryModel
 from assembler.spec_config.isa_spec import ISASpecConfig
 from assembler.spec_config.mem_spec import MemSpecConfig
-from assembler.stages import preprocessor
+from assembler.stages.prep import preprocessor
+from assembler.stages.prep.kernel_splitter import KernelSplitter
 
 
 def save_pisa_listing(out_stream, instr_listing: list):
@@ -58,32 +60,23 @@ def save_pisa_listing(out_stream, instr_listing: list):
             print(inst_line, file=out_stream)
 
 
-def main(output_file_name: str, input_file_name: str, b_verbose: bool):
-    """
-    Preprocesses the P-ISA kernel and saves the output to a specified file.
-
-    This function reads an input kernel file, preprocesses it to transform instructions into ASM-ISA format,
-    assigns register banks to variables, and saves the processed instructions to an output file.
+def main(args):
+    """Preprocess the P-ISA kernel using parsed CLI args.
 
     Args:
-        output_file_name (str): The name of the output file where processed instructions are saved.
-        input_file_name (str): The name of the input file containing the P-ISA kernel.
-        b_verbose (bool): Flag indicating whether verbose output is enabled.
-
-    Returns:
-        None
+        args (argparse.Namespace): Must contain at least
+            - input_file_name
+            - output_file_name
+            - mem_file
+            - verbose
     """
+
+    GlobalConfig.debugVerbose = args.verbose
+
     # used for timings
     insts_end: float = 0.0
 
-    # check for default `output_file_name`
-    # e.g. of default
-    #   input_file_name = /path/to/some/file.csv
-    #   output_file_name = /path/to/some/file.tw.csv
-    if not output_file_name:
-        root, ext = os.path.splitext(input_file_name)
-        output_file_name = root + ".tw" + ext
-
+    start_time = time.time()
     hec_mem_model = MemoryModel(
         constants.MemoryModel.HBM.MAX_CAPACITY_WORDS,
         constants.MemoryModel.SPAD.MAX_CAPACITY_WORDS,
@@ -95,24 +88,42 @@ def main(output_file_name: str, input_file_name: str, b_verbose: bool):
     # read input kernel and pre-process P-ISA:
     # resulting instructions will be correctly transformed and ready to be converted into ASM-ISA instructions;
     # variables used in the kernel will be automatically assigned to banks.
-    with open(input_file_name, encoding="utf-8") as insts:
-        insts_listing = preprocessor.preprocess_pisa_kernel_listing(hec_mem_model, insts, progress_verbose=b_verbose)
+    with open(args.input_file_name, encoding="utf-8") as insts:
+        insts_listing = preprocessor.preprocess_pisa_kernel_listing(hec_mem_model, insts)
     num_input_instr: int = len(insts_listing)  # track number of instructions in input kernel
-    if b_verbose:
+    if args.verbose > 0:
         print("Assigning register banks to variables...")
-    preprocessor.assign_register_banks_to_vars(hec_mem_model, insts_listing, use_bank0=False, verbose=b_verbose)
+    preprocessor.assign_register_banks_to_vars(hec_mem_model, insts_listing, use_bank0=False)
+
+    # Determine output file name
+    if not args.output_file_name:
+        root, ext = os.path.splitext(args.input_file_name)
+        args.output_file_name = root + ".tw" + ext
+
+    sub_kernels: list[tuple[list[int], str]] = []
+    if args.split_on:
+        kern_splitter = KernelSplitter()
+        split_entries = kern_splitter.prepare_instruction_splits(args, insts_listing)
+        sub_kernels.extend(split_entries)
+    else:
+        sub_kernels.append((insts_listing, args.output_file_name))
+
     insts_end = time.time() - start_time
 
-    if b_verbose:
-        print("Saving...")
-    with open(output_file_name, "w", encoding="utf-8") as outnum:
-        save_pisa_listing(outnum, insts_listing)
+    if args.verbose > 0:
+        print(f"\nInstructions in input: {num_input_instr}")
 
-    if b_verbose:
-        print(f"Input: {input_file_name}")
-        print(f"Output: {output_file_name}")
-        print(f"Instructions in input: {num_input_instr}")
-        print(f"Instructions in output: {len(insts_listing)}")
+    # Write sub-kernels
+    if args.verbose > 0:
+        print("\tSaving...")
+    for insts, out_file in sub_kernels:
+        with open(out_file, "w", encoding="utf-8") as out_split:
+            save_pisa_listing(out_split, insts)
+        if args.verbose > 0:
+            print(f"\tOutput: {out_file}")
+            print(f"\tInstructions in output: {len(insts)}")
+
+    if args.verbose > 0:
         print(f"--- Generation time: {insts_end} seconds ---")
 
 
@@ -154,6 +165,26 @@ def parse_args():
         help=("Input Mem specification (.json) file."),
     )
     parser.add_argument(
+        "--mem_file",
+        default="",
+        dest="mem_file",
+        help=("Input Mem file (.mem) file."),
+    )
+    parser.add_argument(
+        "--split_vars_limit",
+        type=float,
+        default=float("inf"),
+        dest="split_vars_limit",
+        help="Maximum variable footprint allowed when splitting.",
+    )
+    parser.add_argument(
+        "--split_inst_limit",
+        type=float,
+        default=float("inf"),
+        dest="split_inst_limit",
+        help="Maximum instructions per split when splitting.",
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         dest="verbose",
@@ -165,6 +196,9 @@ def parse_args():
         ),
     )
     p_args = parser.parse_args()
+    p_args.split_on = bool(p_args.split_inst_limit != float("inf") or p_args.split_vars_limit != float("inf"))
+    if p_args.split_on:
+        assert p_args.mem_file, "--mem_file must be specified when --split_on is used."
 
     return p_args
 
@@ -183,14 +217,14 @@ if __name__ == "__main__":
         print()
         print(f"Input: {args.input_file_name}")
         print(f"Output: {args.output_file_name}")
+        print(f"Mem File: {args.mem_file}")
         print(f"ISA Spec: {args.isa_spec_file}")
         print(f"Mem Spec: {args.mem_spec_file}")
+        print(f"Split Inst Limit: {args.split_inst_limit}")
+        print(f"Split Vars Limit: {args.split_vars_limit}")
+        print(f"Split On: {args.split_on}")
 
-    main(
-        output_file_name=args.output_file_name,
-        input_file_name=args.input_file_name,
-        b_verbose=(args.verbose > 1),
-    )
+    main(args)
 
     if args.verbose > 0:
         print()

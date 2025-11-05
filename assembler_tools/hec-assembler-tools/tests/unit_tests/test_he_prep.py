@@ -40,7 +40,19 @@ def test_main_assigns_and_saves(monkeypatch, tmp_path):
     )
     monkeypatch.setattr(he_prep.preprocessor, "assign_register_banks_to_vars", mock.Mock())
 
-    he_prep.main(str(output_file), str(input_file), b_verbose=False)
+    he_prep.main(
+        mock.Mock(
+            **{
+                "input_file_name": str(input_file),
+                "output_file_name": str(output_file),
+                "mem_file": "",
+                "verbose": 0,
+                "split_on": False,
+                "split_inst_limit": float("inf"),
+                "split_vars_limit": float("inf"),
+            }
+        )
+    )
     # Output file should contain the instruction
     assert output_file.read_text().strip() == "inst1"
 
@@ -50,7 +62,19 @@ def test_main_no_input_file():
     @brief Test that main raises an error when no input file is provided.
     """
     with pytest.raises(FileNotFoundError):
-        he_prep.main("", "", b_verbose=False)  # Should raise an error due to missing input file
+        he_prep.main(
+            mock.Mock(
+                **{
+                    "input_file_name": "",
+                    "output_file_name": "",
+                    "mem_file": "",
+                    "verbose": 0,
+                    "split_on": False,
+                    "split_inst_limit": float("inf"),
+                    "split_vars_limit": float("inf"),
+                }
+            )
+        )  # Should raise an error due to missing input file
 
 
 def test_main_no_output_file():
@@ -58,7 +82,19 @@ def test_main_no_output_file():
     @brief Test that main raises an error when no output file is provided.
     """
     with pytest.raises(FileNotFoundError):
-        he_prep.main("", "input.csv", b_verbose=False)  # Should raise an error due to missing output file
+        he_prep.main(
+            mock.Mock(
+                **{
+                    "input_file_name": "input.csv",
+                    "output_file_name": "",
+                    "mem_file": "",
+                    "verbose": 0,
+                    "split_on": False,
+                    "split_inst_limit": float("inf"),
+                    "split_vars_limit": float("inf"),
+                }
+            )
+        )  # Should raise an error due to missing output file
 
 
 def test_main_no_instructions(monkeypatch):
@@ -82,7 +118,19 @@ def test_main_no_instructions(monkeypatch):
     )
     monkeypatch.setattr(he_prep.preprocessor, "assign_register_banks_to_vars", mock.Mock())
 
-    he_prep.main(output_file, input_file, b_verbose=False)
+    he_prep.main(
+        mock.Mock(
+            **{
+                "input_file_name": input_file,
+                "output_file_name": output_file,
+                "mem_file": "",
+                "verbose": 0,
+                "split_on": False,
+                "split_inst_limit": float("inf"),
+                "split_vars_limit": float("inf"),
+            }
+        )
+    )
 
     # Output file should be empty
     output_file_path = pathlib.Path(output_file)
@@ -97,7 +145,19 @@ def test_main_invalid_input_file(tmp_path):
     output_file = tmp_path / "output.csv"
 
     with pytest.raises(FileNotFoundError):
-        he_prep.main(str(output_file), str(input_file), b_verbose=False)  # Should raise an error due to missing input file
+        he_prep.main(
+            mock.Mock(
+                **{
+                    "input_file_name": str(input_file),
+                    "output_file_name": str(output_file),
+                    "mem_file": "",
+                    "verbose": 0,
+                    "split_on": False,
+                    "split_inst_limit": float("inf"),
+                    "split_vars_limit": float("inf"),
+                }
+            )
+        )  # Should raise an error due to missing input file
 
 
 def test_main_invalid_output_file(tmp_path):
@@ -115,7 +175,19 @@ def test_main_invalid_output_file(tmp_path):
     os.chmod(output_file, 0o444)  # Read-only permissions
 
     with pytest.raises(PermissionError):
-        he_prep.main(str(output_file), str(input_file), b_verbose=False)  # Should raise an error due to permission issues
+        he_prep.main(
+            mock.Mock(
+                **{
+                    "input_file_name": str(input_file),
+                    "output_file_name": str(output_file),
+                    "mem_file": "",
+                    "verbose": 0,
+                    "split_on": False,
+                    "split_inst_limit": float("inf"),
+                    "split_vars_limit": float("inf"),
+                }
+            )
+        )  # Should raise an error due to permission issues
 
 
 def test_parse_args():

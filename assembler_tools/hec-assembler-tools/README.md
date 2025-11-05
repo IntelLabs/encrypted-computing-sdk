@@ -65,6 +65,12 @@ Given a P-ISA kernel (`filename.csv`) and corresponding memory mapping file (`fi
 python3 he_prep.py filename.csv
 ```
 
+The preprocessing program can split kernels (see he_prep.py -h for details). Use the split options if you encounter physical memory constraints.
+
+# pre-process kernel: outputs filename1.tw_<#>.csv & filename1.tw_deps_<#>.csv
+python3 he_prep.py filename1.csv --mem_file filename0.mem --split_vars_limit <val> --split_inst_limit <val>
+```
+
 2. Assemble the pre-processed result using `he_as.py`.
 
 ```bash
