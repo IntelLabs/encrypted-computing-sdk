@@ -247,7 +247,7 @@ class KeyMul(HighOp):
         ls: list[pisa_op] = []
         for digit, op in get_pisa_op(self.input1.digits):
             input0_tmp = Polys.from_polys(self.input0)
-            input0_tmp.name += f"_{digit}"
+            input0_tmp.name += f"_tmp{digit}"
 
             # mul/mac for 0-current_rns
             ls.extend(
