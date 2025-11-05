@@ -12,6 +12,7 @@ from assembler.common import dinst
 from assembler.common.config import GlobalConfig
 from assembler.common.dinst.dinstruction import DInstruction
 from assembler.instructions import cinst as ISACInst
+
 import linker.kern_trace.kern_remap as kern_mapper
 from linker import MemoryModel
 from linker.instructions import cinst, minst, xinst

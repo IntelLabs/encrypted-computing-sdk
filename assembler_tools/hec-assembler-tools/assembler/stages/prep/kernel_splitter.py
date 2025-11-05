@@ -167,7 +167,7 @@ class KernelSplitter:
                     weight_increment = 1
                     if isinstance(insts[writer], (Mac, Maci)) or (isinstance(inst, (Mac, Maci)) and name in inst.dests):
                         weight_increment = 5  # Prefer to keep Maci together with its producers/consumers
-                    
+
                     if G.has_edge(writer, idx):
                         var_set = G[writer][idx].setdefault("vars", set())
                         var_set.add(name)

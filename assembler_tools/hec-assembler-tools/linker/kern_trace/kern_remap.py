@@ -9,6 +9,7 @@
 import re
 
 from assembler.common.dinst.dinstruction import DInstruction
+
 from linker.instructions import cinst, minst, xinst
 from linker.instructions.cinst.cinstruction import CInstruction
 from linker.instructions.minst.minstruction import MInstruction
