@@ -60,34 +60,6 @@ def save_pisa_listing(out_stream, instr_listing: list):
             print(inst_line, file=out_stream)
 
 
-def _preprocess_and_save(insts, output_file_name: str, b_verbose: bool) -> tuple[str, int, float]:
-    """Preprocess P-ISA kernel (bank assign + save) and return (output_file_name, num_input_instr, elapsed_sec)."""
-
-    hec_mem_model = MemoryModel(
-        constants.MemoryModel.HBM.MAX_CAPACITY_WORDS,
-        constants.MemoryModel.SPAD.MAX_CAPACITY_WORDS,
-        constants.MemoryModel.NUM_REGISTER_BANKS,
-    )
-    start_time = time.time()
-    insts_listing = preprocessor.preprocess_pisa_kernel_listing(hec_mem_model, insts, progress_verbose=b_verbose)
-    num_input_instr = len(insts_listing)
-    if b_verbose:
-        print("Assigning register banks to variables...")
-    preprocessor.assign_register_banks_to_vars(hec_mem_model, insts_listing, use_bank0=False, verbose=b_verbose)
-    elapsed = time.time() - start_time
-
-    if b_verbose:
-        print("Saving...")
-    with open(output_file_name, "w", encoding="utf-8") as outnum:
-        save_pisa_listing(outnum, insts_listing)
-    if b_verbose:
-        print(f"Output: {output_file_name}")
-        print(f"Instructions in input: {num_input_instr}")
-        print(f"Instructions in output: {len(insts_listing)}")
-        print(f"--- Generation time: {elapsed} seconds ---")
-    return output_file_name, num_input_instr, elapsed
-
-
 def main(args):
     """Preprocess the P-ISA kernel using parsed CLI args.
 
@@ -211,13 +183,6 @@ def parse_args():
         default=float("inf"),
         dest="split_inst_limit",
         help="Maximum instructions per split when splitting.",
-    )
-    parser.add_argument(
-        "--split_on",
-        default="",
-        action="store_true",
-        dest="split_on",
-        help=("Enable automatic splitting when its estimated usage exceeds memory limits."),
     )
     parser.add_argument(
         "-v",

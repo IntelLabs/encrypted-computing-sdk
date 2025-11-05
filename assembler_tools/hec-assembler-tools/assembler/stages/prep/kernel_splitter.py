@@ -33,7 +33,7 @@ import networkx as nx
 from assembler.common.config import GlobalConfig as Cfg
 from assembler.common.dinst import DLoad, DStore, create_from_mem_line
 from assembler.common.dinst.dinstruction import DInstruction
-from assembler.instructions.xinst import NTT, Maci, iNTT, irShuffle, rShuffle, twiNTT, twNTT
+from assembler.instructions.xinst import NTT, Mac, Maci, iNTT, irShuffle, rShuffle, twiNTT, twNTT
 from assembler.memory_model.variable import Variable
 
 # Dict (var_name, producer_instr) -> Dict (consumer_set_id -> Set(consumer_instrs))
@@ -153,7 +153,7 @@ class KernelSplitter:
             if isinstance(inst, (NTT, iNTT, twNTT, twiNTT, rShuffle, irShuffle)):
                 # NTT/iNTT/twNTT/twiNTT/rShuffle/irShuffle have implicit dependencies on all their dests and sources
                 if idx + 1 < len(insts) and isinstance(insts[idx + 1], (NTT, iNTT, twNTT, twiNTT, rShuffle, irShuffle)):
-                    G.add_edge(idx, idx + 1, weight=10)
+                    G.add_edge(idx, idx + 1, weight=5)
 
             # Record external vars touched (sources)
             for var in inst.sources:
@@ -165,9 +165,9 @@ class KernelSplitter:
                 writer = last_writer.get(name)
                 if writer is not None and writer != idx:
                     weight_increment = 1
-                    if isinstance(insts[writer], Maci) or (isinstance(inst, Maci) and name in inst.dests):
+                    if isinstance(insts[writer], (Mac, Maci)) or (isinstance(inst, (Mac, Maci)) and name in inst.dests):
                         weight_increment = 5  # Prefer to keep Maci together with its producers/consumers
-
+                    
                     if G.has_edge(writer, idx):
                         var_set = G[writer][idx].setdefault("vars", set())
                         var_set.add(name)

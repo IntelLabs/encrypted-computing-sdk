@@ -12,7 +12,6 @@ import copy
 from typing import Any
 
 from assembler.common import dinst
-
 from linker import instructions
 from linker.instructions import cinst, minst, xinst
 

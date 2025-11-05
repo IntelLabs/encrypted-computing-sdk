@@ -341,7 +341,6 @@ class Simulation:
         # Metadata for twiddles segment `i` supports computation of twiddle factors
         # with rns in range `[i * 64, (i + 1) * 64)`
         # i == -1 means uninitialized
-
         self.bundle_current_twid_segment = -1  # Tracks current twid segment metadata loaded
         self.bundle_needed_twid_segment = -1  # Signals the twid segment metadata needed
 
