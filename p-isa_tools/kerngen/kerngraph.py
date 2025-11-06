@@ -34,7 +34,8 @@ import sys
 
 from const.options import LoopKey
 from high_parser.config import Config
-from kernel_optimization.loops import loop_interchange, split_by_reorderable
+from kernel_optimization.loop_ordering_lookup import get_loop_order
+from kernel_optimization.loops import loop_interchange, reuse_rns_label, split_by_reorderable
 from kernel_parser.parser import KernelParser
 from pisa_generators.basic import mixed_to_pisa_ops
 
@@ -49,8 +50,8 @@ def parse_args():
         "--target",
         nargs="*",
         default=[],
-        # Composition high ops such are ntt, mod, and relin are not currently supported
-        choices=["add", "sub", "mul", "muli", "copy", "ntt", "intt", "mod", "relin"],
+        # Composition high ops such are ntt, mod, etc.
+        choices=["add", "sub", "mul", "muli", "copy", "ntt", "intt", "mod", "relin", "rotate", "rescale"],
         help="List of high_op names",
     )
     parser.add_argument(
@@ -69,11 +70,55 @@ def parse_args():
         choices=list(LoopKey) + [None],
         help="Secondary key for loop interchange (default: None, Options: RNS, PART)",
     )
+    parser.add_argument(
+        "--optimal",
+        action="store_true",
+        help="Use optimal primary and secondary loop order based on kernel configuration (overrides -p and -s)",
+    )
     parsed_args = parser.parse_args()
     # verify that primary and secondary keys are  not the same
-    if parsed_args.primary == parsed_args.secondary:
+    if not parsed_args.optimal and parsed_args.primary == parsed_args.secondary:
         raise ValueError("Primary and secondary keys cannot be the same.")
-    return parser.parse_args()
+    return parsed_args
+
+
+def get_optimal_loop_order(kernel, debug=False):
+    """
+    Get optimal loop order for a kernel based on its properties.
+
+    Args:
+        kernel: Parsed kernel object
+        debug (bool): Enable debug output
+
+    Returns:
+        Tuple[LoopKey, LoopKey]: Primary and secondary loop keys, or (None, None) if not found
+    """
+    try:
+        # Extract kernel properties
+        scheme = getattr(kernel.context, "scheme", "bgv").lower()
+        kernel_name = str(kernel).split("(")[0].lower()
+        polyorder = getattr(kernel.context, "poly_order", 16384)
+        max_rns = getattr(kernel.context, "max_rns", 3)
+        # Get optimal loop order from configuration
+        primary_str, secondary_str = get_loop_order(scheme, kernel_name, polyorder, max_rns)
+        # Map string values to LoopKey enum
+        loop_key_mapping = {"part": LoopKey.PART, "rns": LoopKey.RNS, "null": None}
+
+        primary_key = loop_key_mapping.get(primary_str)
+        secondary_key = loop_key_mapping.get(secondary_str)
+
+        if debug:
+            print(
+                "# Optimal loop order for"
+                + f" {scheme}.{kernel_name}: primary={primary_str} ({primary_key}), secondary={secondary_str} ({secondary_key})"
+            )
+
+        return primary_key, secondary_key
+
+    except ValueError as e:
+        if debug:
+            print(f"# Warning: Could not determine optimal loop order for kernel {kernel}: {e}")
+        return None, None
 
 
 def parse_kernels(input_lines, debug=False):
@@ -92,17 +137,24 @@ def parse_kernels(input_lines, debug=False):
 
 def process_kernel_with_reordering(kernel, args):
     """Process a kernel with reordering optimization."""
+    # Determine loop order
+    if args.optimal:
+        primary_key, secondary_key = get_optimal_loop_order(kernel, args.debug)
+    else:
+        primary_key = args.primary
+        secondary_key = args.secondary
+
     groups = split_by_reorderable(kernel.to_pisa())
     processed_kernel = []
     for group in groups:
         if group.is_reorderable:
-            processed_kernel.append(
-                loop_interchange(
-                    group.pisa_list,
-                    primary_key=args.primary,
-                    secondary_key=args.secondary,
-                )
-            )
+            interchanged_pisa = loop_interchange(group.pisa_list, primary_key=primary_key, secondary_key=secondary_key)
+
+            if ("mod" in args.target) and (primary_key is not None and secondary_key is not None):
+                for pisa in mixed_to_pisa_ops(interchanged_pisa):
+                    processed_kernel.append(reuse_rns_label(pisa, kernel.context.current_rns))
+            else:
+                processed_kernel.append(interchanged_pisa)
         else:
             processed_kernel.append(group.pisa_list)
 
@@ -127,7 +179,10 @@ def main(args):
         return
 
     if args.debug:
-        print(f"# Reordered targets {args.target} with primary key {args.primary} and secondary key {args.secondary}")
+        if args.optimal:
+            print(f"# Using optimal loop order configuration for targets {args.target}")
+        else:
+            print(f"# Reordered targets {args.target} with primary key {args.primary} and secondary key {args.secondary}")
 
     for kernel in valid_kernels:
         if should_apply_reordering(kernel, args.target):

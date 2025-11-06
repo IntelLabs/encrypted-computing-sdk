@@ -147,6 +147,7 @@ class Mod(HighOp):
                                 input_remaining_rns,
                                 last_q,
                             ),
+                            Comment("<reorderable>"),
                             Muli(
                                 self.context,
                                 temp_input_remaining_rns,
