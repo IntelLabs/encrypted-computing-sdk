@@ -121,6 +121,24 @@ def createFromParsedObj(mem_model: MemoryModel, inst_type, parsed_op, new_id: in
     return inst_type(new_id, **parsed_op)
 
 
+def getParsedOpFromPISALine(line: str, line_no: int):
+    """
+    @brief Parses a P-ISA line and returns the parsed operation.
+    This function attempts to parse a line of P-ISA code and returns the corresponding parsed operation
+    if successful.
+    @param line The line of P-ISA code to parse.
+    @return The parsed operation if the line is successfully parsed; otherwise, None.
+    """
+    try:
+        for inst_type in __PISA_INSTRUCTIONS:
+            parsed_op = inst_type.parseFromPISALine(line)
+            if parsed_op:
+                return parsed_op
+    except Exception as ex:
+        raise Exception(f"line {line_no}: {line}.") from ex
+    return None
+
+
 def createFromPISALine(mem_model: MemoryModel, line: str, line_no: int = 0) -> XInstruction:
     """
     Parses an XInst from the specified string (in P-ISA kernel input format) and returns a

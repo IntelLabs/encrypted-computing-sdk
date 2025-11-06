@@ -268,7 +268,7 @@ class TestLoader(unittest.TestCase):
 
         self.assertIn('Error occurred loading file "test.xinst"', str(context.exception))
 
-    @patch("linker.instructions.dinst.create_from_mem_line")
+    @patch("assembler.common.dinst.create_from_mem_line")
     def test_load_dinst_kernel_success(self, mock_create):
         """@brief Test successful loading of DInstructions from an iterator.
 
@@ -285,7 +285,7 @@ class TestLoader(unittest.TestCase):
         self.assertEqual(mock_create.call_count, 2)
         mock_create.assert_has_calls([call(self.dinst_lines[0]), call(self.dinst_lines[1])])
 
-    @patch("linker.instructions.dinst.create_from_mem_line")
+    @patch("assembler.common.dinst.create_from_mem_line")
     def test_load_dinst_kernel_failure(self, mock_create):
         """@brief Test error handling when loading DInstructions fails.
 

@@ -8,9 +8,10 @@
 
 import re
 
+from assembler.common.dinst.dinstruction import DInstruction
+
 from linker.instructions import cinst, minst, xinst
 from linker.instructions.cinst.cinstruction import CInstruction
-from linker.instructions.dinst.dinstruction import DInstruction
 from linker.instructions.minst.minstruction import MInstruction
 from linker.instructions.xinst.xinstruction import XInstruction
 from linker.kern_trace.kernel_op import KernelOp
@@ -22,7 +23,7 @@ def remap_dinstrs_vars(kernel_dinstrs: list[DInstruction], kernel_op: KernelOp) 
 
     For each variable name in the kernel_dinstrs:
     1. Extracts a prefix separated by '_'
-    2. Ignores variables with prefixes 'ntt', 'intt', 'ones', 'ipsi', 'psi', 'rlk' or 'twid'
+    2. Ignores variables with prefixes 'ntt', 'intt', 'ones', 'ipsi', 'psi', 'rlk', 'phalf' or 'twid'
     3. Extracts a number from the prefix (digits after text)
     4. Uses this number as an index into the sorted list of KernelOp variables
     5. Replaces the dinstr var name prefix with the value obtained by the index
