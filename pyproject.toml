@@ -22,7 +22,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "grpcio-tools==1.56.2",  # needed for compiling protos from python directly
+    "grpcio-tools==1.76.0",  # needed for compiling protos from python directly
     "pytest>=7.4.0",
     "pre-commit>=4.3.0",
     # pre-commit installs its own version of the tools below,
