@@ -239,7 +239,6 @@ def asmisaAssemble(
                 len(insts_listing) <= constants.MemoryModel.XINST_QUEUE_MAX_CAPACITY_ENTRIES
             ), f"Line {line_no}: Exceeded maximum number of instructions in XInstQ: {constants.MemoryModel.XINST_QUEUE_MAX_CAPACITY_ENTRIES} Entries."
 
-    print(f"--- Total P-ISA Instructions: {len(insts_listing)} ---")
     if b_verbose:
         print("Interpreting variable meta information...")
     with open(mem_filename, "r") as mem_ifnum:
@@ -251,7 +250,6 @@ def asmisaAssemble(
     start_time = time.time()
     dep_graph = scheduler.generateInstrDependencyGraph(insts_listing, sys.stdout if b_verbose else None)
     scheduler.enforceKeygenOrdering(dep_graph, hec_mem_model, sys.stdout if b_verbose else None)
-    print(f"--- Total P-ISA Instructions: {dep_graph.number_of_nodes()} ---")
     deps_end = time.time() - start_time
 
     if b_verbose:
@@ -264,8 +262,6 @@ def asmisaAssemble(
         run_config.repl_policy,
         b_verbose,
     )
-
-    print(f"--- Total P-ISA Instructions: {len(xinsts)} ---")
     sched_end = time.time() - start_time
 
     num_nops = 0
