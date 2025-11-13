@@ -151,7 +151,7 @@ def reduce_var_deps_by_var(mem_model: MemoryModel, insts_list: list, var_name: s
 
 
 def assign_register_banks_to_vars(
-    mem_model: MemoryModel, insts_list: list, use_bank0: bool, verbose=False, strategy="largest_first", interchange=False
+    mem_model: MemoryModel, insts_list: list, use_bank0: bool, strategy="largest_first", interchange=False
 ) -> str:
     """
     Assigns register banks to variables using vertex coloring graph algorithm.
@@ -173,7 +173,6 @@ def assign_register_banks_to_vars(
                           If `False`, bank 0 will not be assigned to any variable. Resulting ASM instructions
                           should add corresponding `move` instructions to move variables from bank 0 to
                           correct bank.
-        verbose (bool, optional): If True, prints verbose output. Defaults to False.
         strategy (str, optional): Strategy for greedy coloring algorithm. Defaults to "largest_first".
         interchange (bool, optional): Whether to use interchange in greedy coloring. Defaults to False.
 
