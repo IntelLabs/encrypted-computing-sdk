@@ -69,6 +69,9 @@ def main(args):
             - output_file_name
             - mem_file
             - verbose
+        optional:
+            - strategy
+            - interchange
     """
 
     GlobalConfig.debugVerbose = args.verbose
@@ -93,7 +96,9 @@ def main(args):
     num_input_instr: int = len(insts_listing)  # track number of instructions in input kernel
     if args.verbose > 0:
         print("Assigning register banks to variables...")
-    preprocessor.assign_register_banks_to_vars(hec_mem_model, insts_listing, use_bank0=False)
+    preprocessor.assign_register_banks_to_vars(
+        hec_mem_model, insts_listing, use_bank0=False, strategy=args.strategy, interchange=args.interchange
+    )
 
     # Determine output file name
     if not args.output_file_name:
@@ -195,6 +200,17 @@ def parse_args():
             "Increase level of verbosity by specifying flag multiple times, e.g. -vv"
         ),
     )
+    parser.add_argument(
+        "--strategy",
+        default="largest_first",
+        help="Strategy for greedy coloring algorithm. Defaults to 'largest_first'.",
+    )
+    parser.add_argument(
+        "--interchange",
+        action="store_true",
+        default=False,
+        help="Whether to use interchange in greedy coloring. Defaults to False.",
+    )
     p_args = parser.parse_args()
     p_args.split_on = bool(p_args.split_inst_limit != float("inf") or p_args.split_vars_limit != float("inf"))
     if p_args.split_on:
@@ -223,6 +239,8 @@ if __name__ == "__main__":
         print(f"Split Inst Limit: {args.split_inst_limit}")
         print(f"Split Vars Limit: {args.split_vars_limit}")
         print(f"Split On: {args.split_on}")
+        print(f"Graph Coloring Strategy: {args.strategy}")
+        print(f"Graph Coloring Interchange: {args.interchange}")
 
     main(args)
 
