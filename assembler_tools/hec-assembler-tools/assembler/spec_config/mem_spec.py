@@ -11,6 +11,8 @@ from assembler.common.constants import Constants, MemoryModel
 class MemSpecConfig:
     _target_attributes = {
         "bytes_per_xinstruction": Constants.setXInstructionSizeBytes,
+        "bytes_per_cinstruction": Constants.setCInstructionSizeBytes,
+        "bytes_per_minstruction": Constants.setMInstructionSizeBytes,
         "max_instructions_per_bundle": Constants.setMaxBundleSize,
         "max_xinst_queue_size_in_bytes": MemoryModel.setMaxXInstQueueCapacity,
         "max_cinst_queue_size_in_bytes": MemoryModel.setMaxCInstQueueCapacity,

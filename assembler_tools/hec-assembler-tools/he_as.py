@@ -235,6 +235,10 @@ def asmisaAssemble(
 
             insts_listing += parsed_insts
 
+            assert (
+                len(insts_listing) <= constants.MemoryModel.XINST_QUEUE_MAX_CAPACITY_ENTRIES
+            ), f"Line {line_no}: Exceeded maximum number of instructions in XInstQ: {constants.MemoryModel.XINST_QUEUE_MAX_CAPACITY_ENTRIES} Entries."
+
     if b_verbose:
         print("Interpreting variable meta information...")
     with open(mem_filename, "r") as mem_ifnum:
@@ -259,6 +263,7 @@ def asmisaAssemble(
         b_verbose,
     )
     sched_end = time.time() - start_time
+
     num_nops = 0
     num_xinsts = 0
     for bundle_xinsts, *_ in xinsts:
@@ -269,6 +274,15 @@ def asmisaAssemble(
             if isinstance(xinstr, xinst.Nop):
                 num_nops += 1
 
+    # Final xinst count assertion
+    assert (
+        (num_xinsts + num_nops) <= constants.MemoryModel.XINST_QUEUE_MAX_CAPACITY_ENTRIES
+    ), f"Exceeded maximum number of instructions in XInstQ: {(num_xinsts + num_nops)} > {constants.MemoryModel.XINST_QUEUE_MAX_CAPACITY_ENTRIES} Entries."
+
+    # Minst count assertion
+    assert (
+        len(minsts) <= constants.MemoryModel.MINST_QUEUE_MAX_CAPACITY_ENTRIES
+    ), f"Exceeded maximum number of instructions in MInstQ: {len(minsts)} > {constants.MemoryModel.MINST_QUEUE_MAX_CAPACITY_ENTRIES} Entries."
     if b_verbose:
         print("Saving minst...")
     with open(output_minst_filename, "w") as outnum:
@@ -277,6 +291,10 @@ def asmisaAssemble(
             if inst_line:
                 print(f"{idx}, {inst_line}", file=outnum)
 
+    # Cinst count assertion
+    assert (
+        len(cinsts) <= constants.MemoryModel.CINST_QUEUE_MAX_CAPACITY_ENTRIES
+    ), f"Exceeded maximum number of instructions in CInstQ: {len(cinsts)} > {constants.MemoryModel.CINST_QUEUE_MAX_CAPACITY_ENTRIES} Entries."
     if b_verbose:
         print("Saving cinst...")
     with open(output_cinst_filename, "w") as outnum:
