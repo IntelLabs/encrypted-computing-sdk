@@ -74,9 +74,6 @@ def main(args):
             - interchange
     """
 
-    strategy = getattr(args, "strategy", "largest_first")
-    interchange = getattr(args, "interchange", False)
-
     GlobalConfig.debugVerbose = args.verbose
 
     # used for timings
@@ -100,11 +97,7 @@ def main(args):
     if args.verbose > 0:
         print("Assigning register banks to variables...")
     preprocessor.assign_register_banks_to_vars(
-        hec_mem_model,
-        insts_listing,
-        use_bank0=False,
-        strategy=strategy,
-        interchange=interchange,
+        hec_mem_model, insts_listing, use_bank0=False, strategy=args.strategy, interchange=args.interchange
     )
 
     # Determine output file name

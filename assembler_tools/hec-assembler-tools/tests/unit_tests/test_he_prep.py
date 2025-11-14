@@ -359,48 +359,6 @@ def test_main_verbose_output(monkeypatch, tmp_path, capsys):
     assert "Generation time:" in captured.out
 
 
-def test_main_defaults_strategy_and_interchange(monkeypatch, tmp_path):
-    """
-    @brief Test that main uses default values for strategy and interchange when not provided.
-    """
-    input_file = tmp_path / "kernel.pisa"
-    input_file.write_text("dummy")
-    output_file = tmp_path / "output.pisa"
-
-    dummy_model = object()
-    dummy_insts = [mock.Mock(to_pisa_format=mock.Mock(return_value="inst"))]
-
-    monkeypatch.setattr(he_prep, "MemoryModel", mock.Mock(return_value=dummy_model))
-    monkeypatch.setattr(
-        he_prep.preprocessor,
-        "preprocess_pisa_kernel_listing",
-        mock.Mock(return_value=dummy_insts),
-    )
-    assign_mock = mock.Mock()
-    monkeypatch.setattr(he_prep.preprocessor, "assign_register_banks_to_vars", assign_mock)
-
-    # Create args without strategy/interchange using argparse.Namespace
-    # This properly raises AttributeError for missing attributes
-    args = type(
-        "Args",
-        (),
-        {
-            "input_file_name": str(input_file),
-            "output_file_name": str(output_file),
-            "mem_file": "",
-            "verbose": 0,
-            "split_on": False,
-        },
-    )()
-
-    he_prep.main(args)
-
-    assign_mock.assert_called_once()
-    _, kwargs = assign_mock.call_args
-    assert kwargs["strategy"] == "largest_first"  # Default
-    assert kwargs["interchange"] is False  # Default
-
-
 def test_parse_args_defaults():
     """
     @brief Test that parse_args sets correct defaults when optional args not provided.
