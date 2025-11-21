@@ -9,6 +9,8 @@
         "num_register_banks": 4,
         "num_registers_per_bank": 72,
         "bytes_per_xinstruction": 8,
+        "bytes_per_cinstruction": 8,
+        "bytes_per_minstruction": 8,
         "max_instructions_per_bundle": 64,
         "num_blocks_per_twid_meta_word": 4,
         "num_blocks_per_kgseed_meta_word": 4,
