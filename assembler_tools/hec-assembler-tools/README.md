@@ -1,6 +1,6 @@
 # HERACLES Code Generation Framework (Reference Implementation)
 
-The tools in this directory are the reference implementation of and Assembler codegenerator that takes a pre-generated Polynomial Instruction Set Architecture (P-ISA) program containing instructions that use an abstract, flat memory model for polynomial operations, such as those applied in homomorphic encryption (HE), and maps them to a corresponding set of instructions compatible with the HERACLES architecture, accounting for hardware restrictions, including memory management for the HERACLES memory model.
+The tools in this directory are the reference implementation of an Assembler codegenerator that takes a pre-generated Polynomial Instruction Set Architecture (P-ISA) program containing instructions that use an abstract, flat memory model for polynomial operations, such as those applied in homomorphic encryption (HE), and maps them to a corresponding set of instructions compatible with the HERACLES architecture, accounting for hardware restrictions, including memory management for the HERACLES memory model.
 
 ## Table of Contents
 1. [Dependencies](#dependencies)
@@ -65,8 +65,8 @@ Given a P-ISA kernel (`filename.csv`) and corresponding memory mapping file (`fi
 python3 he_prep.py filename.csv
 ```
 
-The preprocessing program can split kernels (see he_prep.py -h for details). Use the split options if you encounter physical memory constraints.
-
+* The preprocessing program can split kernels (see he_prep.py -h for details). Use the split options if you encounter physical memory constraints.
+```bash
 # pre-process kernel: outputs filename1.tw_<#>.csv & filename1.tw_deps_<#>.csv
 python3 he_prep.py filename1.csv --mem_file filename0.mem --split_vars_limit <val> --split_inst_limit <val>
 ```
