@@ -6,6 +6,8 @@ import heapq
 import networkx as nx
 from typing import NamedTuple
 
+from assembler.common import constants
+
 from . import buildVarAccessListFromTopoSort
 from assembler.common.cycle_tracking import PrioritizedPlaceholder, CycleType
 from assembler.instructions import xinst, cinst, minst
@@ -150,6 +152,11 @@ def enforceKeygenOrdering(deps_graph: nx.DiGraph, mem_model: MemoryModel, verbos
                 comment=f"injected copy to generate keygen var {kg_var_name} (seed = {seed_idx}, key = {key_idx})",
             )
             deps_graph.add_node(copy_instr.id, instruction=copy_instr)
+
+            assert (
+                deps_graph.number_of_nodes() <= constants.MemoryModel.XINST_QUEUE_MAX_CAPACITY_ENTRIES
+            ), f"Exceeded maximum number of instructions in XInstQ while injecting keygen copy instructions: {constants.MemoryModel.XINST_QUEUE_MAX_CAPACITY_ENTRIES} Entries."
+
             # Enforce ordering of copies based on ordering of keygen
             if last_copy_id is not None:
                 # Last copy -> current copy

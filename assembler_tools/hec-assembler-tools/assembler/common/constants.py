@@ -28,6 +28,8 @@ class Constants:
 
     __MAX_BUNDLE_SIZE: int
     __XINSTRUCTION_SIZE_BYTES: int
+    __CINSTRUCTION_SIZE_BYTES: int
+    __MINSTRUCTION_SIZE_BYTES: int
 
     # Data Constants
     # --------------
@@ -79,6 +81,16 @@ class Constants:
         return cls.__XINSTRUCTION_SIZE_BYTES
 
     @classproperty
+    def CINSTRUCTION_SIZE_BYTES(cls) -> int:
+        """Size of a c-instruction in bytes."""
+        return cls.__CINSTRUCTION_SIZE_BYTES
+
+    @classproperty
+    def MINSTRUCTION_SIZE_BYTES(cls) -> int:
+        """Size of a m-instruction in bytes."""
+        return cls.__MINSTRUCTION_SIZE_BYTES
+
+    @classproperty
     def MAX_BUNDLE_SIZE(cls) -> int:
         """Maximum number of instructions in a bundle."""
         return cls.__MAX_BUNDLE_SIZE
@@ -124,7 +136,12 @@ class Constants:
         """
         Returns hw configurable attributes as dictionary.
         """
-        return {"bytes_per_xinstruction": cls.XINSTRUCTION_SIZE_BYTES, "max_instructions_per_bundle": cls.MAX_BUNDLE_SIZE}
+        return {
+            "bytes_per_xinstruction": cls.XINSTRUCTION_SIZE_BYTES,
+            "bytes_per_cinstruction": cls.CINSTRUCTION_SIZE_BYTES,
+            "bytes_per_minstruction": cls.MINSTRUCTION_SIZE_BYTES,
+            "max_instructions_per_bundle": cls.MAX_BUNDLE_SIZE,
+        }
 
     @classmethod
     def setMaxBundleSize(cls, val: int):
@@ -135,6 +152,16 @@ class Constants:
     def setXInstructionSizeBytes(cls, val: int):
         """Updates size of single XInstruction"""
         cls.__XINSTRUCTION_SIZE_BYTES = val
+
+    @classmethod
+    def setCInstructionSizeBytes(cls, val: int):
+        """Updates size of single CInstruction"""
+        cls.__CINSTRUCTION_SIZE_BYTES = val
+
+    @classmethod
+    def setMInstructionSizeBytes(cls, val: int):
+        """Updates size of single MInstruction"""
+        cls.__MINSTRUCTION_SIZE_BYTES = val
 
 
 def convertBytes2Words(bytes_in: int) -> int:
@@ -364,6 +391,11 @@ class MemoryModel:
         return convertBytes2Words(cls.__XINST_QUEUE_MAX_CAPACITY)
 
     @classproperty
+    def XINST_QUEUE_MAX_CAPACITY_ENTRIES(cls):
+        """Maximum number of entries in the XINST queue."""
+        return cls.__XINST_QUEUE_MAX_CAPACITY // Constants.XINSTRUCTION_SIZE_BYTES
+
+    @classproperty
     def CINST_QUEUE_MAX_CAPACITY(cls):
         """Maximum capacity of the CINST queue in bytes."""
         return cls.__CINST_QUEUE_MAX_CAPACITY
@@ -374,6 +406,11 @@ class MemoryModel:
         return convertBytes2Words(cls.__CINST_QUEUE_MAX_CAPACITY)
 
     @classproperty
+    def CINST_QUEUE_MAX_CAPACITY_ENTRIES(cls):
+        """Maximum number of entries in the CINST queue."""
+        return cls.__CINST_QUEUE_MAX_CAPACITY // Constants.CINSTRUCTION_SIZE_BYTES
+
+    @classproperty
     def MINST_QUEUE_MAX_CAPACITY(cls):
         """Maximum capacity of the MINST queue in bytes."""
         return cls.__MINST_QUEUE_MAX_CAPACITY
@@ -382,6 +419,11 @@ class MemoryModel:
     def MINST_QUEUE_MAX_CAPACITY_WORDS(cls):
         """Maximum capacity of the MINST queue in words."""
         return convertBytes2Words(cls.__MINST_QUEUE_MAX_CAPACITY)
+
+    @classproperty
+    def MINST_QUEUE_MAX_CAPACITY_ENTRIES(cls):
+        """Maximum number of entries in the MINST queue."""
+        return cls.__MINST_QUEUE_MAX_CAPACITY // Constants.MINSTRUCTION_SIZE_BYTES
 
     @classproperty
     def STORE_BUFFER_MAX_CAPACITY(cls):
