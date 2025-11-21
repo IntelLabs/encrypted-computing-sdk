@@ -2311,6 +2311,9 @@ class TestPreloadKernels(unittest.TestCase):
         kernels_info = [mock_kernel]
 
         with (
+            patch("linker.steps.program_linker.Loader.load_minst_kernel_from_file", return_value=[]),
+            patch("linker.steps.program_linker.Loader.load_cinst_kernel_from_file", return_value=[]),
+            patch("linker.steps.program_linker.Loader.load_xinst_kernel_from_file", return_value=[]),
             patch("linker.steps.program_linker.kern_mapper.remap_m_c_instrs_vars") as mock_remap_mc,
             patch("linker.steps.program_linker.kern_mapper.remap_cinstrs_vars_hbm") as mock_remap_cinst_hbm,
             patch("linker.steps.program_linker.kern_mapper.remap_xinstrs_vars") as mock_remap_xinst,
