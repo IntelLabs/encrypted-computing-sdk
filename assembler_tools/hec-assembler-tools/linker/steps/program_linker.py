@@ -708,12 +708,15 @@ class LinkedProgram:  # pylint: disable=too-many-instance-attributes
             # First ifetch, account for last xinst latency
             last_xq_lat = 0
             x_idx = len(prev_kernel.xinstrs) - 1
-            prev_bundle = prev_kernel.xinstrs[x_idx].bundle
-            while (
-                x_idx >= 0 and prev_kernel.xinstrs[x_idx].bundle == prev_bundle and not isinstance(prev_kernel.xinstrs[x_idx], xinst.XStore)
-            ):
-                last_xq_lat += get_instruction_lat(prev_kernel.xinstrs[x_idx])
-                x_idx -= 1
+            if x_idx >= 0:
+                prev_bundle = prev_kernel.xinstrs[x_idx].bundle
+                while (
+                    x_idx >= 0
+                    and prev_kernel.xinstrs[x_idx].bundle == prev_bundle
+                    and not isinstance(prev_kernel.xinstrs[x_idx], xinst.XStore)
+                ):
+                    last_xq_lat += get_instruction_lat(prev_kernel.xinstrs[x_idx])
+                    x_idx -= 1
 
             # Adjust cycles if last xinst bundle latency is greater than last CQueue throughput
             if last_cq_tp < last_xq_lat:
