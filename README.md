@@ -64,7 +64,7 @@ a SIMD fashion.
 </p>
 
 We are currently at Phase 1, and have a functional ptototype of
-the [P-ISA tools](./p-isa-tools) components and a prototype of
+the [P-ISA tools](./p-isa_tools) components and a prototype of
 the [Assemble compiler](./assembler_tools/hec-assembler-tools)
 for the intel HERACLES accelerator technology.
 
