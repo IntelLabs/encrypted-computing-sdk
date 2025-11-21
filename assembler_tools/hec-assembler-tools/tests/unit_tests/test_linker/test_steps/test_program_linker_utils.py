@@ -11,12 +11,14 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from linker.instructions import cinst, minst
+from linker.instructions import cinst, minst, xinst
 from linker.kern_trace.kernel_info import InstrAct
 from linker.steps.program_linker_utils import (
+    get_instruction_lat,
     get_instruction_tp,
     proc_seq_bloads,
     remove_csyncm,
+    search_cinstrs_back,
     search_minstrs_back,
     search_minstrs_forward,
 )
@@ -394,3 +396,146 @@ class TestSearchMinstrsForward:
         """@brief Test searching forward in empty map."""
         with pytest.raises(RuntimeError, match="Could not find MStore with SPAD address 10"):
             search_minstrs_forward([], 0, 10)
+
+
+class TestGetInstructionLat:
+    """@brief Tests for get_instruction_lat function."""
+
+    @patch("assembler.instructions.xinst.Add.get_latency", return_value=7)
+    def test_add_latency(self, mock_get_latency):
+        mock_add = MagicMock(spec=xinst.Add)
+        result = get_instruction_lat(mock_add)
+        assert result == 7
+        mock_get_latency.assert_called_once()
+
+    @patch("assembler.instructions.xinst.Sub.get_latency", return_value=5)
+    def test_sub_latency(self, mock_get_latency):
+        mock_sub = MagicMock(spec=xinst.Sub)
+        result = get_instruction_lat(mock_sub)
+        assert result == 5
+        mock_get_latency.assert_called_once()
+
+    @patch("assembler.instructions.xinst.XStore.get_latency", return_value=10)
+    def test_xstore_latency(self, mock_get_latency):
+        mock_xstore = MagicMock(spec=xinst.XStore)
+        result = get_instruction_lat(mock_xstore)
+        assert result == 10
+        mock_get_latency.assert_called_once()
+
+    @patch("assembler.instructions.xinst.Move.get_latency", return_value=3)
+    def test_move_latency(self, mock_get_latency):
+        mock_move = MagicMock(spec=xinst.Move)
+        result = get_instruction_lat(mock_move)
+        assert result == 3
+        mock_get_latency.assert_called_once()
+
+    @patch("assembler.instructions.xinst.Nop.get_latency", return_value=1)
+    def test_nop_latency(self, mock_get_latency):
+        mock_nop = MagicMock(spec=xinst.Nop)
+        result = get_instruction_lat(mock_nop)
+        assert result == 1
+        mock_get_latency.assert_called_once()
+
+    def test_unknown_instruction(self):
+        mock_unknown = MagicMock()
+        result = get_instruction_lat(mock_unknown)
+        assert result == 0
+
+    def test_none_instruction(self):
+        result = get_instruction_lat(None)
+        assert result == 0
+
+    @patch("assembler.instructions.xinst.Add.get_latency", side_effect=TypeError)
+    def test_add_latency_type_error(self, mock_get_latency):
+        mock_add = MagicMock(spec=xinst.Add)
+        result = get_instruction_lat(mock_add)
+        assert result == 0
+        mock_get_latency.assert_called_once()
+
+    @patch("assembler.instructions.xinst.Add.get_latency", side_effect=AttributeError)
+    def test_add_latency_attribute_error(self, mock_get_latency):
+        mock_add = MagicMock(spec=xinst.Add)
+        result = get_instruction_lat(mock_add)
+        assert result == 0
+        mock_get_latency.assert_called_once()
+
+    @patch("assembler.instructions.xinst.Add.get_latency", side_effect=ValueError)
+    def test_add_latency_value_error(self, mock_get_latency):
+        mock_add = MagicMock(spec=xinst.Add)
+        result = get_instruction_lat(mock_add)
+        assert result == 0
+        mock_get_latency.assert_called_once()
+
+
+class TestSearchCinstrsBack:
+    """@brief Tests for search_cinstrs_back function."""
+
+    def test_found_cinstr_with_matching_register(self):
+        mock_cinstr1 = MagicMock(spec=cinst.CLoad)
+        mock_cinstr1.register = "r1"
+        mock_cinstr1.var_name = "var1"
+        mock_entry1 = MagicMock()
+        mock_entry1.cinstr = mock_cinstr1
+
+        mock_cinstr2 = MagicMock(spec=cinst.CLoad)
+        mock_cinstr2.register = "r2"
+        mock_cinstr2.var_name = "var2"
+        mock_entry2 = MagicMock()
+        mock_entry2.cinstr = mock_cinstr2
+
+        cinstrs_map = [mock_entry1, mock_entry2]
+
+        result = search_cinstrs_back(cinstrs_map, 1, "r2")
+        assert result == "var2"
+
+    def test_found_cinstr_at_start_index(self):
+        mock_cinstr = MagicMock(spec=cinst.CLoad)
+        mock_cinstr.register = "r1"
+        mock_cinstr.var_name = "var1"
+        mock_entry = MagicMock()
+        mock_entry.cinstr = mock_cinstr
+
+        cinstrs_map = [mock_entry]
+
+        result = search_cinstrs_back(cinstrs_map, 0, "r1")
+        assert result == "var1"
+
+    def test_not_found_returns_empty_string(self):
+        mock_cinstr = MagicMock(spec=cinst.CLoad)
+        mock_cinstr.register = "r1"
+        mock_cinstr.var_name = "var1"
+        mock_entry = MagicMock()
+        mock_entry.cinstr = mock_cinstr
+
+        cinstrs_map = [mock_entry]
+
+        result = search_cinstrs_back(cinstrs_map, 0, "r2")
+        assert result == ""
+
+    def test_not_found_non_cload_instruction(self):
+        mock_cinstr = MagicMock()
+        mock_cinstr.register = "r1"
+        mock_cinstr.var_name = "var1"
+        mock_entry = MagicMock()
+        mock_entry.cinstr = mock_cinstr
+
+        cinstrs_map = [mock_entry]
+
+        result = search_cinstrs_back(cinstrs_map, 0, "r1")
+        assert result == ""
+
+    def test_index_out_of_bounds_negative(self):
+        cinstrs_map = []
+        with pytest.raises(IndexError, match="Index -1 is out of bounds for cinstrs_map"):
+            search_cinstrs_back(cinstrs_map, -1, "r1")
+
+    def test_index_out_of_bounds_too_large(self):
+        mock_cinstr = MagicMock(spec=cinst.CLoad)
+        mock_cinstr.register = "r1"
+        mock_cinstr.var_name = "var1"
+        mock_entry = MagicMock()
+        mock_entry.cinstr = mock_cinstr
+
+        cinstrs_map = [mock_entry]
+        with pytest.raises(IndexError, match="Index 2 is out of bounds for cinstrs_map"):
+            search_cinstrs_back(cinstrs_map, 2, "r1")

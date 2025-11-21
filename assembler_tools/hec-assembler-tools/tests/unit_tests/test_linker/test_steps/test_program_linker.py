@@ -15,8 +15,9 @@ from unittest.mock import MagicMock, call, mock_open, patch
 import pytest
 from assembler.common import dinst
 from assembler.common.config import GlobalConfig
+from assembler.instructions import cinst as ISACInst
 from linker import MemoryModel
-from linker.instructions import cinst, minst
+from linker.instructions import cinst, minst, xinst
 from linker.kern_trace import InstrAct
 from linker.steps.program_linker import LinkedProgram
 
@@ -793,6 +794,30 @@ class TestLinkedProgram(unittest.TestCase):
 
         # Verify that SPAD offset is reset to 0
         self.assertEqual(self.program._spad_offset, 0)
+
+    def test_boundary_properties(self):
+        """@brief Test both boundary properties together.
+
+        @test Verifies that both properties work independently and correctly when set together
+        """
+        # Test both False (default)
+        program = LinkedProgram()
+        self.assertFalse(program.keep_hbm_boundary)
+        self.assertFalse(program.keep_spad_boundary)
+
+        # Test both True
+        program = LinkedProgram(keep_hbm_boundary=True, keep_spad_boundary=True)
+        self.assertTrue(program.keep_hbm_boundary)
+        self.assertTrue(program.keep_spad_boundary)
+
+        # Test mixed values
+        program = LinkedProgram(keep_hbm_boundary=True, keep_spad_boundary=False)
+        self.assertTrue(program.keep_hbm_boundary)
+        self.assertFalse(program.keep_spad_boundary)
+
+        program = LinkedProgram(keep_hbm_boundary=False, keep_spad_boundary=True)
+        self.assertFalse(program.keep_hbm_boundary)
+        self.assertTrue(program.keep_spad_boundary)
 
 
 class TestLinkedProgramValidation(unittest.TestCase):
@@ -1710,6 +1735,7 @@ class TestPruneMinstKernel(unittest.TestCase):
         mock_mload1.idx = 1
 
         mock_mstore = MagicMock(spec=minst.MStore)  # Intermediate variable
+
         mock_mstore.var_name = "intermediate_var"
         mock_mstore.spad_address = 15
         mock_mstore.comment = ""
@@ -1815,5 +1841,677 @@ class TestPruneMinstKernel(unittest.TestCase):
         self.assertEqual(self.program._minst_in_var_tracker["regular_var"], expected_spad)
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestInsertLatencyCnopIfNeeded(unittest.TestCase):
+    """@brief Tests for the _insert_latency_cnop_if_needed method."""
+
+    def setUp(self):
+        """@brief Set up test fixtures."""
+        self.streams = {
+            "minst": io.StringIO(),
+            "cinst": io.StringIO(),
+            "xinst": io.StringIO(),
+        }
+        self.mem_model = MagicMock(spec=MemoryModel)
+
+        # Mock the hasHBM property to return True by default
+        self.has_hbm_patcher = patch.object(GlobalConfig, "hasHBM", True)
+        self.mock_has_hbm = self.has_hbm_patcher.start()
+
+        self.program = LinkedProgram()
+        self.program.initialize(
+            self.streams["minst"],
+            self.streams["cinst"],
+            self.streams["xinst"],
+            self.mem_model,
+        )
+
+    def tearDown(self):
+        """@brief Tear down test fixtures."""
+        self.has_hbm_patcher.stop()
+
+    def test_insert_latency_cnop_bundle_not_zero(self):
+        """@brief Test that no CNop is inserted when bundle is not 0.
+
+        @test Verifies that the method returns early when bundle != 0
+        """
+        # Create mock previous kernel
+        mock_prev_kernel = MagicMock()
+        mock_prev_kernel.cinstrs = [MagicMock(), MagicMock()]
+        mock_prev_kernel.cinstrs_map = [MagicMock(), MagicMock()]
+
+        # Execute with bundle = 1 (not 0)
+        self.program._insert_latency_cnop_if_needed(1, mock_prev_kernel, 5)
+
+        # Verify no modifications were made to previous kernel
+        self.assertEqual(len(mock_prev_kernel.cinstrs), 2)
+        self.assertEqual(len(mock_prev_kernel.cinstrs_map), 2)
+
+    def test_insert_latency_cnop_no_prev_kernel(self):
+        """@brief Test that no CNop is inserted when prev_kernel is None.
+
+        @test Verifies that the method returns early when prev_kernel is None
+        """
+        # Execute with prev_kernel = None
+        self.program._insert_latency_cnop_if_needed(0, None, 5)
+
+        # Should complete without error (no assertions needed as there's no state to check)
+
+    def test_insert_latency_cnop_sufficient_throughput(self):
+        """@brief Test that no CNop is inserted when CQueue throughput is sufficient.
+
+        @test Verifies that no CNop is inserted when last_cq_tp >= last_xq_lat
+        """
+        # Create mock XInstructions with known latencies
+        mock_xinstr1 = MagicMock()
+        mock_xinstr1.bundle = 2
+
+        mock_xinstr2 = MagicMock()
+        mock_xinstr2.bundle = 2
+
+        # Create mock previous kernel
+        mock_prev_kernel = MagicMock()
+        mock_prev_kernel.xinstrs = [mock_xinstr1, mock_xinstr2]
+        mock_prev_kernel.cinstrs = [MagicMock(), MagicMock()]
+        mock_prev_kernel.cinstrs_map = [MagicMock(), MagicMock()]
+
+        # Mock get_instruction_lat to return specific latencies
+        with patch("linker.steps.program_linker.get_instruction_lat") as mock_lat:
+            mock_lat.side_effect = [3, 2]  # Total latency = 5
+
+            # Execute with last_cq_tp = 10 (greater than total latency of 5)
+            self.program._insert_latency_cnop_if_needed(0, mock_prev_kernel, 10)
+
+        # Verify no CNop was inserted
+        self.assertEqual(len(mock_prev_kernel.cinstrs), 2)
+        self.assertEqual(len(mock_prev_kernel.cinstrs_map), 2)
+
+    def test_insert_latency_cnop_insufficient_throughput(self):
+        """@brief Test that CNop is inserted when CQueue throughput is insufficient.
+
+        @test Verifies that a CNop is inserted when last_cq_tp < last_xq_lat
+        """
+        # Create mock XInstructions with known latencies
+        mock_xinstr1 = MagicMock()
+        mock_xinstr1.bundle = 2
+
+        mock_xinstr2 = MagicMock()
+        mock_xinstr2.bundle = 2
+
+        # Create mock previous kernel
+        mock_prev_kernel = MagicMock()
+        mock_prev_kernel.xinstrs = [mock_xinstr1, mock_xinstr2]
+        mock_prev_kernel.cinstrs = MagicMock()
+        mock_prev_kernel.cinstrs.__len__ = MagicMock(return_value=2)
+        mock_prev_kernel.cinstrs_map = MagicMock()
+        mock_prev_kernel.cinstrs_map.__len__ = MagicMock(return_value=2)
+
+        # Mock get_instruction_lat to return specific latencies
+        with patch("linker.steps.program_linker.get_instruction_lat") as mock_lat:
+            mock_lat.side_effect = [3, 4]  # Total latency = 7
+
+            # Mock CNop.get_throughput
+            with patch.object(ISACInst.CNop, "get_throughput", return_value=1):
+                # Execute with last_cq_tp = 2 (less than total latency of 7)
+                self.program._insert_latency_cnop_if_needed(0, mock_prev_kernel, 2)
+
+        # Verify CNop was inserted before cexit (at index 1)
+        mock_prev_kernel.cinstrs.insert.assert_called_once()
+        call_args = mock_prev_kernel.cinstrs.insert.call_args[0]
+        self.assertEqual(call_args[0], 0)  # Insert at index 1 (before cexit)
+
+        # Verify CNop instruction was created with correct cycles
+        inserted_cnop = call_args[1]
+        self.assertIsInstance(inserted_cnop, cinst.CNop)
+        # wait_cycles = 7 - 2 = 5, CNop cycles = 5 - 1 = 4
+        self.assertEqual(inserted_cnop.cycles, 4)
+
+        # Verify CinstrMapEntry was also inserted
+        mock_prev_kernel.cinstrs_map.insert.assert_called_once()
+
+    def test_insert_latency_cnop_with_xstore_instructions(self):
+        """@brief Test CNop insertion stops at XStore instructions when calculating latency."""
+        # Create mock XInstructions including XStore
+        mock_xstore = MagicMock(spec=xinst.XStore)
+        mock_xstore.bundle = 2
+
+        mock_xinstr1 = MagicMock()
+        mock_xinstr1.bundle = 2
+
+        mock_xinstr2 = MagicMock()
+        mock_xinstr2.bundle = 2
+
+        # Create mock previous kernel
+        mock_prev_kernel = MagicMock()
+        mock_prev_kernel.xinstrs = [mock_xstore, mock_xinstr1, mock_xinstr2]
+        mock_prev_kernel.cinstrs = [MagicMock(), MagicMock()]
+        mock_prev_kernel.cinstrs_map = [MagicMock(), MagicMock()]
+
+        # Mock get_instruction_lat - XStore should be skipped
+        with patch("linker.steps.program_linker.get_instruction_lat") as mock_lat:
+            mock_lat.side_effect = [3, 4]  # Only called for non-XStore instructions
+
+            # Mock CNop.get_throughput
+            with patch.object(ISACInst.CNop, "get_throughput", return_value=1):
+                # Execute with last_cq_tp = 2 (less than total latency of 7)
+                self.program._insert_latency_cnop_if_needed(0, mock_prev_kernel, 2)
+
+        # Verify get_instruction_lat was called only twice (XStore was skipped)
+        self.assertEqual(mock_lat.call_count, 2)
+        mock_lat.assert_any_call(mock_xinstr1)
+        mock_lat.assert_any_call(mock_xinstr2)
+
+    def test_insert_latency_cnop_multiple_bundles(self):
+        """@brief Test CNop insertion only considers last bundle.
+
+        @test Verifies that only the last bundle is considered for latency calculation
+        """
+        # Create mock XInstructions from different bundles
+        mock_xinstr_old = MagicMock()
+        mock_xinstr_old.bundle = 1  # Different bundle
+
+        mock_xinstr_last1 = MagicMock()
+        mock_xinstr_last1.bundle = 2  # Last bundle
+
+        mock_xinstr_last2 = MagicMock()
+        mock_xinstr_last2.bundle = 2  # Last bundle
+
+        # Create mock previous kernel
+        mock_prev_kernel = MagicMock()
+        mock_prev_kernel.xinstrs = [mock_xinstr_old, mock_xinstr_last1, mock_xinstr_last2]
+        mock_prev_kernel.cinstrs = [MagicMock(), MagicMock()]
+        mock_prev_kernel.cinstrs_map = [MagicMock(), MagicMock()]
+
+        # Mock get_instruction_lat
+        with patch("linker.steps.program_linker.get_instruction_lat") as mock_lat:
+            mock_lat.side_effect = [3, 4]  # Only for last bundle instructions
+
+            # Mock CNop.get_throughput
+            with patch.object(ISACInst.CNop, "get_throughput", return_value=1):
+                self.program._insert_latency_cnop_if_needed(0, mock_prev_kernel, 2)
+
+        # Verify get_instruction_lat was called only for last bundle
+        self.assertEqual(mock_lat.call_count, 2)
+        mock_lat.assert_any_call(mock_xinstr_last1)
+        mock_lat.assert_any_call(mock_xinstr_last2)
+        # Should not be called for old bundle instruction
+        with self.assertRaises(AssertionError):
+            mock_lat.assert_any_call(mock_xinstr_old)
+
+    def test_insert_latency_cnop_empty_xinstrs(self):
+        """@brief Test CNop insertion with empty XInstr list.
+
+        @test Verifies that method handles empty XInstr list gracefully
+        """
+        # Create mock previous kernel with no XInstructions
+        mock_prev_kernel = MagicMock()
+        mock_prev_kernel.xinstrs = []
+        mock_prev_kernel.cinstrs = [MagicMock(), MagicMock()]
+        mock_prev_kernel.cinstrs_map = [MagicMock(), MagicMock()]
+
+        # Execute - should not raise an exception
+        self.program._insert_latency_cnop_if_needed(0, mock_prev_kernel, 5)
+
+        # Verify no CNop was inserted (no latency to account for)
+        self.assertEqual(len(mock_prev_kernel.cinstrs), 2)
+
+    def test_insert_latency_cnop_exact_throughput_match(self):
+        """@brief Test that no CNop is inserted when throughput exactly matches latency.
+
+        @test Verifies that no CNop is inserted when last_cq_tp == last_xq_lat
+        """
+        # Create mock XInstructions
+        mock_xinstr1 = MagicMock()
+        mock_xinstr1.bundle = 2
+
+        # Create mock previous kernel
+        mock_prev_kernel = MagicMock()
+        mock_prev_kernel.xinstrs = [mock_xinstr1]
+        mock_prev_kernel.cinstrs = [MagicMock(), MagicMock()]
+        mock_prev_kernel.cinstrs_map = [MagicMock(), MagicMock()]
+
+        # Mock get_instruction_lat to return specific latency
+        with patch("linker.steps.program_linker.get_instruction_lat") as mock_lat:
+            mock_lat.return_value = 5  # Latency = 5
+
+            # Execute with last_cq_tp = 5 (exactly equal to latency)
+            self.program._insert_latency_cnop_if_needed(0, mock_prev_kernel, 5)
+
+        # Verify no CNop was inserted
+        self.assertEqual(len(mock_prev_kernel.cinstrs), 2)
+        self.assertEqual(len(mock_prev_kernel.cinstrs_map), 2)
+
+    def test_insert_latency_cnop_comment_content(self):
+        """@brief Test that inserted CNop has correct comment.
+
+        @test Verifies that the CNop instruction is created with appropriate comment
+        """
+        # Create mock XInstructions
+        mock_xinstr1 = MagicMock()
+        mock_xinstr1.bundle = 2
+
+        # Create mock previous kernel
+        mock_prev_kernel = MagicMock()
+        mock_prev_kernel.xinstrs = [mock_xinstr1]
+        mock_prev_kernel.cinstrs = MagicMock()
+        mock_prev_kernel.cinstrs.__len__.return_value = 2
+        mock_prev_kernel.cinstrs_map = MagicMock()
+        mock_prev_kernel.cinstrs_map.__len__.return_value = 2
+
+        # Mock get_instruction_lat
+        with patch("linker.steps.program_linker.get_instruction_lat") as mock_lat:
+            mock_lat.return_value = 8  # Total latency = 8
+
+            # Mock CNop.get_throughput
+            with patch.object(ISACInst.CNop, "get_throughput", return_value=1):
+                self.program._insert_latency_cnop_if_needed(0, mock_prev_kernel, 3)
+
+        # Verify CNop was inserted with correct comment
+        call_args = mock_prev_kernel.cinstrs.insert.call_args[0]
+        inserted_cnop = call_args[1]
+
+        # Check that comment contains expected information about latency
+        expected_comment = " Inserted by linker to account for last XInst bundle latency (8 cycles)"
+        self.assertEqual(inserted_cnop.comment, expected_comment)
+
+
+class TestPreloadKernels(unittest.TestCase):
+    """@brief Tests for the preload_kernels method."""
+
+    def setUp(self):
+        """@brief Set up test fixtures."""
+        self.streams = {
+            "minst": io.StringIO(),
+            "cinst": io.StringIO(),
+            "xinst": io.StringIO(),
+        }
+        self.mem_model = MagicMock(spec=MemoryModel)
+
+        # Mock the hasHBM property to return True by default
+        self.has_hbm_patcher = patch.object(GlobalConfig, "hasHBM", True)
+        self.mock_has_hbm = self.has_hbm_patcher.start()
+
+        self.program = LinkedProgram()
+        self.program.initialize(
+            self.streams["minst"],
+            self.streams["cinst"],
+            self.streams["xinst"],
+            self.mem_model,
+        )
+
+    def tearDown(self):
+        """@brief Tear down test fixtures."""
+        self.has_hbm_patcher.stop()
+
+    def test_preload_kernels_empty_list(self):
+        """@brief Test preloading an empty list of kernels.
+
+        @test Verifies that the method handles empty input gracefully
+        """
+        kernels_info = []
+
+        # Should complete without error
+        self.program.preload_kernels(kernels_info)
+
+        # No assertions needed as there's no state to check for empty input
+
+    def test_preload_kernels_single_kernel_with_hbm(self):
+        """@brief Test preloading a single kernel with HBM enabled.
+
+        @test Verifies that all instruction types are loaded and preprocessed correctly
+        """
+        # Create mock kernel info
+        mock_kernel = MagicMock()
+        mock_kernel.minst = "/path/to/kernel.minst"
+        mock_kernel.cinst = "/path/to/kernel.cinst"
+        mock_kernel.xinst = "/path/to/kernel.xinst"
+        mock_kernel.hbm_remap_dict = {"old_var": "new_var"}
+
+        kernels_info = [mock_kernel]
+
+        # Mock the loader methods
+        mock_minstrs = [MagicMock(), MagicMock()]
+        mock_cinstrs = [MagicMock(), MagicMock()]
+        mock_xinstrs = [MagicMock(), MagicMock()]
+
+        with (
+            patch("linker.steps.program_linker.Loader.load_minst_kernel_from_file", return_value=mock_minstrs) as mock_load_minst,
+            patch("linker.steps.program_linker.Loader.load_cinst_kernel_from_file", return_value=mock_cinstrs) as mock_load_cinst,
+            patch("linker.steps.program_linker.Loader.load_xinst_kernel_from_file", return_value=mock_xinstrs) as mock_load_xinst,
+            patch("linker.steps.program_linker.kern_mapper.remap_m_c_instrs_vars") as mock_remap_mc,
+            patch("linker.steps.program_linker.kern_mapper.remap_cinstrs_vars_hbm") as mock_remap_cinst_hbm,
+            patch("linker.steps.program_linker.kern_mapper.remap_xinstrs_vars") as mock_remap_xinst,
+            patch.object(self.program, "_preprocess_cinst_kernel") as mock_preprocess_cinst,
+            patch.object(self.program, "_preprocess_xinst_kernel") as mock_preprocess_xinst,
+        ):
+            self.program.preload_kernels(kernels_info)
+
+            # Verify minst processing (HBM enabled)
+            mock_load_minst.assert_called_once_with(mock_kernel.minst)
+            mock_remap_mc.assert_any_call(mock_minstrs, mock_kernel.hbm_remap_dict)
+            self.assertEqual(mock_kernel.minstrs, mock_minstrs)
+
+            # Verify cinst processing
+            mock_load_cinst.assert_called_once_with(mock_kernel.cinst)
+            mock_remap_cinst_hbm.assert_called_once_with(mock_cinstrs, mock_kernel.hbm_remap_dict)
+            mock_preprocess_cinst.assert_called_once_with(mock_kernel)
+            self.assertEqual(mock_kernel.cinstrs, mock_cinstrs)
+
+            # Verify xinst processing
+            mock_load_xinst.assert_called_once_with(mock_kernel.xinst)
+            mock_remap_xinst.assert_called_once_with(mock_xinstrs, mock_kernel.hbm_remap_dict)
+            mock_preprocess_xinst.assert_called_once_with(mock_kernel, 0)
+            self.assertEqual(mock_kernel.xinstrs, mock_xinstrs)
+
+    def test_preload_kernels_single_kernel_no_hbm(self):
+        """@brief Test preloading a single kernel with HBM disabled.
+
+        @test Verifies that minst processing is skipped and cinst uses different remapping
+        """
+        with patch.object(GlobalConfig, "hasHBM", False):
+            # Create mock kernel info
+            mock_kernel = MagicMock()
+            mock_kernel.cinst = "/path/to/kernel.cinst"
+            mock_kernel.xinst = "/path/to/kernel.xinst"
+            mock_kernel.hbm_remap_dict = {"old_var": "new_var"}
+
+            kernels_info = [mock_kernel]
+
+            # Mock the loader methods
+            mock_cinstrs = [MagicMock(), MagicMock()]
+            mock_xinstrs = [MagicMock(), MagicMock()]
+
+            with (
+                patch("linker.steps.program_linker.Loader.load_minst_kernel_from_file") as mock_load_minst,
+                patch("linker.steps.program_linker.Loader.load_cinst_kernel_from_file", return_value=mock_cinstrs) as mock_load_cinst,
+                patch("linker.steps.program_linker.Loader.load_xinst_kernel_from_file", return_value=mock_xinstrs) as mock_load_xinst,
+                patch("linker.steps.program_linker.kern_mapper.remap_m_c_instrs_vars") as mock_remap_mc,
+                patch("linker.steps.program_linker.kern_mapper.remap_cinstrs_vars_hbm") as mock_remap_cinst_hbm,
+                patch("linker.steps.program_linker.kern_mapper.remap_xinstrs_vars") as mock_remap_xinst,
+                patch.object(self.program, "_preprocess_cinst_kernel") as mock_preprocess_cinst,
+                patch.object(self.program, "_preprocess_xinst_kernel") as mock_preprocess_xinst,
+            ):
+                self.program.preload_kernels(kernels_info)
+
+                # Verify minst processing is skipped (HBM disabled)
+                mock_load_minst.assert_not_called()
+
+                # Verify cinst processing uses different remapping
+                mock_load_cinst.assert_called_once_with(mock_kernel.cinst)
+                mock_remap_mc.assert_called_once_with(mock_cinstrs, mock_kernel.hbm_remap_dict)
+                mock_remap_cinst_hbm.assert_not_called()
+                mock_preprocess_cinst.assert_called_once_with(mock_kernel)
+                self.assertEqual(mock_kernel.cinstrs, mock_cinstrs)
+
+                # Verify xinst processing
+                mock_load_xinst.assert_called_once_with(mock_kernel.xinst)
+                mock_remap_xinst.assert_called_once_with(mock_xinstrs, mock_kernel.hbm_remap_dict)
+                mock_preprocess_xinst.assert_called_once_with(mock_kernel, 0)
+                self.assertEqual(mock_kernel.xinstrs, mock_xinstrs)
+
+    def test_preload_kernels_multiple_kernels(self):
+        """@brief Test preloading multiple kernels.
+
+        @test Verifies that each kernel is processed with correct kernel index
+        """
+        # Create mock kernels
+        mock_kernel1 = MagicMock()
+        mock_kernel1.minst = "/path/to/kernel1.minst"
+        mock_kernel1.cinst = "/path/to/kernel1.cinst"
+        mock_kernel1.xinst = "/path/to/kernel1.xinst"
+        mock_kernel1.hbm_remap_dict = {"var1": "new_var1"}
+
+        mock_kernel2 = MagicMock()
+        mock_kernel2.minst = "/path/to/kernel2.minst"
+        mock_kernel2.cinst = "/path/to/kernel2.cinst"
+        mock_kernel2.xinst = "/path/to/kernel2.xinst"
+        mock_kernel2.hbm_remap_dict = {"var2": "new_var2"}
+
+        kernels_info = [mock_kernel1, mock_kernel2]
+
+        with (
+            patch("linker.steps.program_linker.Loader.load_minst_kernel_from_file") as mock_load_minst,
+            patch("linker.steps.program_linker.Loader.load_cinst_kernel_from_file") as mock_load_cinst,
+            patch("linker.steps.program_linker.Loader.load_xinst_kernel_from_file") as mock_load_xinst,
+            patch.object(self.program, "_preprocess_xinst_kernel") as mock_preprocess_xinst,
+        ):
+            self.program.preload_kernels(kernels_info)
+
+            # Verify both kernels were processed
+            self.assertEqual(mock_load_minst.call_count, 2)
+            self.assertEqual(mock_load_cinst.call_count, 2)
+            self.assertEqual(mock_load_xinst.call_count, 2)
+
+            # Verify preprocessing was called with correct kernel indices
+            expected_preprocess_calls = [
+                call(mock_kernel1, 0),
+                call(mock_kernel2, 1),
+            ]
+            mock_preprocess_xinst.assert_has_calls(expected_preprocess_calls)
+
+            # Verify each kernel was processed with its own files
+            mock_load_minst.assert_any_call(mock_kernel1.minst)
+            mock_load_minst.assert_any_call(mock_kernel2.minst)
+            mock_load_cinst.assert_any_call(mock_kernel1.cinst)
+            mock_load_cinst.assert_any_call(mock_kernel2.cinst)
+            mock_load_xinst.assert_any_call(mock_kernel1.xinst)
+            mock_load_xinst.assert_any_call(mock_kernel2.xinst)
+
+    def test_preload_kernels_with_none_remap_dict(self):
+        """@brief Test preloading kernels when hbm_remap_dict is None.
+
+        @test Verifies that None remap dictionary is handled correctly
+        """
+        # Create mock kernel with None remap dict
+        mock_kernel = MagicMock()
+        mock_kernel.minst = "/path/to/kernel.minst"
+        mock_kernel.cinst = "/path/to/kernel.cinst"
+        mock_kernel.xinst = "/path/to/kernel.xinst"
+        mock_kernel.hbm_remap_dict = None
+
+        kernels_info = [mock_kernel]
+
+        with (
+            patch("linker.steps.program_linker.Loader.load_minst_kernel_from_file", return_value=[]),
+            patch("linker.steps.program_linker.Loader.load_cinst_kernel_from_file", return_value=[]),
+            patch("linker.steps.program_linker.Loader.load_xinst_kernel_from_file", return_value=[]),
+            patch("linker.steps.program_linker.kern_mapper.remap_m_c_instrs_vars") as mock_remap_mc,
+            patch("linker.steps.program_linker.kern_mapper.remap_cinstrs_vars_hbm") as mock_remap_cinst_hbm,
+            patch("linker.steps.program_linker.kern_mapper.remap_xinstrs_vars") as mock_remap_xinst,
+        ):
+            self.program.preload_kernels(kernels_info)
+
+            # Verify remapping functions were called with None
+            mock_remap_mc.assert_called_with([], None)
+            mock_remap_cinst_hbm.assert_called_with([], None)
+            mock_remap_xinst.assert_called_with([], None)
+
+    def test_preload_kernels_file_loading_order(self):
+        """@brief Test that files are loaded in the correct order for each kernel.
+
+        @test Verifies the order of operations: minst -> cinst -> xinst for each kernel
+        """
+        mock_kernel = MagicMock()
+        mock_kernel.minst = "/path/to/kernel.minst"
+        mock_kernel.cinst = "/path/to/kernel.cinst"
+        mock_kernel.xinst = "/path/to/kernel.xinst"
+        mock_kernel.hbm_remap_dict = {}
+
+        kernels_info = [mock_kernel]
+
+        call_order = []
+
+        def track_minst_call(*args):
+            call_order.append("minst")
+            return []
+
+        def track_cinst_call(*args):
+            call_order.append("cinst")
+            return []
+
+        def track_xinst_call(*args):
+            call_order.append("xinst")
+            return []
+
+        def track_preprocess_cinst_call(*args):
+            call_order.append("preprocess_cinst")
+
+        def track_preprocess_xinst_call(*args):
+            call_order.append("preprocess_xinst")
+
+        with (
+            patch("linker.steps.program_linker.Loader.load_minst_kernel_from_file", side_effect=track_minst_call),
+            patch("linker.steps.program_linker.Loader.load_cinst_kernel_from_file", side_effect=track_cinst_call),
+            patch("linker.steps.program_linker.Loader.load_xinst_kernel_from_file", side_effect=track_xinst_call),
+            patch("linker.steps.program_linker.kern_mapper.remap_m_c_instrs_vars"),
+            patch("linker.steps.program_linker.kern_mapper.remap_cinstrs_vars_hbm"),
+            patch("linker.steps.program_linker.kern_mapper.remap_xinstrs_vars"),
+            patch.object(self.program, "_preprocess_cinst_kernel", side_effect=track_preprocess_cinst_call),
+            patch.object(self.program, "_preprocess_xinst_kernel", side_effect=track_preprocess_xinst_call),
+        ):
+            self.program.preload_kernels(kernels_info)
+
+            # Verify the order of operations
+            expected_order = ["minst", "cinst", "preprocess_cinst", "xinst", "preprocess_xinst"]
+            self.assertEqual(call_order, expected_order)
+
+    def test_preload_kernels_exception_handling(self):
+        """@brief Test preloading kernels when file loading raises exceptions.
+
+        @test Verifies that exceptions from file loading are properly propagated
+        """
+        mock_kernel = MagicMock()
+        mock_kernel.minst = "/nonexistent/kernel.minst"
+        mock_kernel.cinst = "/nonexistent/kernel.cinst"
+        mock_kernel.xinst = "/nonexistent/kernel.xinst"
+        mock_kernel.hbm_remap_dict = {}
+
+        kernels_info = [mock_kernel]
+
+        # Test exception from minst loading
+        with patch("linker.steps.program_linker.Loader.load_minst_kernel_from_file", side_effect=FileNotFoundError("Minst file not found")):
+            with self.assertRaises(FileNotFoundError):
+                self.program.preload_kernels(kernels_info)
+
+        # Test exception from cinst loading
+        with (
+            patch("linker.steps.program_linker.Loader.load_minst_kernel_from_file", return_value=[]),
+            patch("linker.steps.program_linker.Loader.load_cinst_kernel_from_file", side_effect=FileNotFoundError("Cinst file not found")),
+            patch("linker.steps.program_linker.kern_mapper.remap_m_c_instrs_vars"),
+        ):
+            with self.assertRaises(FileNotFoundError):
+                self.program.preload_kernels(kernels_info)
+
+        # Test exception from xinst loading
+        with (
+            patch("linker.steps.program_linker.Loader.load_minst_kernel_from_file", return_value=[]),
+            patch("linker.steps.program_linker.Loader.load_cinst_kernel_from_file", return_value=[]),
+            patch("linker.steps.program_linker.Loader.load_xinst_kernel_from_file", side_effect=FileNotFoundError("Xinst file not found")),
+            patch("linker.steps.program_linker.kern_mapper.remap_m_c_instrs_vars"),
+            patch("linker.steps.program_linker.kern_mapper.remap_cinstrs_vars_hbm"),
+            patch.object(self.program, "_preprocess_cinst_kernel"),
+        ):
+            with self.assertRaises(FileNotFoundError):
+                self.program.preload_kernels(kernels_info)
+
+    def test_preload_kernels_kernel_modification(self):
+        """@brief Test that kernels are properly modified with loaded instructions.
+
+        @test Verifies that each kernel object gets its instruction lists populated
+        """
+        # Create mock kernels
+        mock_kernel1 = MagicMock()
+        mock_kernel1.minst = "/path/to/kernel1.minst"
+        mock_kernel1.cinst = "/path/to/kernel1.cinst"
+        mock_kernel1.xinst = "/path/to/kernel1.xinst"
+        mock_kernel1.hbm_remap_dict = {}
+
+        mock_kernel2 = MagicMock()
+        mock_kernel2.minst = "/path/to/kernel2.minst"
+        mock_kernel2.cinst = "/path/to/kernel2.cinst"
+        mock_kernel2.xinst = "/path/to/kernel2.xinst"
+        mock_kernel2.hbm_remap_dict = {}
+
+        kernels_info = [mock_kernel1, mock_kernel2]
+
+        # Mock instruction lists for each kernel
+        mock_minstrs1 = [MagicMock(name="minst1_1"), MagicMock(name="minst1_2")]
+        mock_cinstrs1 = [MagicMock(name="cinst1_1"), MagicMock(name="cinst1_2")]
+        mock_xinstrs1 = [MagicMock(name="xinst1_1"), MagicMock(name="xinst1_2")]
+
+        mock_minstrs2 = [MagicMock(name="minst2_1"), MagicMock(name="minst2_2")]
+        mock_cinstrs2 = [MagicMock(name="cinst2_1"), MagicMock(name="cinst2_2")]
+        mock_xinstrs2 = [MagicMock(name="xinst2_1"), MagicMock(name="xinst2_2")]
+
+        def mock_load_minst(file_path):
+            if "kernel1" in file_path:
+                return mock_minstrs1
+            return mock_minstrs2
+
+        def mock_load_cinst(file_path):
+            if "kernel1" in file_path:
+                return mock_cinstrs1
+            return mock_cinstrs2
+
+        def mock_load_xinst(file_path):
+            if "kernel1" in file_path:
+                return mock_xinstrs1
+            return mock_xinstrs2
+
+        with (
+            patch("linker.steps.program_linker.Loader.load_minst_kernel_from_file", side_effect=mock_load_minst),
+            patch("linker.steps.program_linker.Loader.load_cinst_kernel_from_file", side_effect=mock_load_cinst),
+            patch("linker.steps.program_linker.Loader.load_xinst_kernel_from_file", side_effect=mock_load_xinst),
+            patch("linker.steps.program_linker.kern_mapper.remap_m_c_instrs_vars"),
+            patch("linker.steps.program_linker.kern_mapper.remap_cinstrs_vars_hbm"),
+            patch("linker.steps.program_linker.kern_mapper.remap_xinstrs_vars"),
+            patch.object(self.program, "_preprocess_cinst_kernel"),
+            patch.object(self.program, "_preprocess_xinst_kernel"),
+        ):
+            self.program.preload_kernels(kernels_info)
+
+            # Verify each kernel got the correct instruction lists
+            self.assertEqual(mock_kernel1.minstrs, mock_minstrs1)
+            self.assertEqual(mock_kernel1.cinstrs, mock_cinstrs1)
+            self.assertEqual(mock_kernel1.xinstrs, mock_xinstrs1)
+
+            self.assertEqual(mock_kernel2.minstrs, mock_minstrs2)
+            self.assertEqual(mock_kernel2.cinstrs, mock_cinstrs2)
+            self.assertEqual(mock_kernel2.xinstrs, mock_xinstrs2)
+
+    def test_preload_kernels_preprocessing_calls(self):
+        """@brief Test that preprocessing methods are called correctly.
+
+        @test Verifies that _preprocess_cinst_kernel and _preprocess_xinst_kernel are called for each kernel
+        """
+        # Create multiple mock kernels
+        kernels_info = []
+        for i in range(3):
+            mock_kernel = MagicMock()
+            mock_kernel.minst = f"/path/to/kernel{i}.minst"
+            mock_kernel.cinst = f"/path/to/kernel{i}.cinst"
+            mock_kernel.xinst = f"/path/to/kernel{i}.xinst"
+            mock_kernel.hbm_remap_dict = {}
+            kernels_info.append(mock_kernel)
+
+        with (
+            patch("linker.steps.program_linker.Loader.load_minst_kernel_from_file", return_value=[]),
+            patch("linker.steps.program_linker.Loader.load_cinst_kernel_from_file", return_value=[]),
+            patch("linker.steps.program_linker.Loader.load_xinst_kernel_from_file", return_value=[]),
+            patch("linker.steps.program_linker.kern_mapper.remap_m_c_instrs_vars"),
+            patch("linker.steps.program_linker.kern_mapper.remap_cinstrs_vars_hbm"),
+            patch("linker.steps.program_linker.kern_mapper.remap_xinstrs_vars"),
+            patch.object(self.program, "_preprocess_cinst_kernel") as mock_preprocess_cinst,
+            patch.object(self.program, "_preprocess_xinst_kernel") as mock_preprocess_xinst,
+        ):
+            self.program.preload_kernels(kernels_info)
+
+            # Verify preprocessing was called for each kernel
+            self.assertEqual(mock_preprocess_cinst.call_count, 3)
+            self.assertEqual(mock_preprocess_xinst.call_count, 3)
+
+            # Verify correct arguments were passed
+            expected_cinst_calls = [call(kernel) for kernel in kernels_info]
+            expected_xinst_calls = [call(kernel, idx) for idx, kernel in enumerate(kernels_info)]
+
+            mock_preprocess_cinst.assert_has_calls(expected_cinst_calls)
+            mock_preprocess_xinst.assert_has_calls(expected_xinst_calls)

@@ -292,3 +292,23 @@ class TestKernelInfo:
         # Test setter with invalid type
         with pytest.raises(TypeError, match="cinstrs must be a list"):
             kernel_files.cinstrs = None
+
+    def test_fetch_cstores_map_property(self):
+        """
+        @brief Test fetch_cstores_map getter and setter
+        """
+        kernel_files = KernelInfo(
+            {"directory": "/tmp/dir", "prefix": "prefix", "minst": "prefix.minst", "cinst": "prefix.cinst", "xinst": "prefix.xinst"}
+        )
+
+        # Test initial empty dict
+        assert kernel_files.fetch_cstores_map == {}
+
+        # Test setter with valid dict
+        fetch_map = {0: (1, ["var1", "var2"]), 1: (2, ["var3"])}
+        kernel_files.fetch_cstores_map = fetch_map
+        assert kernel_files.fetch_cstores_map == fetch_map
+
+        # Test setter with invalid type
+        with pytest.raises(TypeError, match="CStore maps must be of type dict"):
+            kernel_files.fetch_cstores_map = ["not", "a", "dict"]

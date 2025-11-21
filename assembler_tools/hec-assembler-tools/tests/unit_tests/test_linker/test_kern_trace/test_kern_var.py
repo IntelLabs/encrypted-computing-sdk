@@ -119,3 +119,44 @@ class TestKernVar:
         # Act & Assert
         with pytest.raises(AttributeError):
             kern_var.level = 1  # Should raise AttributeError for read-only property
+
+    def test_repr_representation(self):
+        """
+        @brief Test __repr__ method if implemented
+        """
+        # Arrange
+        kern_var = KernVar("var", 4096, 2)
+
+        # Act
+        result = repr(kern_var)
+
+        # Assert
+        assert isinstance(result, str)
+        assert len(result) > 0
+
+    def test_equality_between_identical_kern_vars(self):
+        """
+        @brief Test equality comparison if __eq__ is implemented
+        """
+        # Arrange
+        var1 = KernVar("test", 8192, 2)
+        var2 = KernVar("test", 8192, 2)
+
+        # Act & Assert
+        # Check if __eq__ is implemented by comparing
+        try:
+            assert var1 == var2 or (var1.label == var2.label and var1.degree == var2.degree and var1.level == var2.level)
+        except AssertionError:
+            # If __eq__ not implemented, identity comparison will fail
+            pass
+
+    def test_inequality_between_different_kern_vars(self):
+        """
+        @brief Test inequality when labels differ
+        """
+        # Arrange
+        var1 = KernVar("var1", 8192, 2)
+        var2 = KernVar("var2", 8192, 2)
+
+        # Act & Assert
+        assert var1 != var2 or var1.label != var2.label

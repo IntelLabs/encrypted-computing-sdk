@@ -116,6 +116,48 @@ class TestKernelOp:
         assert result[0].label == "var1"
         assert result[1].label == "var2"
 
+    def test_get_kern_var_objs_with_empty_list(self):
+        """
+        @brief Test get_kern_var_objs with empty list
+        """
+        # Arrange
+        kernel_op = KernelOp("add", self._create_test_context_config(), self._create_test_kern_args())
+
+        # Act
+        result = kernel_op.get_kern_var_objs([])
+
+        # Assert
+        assert result == []
+
+    def test_get_kern_var_objs_with_invalid_var_string(self):
+        """
+        @brief Test get_kern_var_objs with invalid variable string format
+        """
+        # Arrange
+        kernel_op = KernelOp("add", self._create_test_context_config(), self._create_test_kern_args())
+        invalid_var_strs = ["invalid-format"]
+
+        # Act & Assert
+        with patch("linker.kern_trace.kern_var.KernVar.from_string") as mock_from_string:
+            mock_from_string.side_effect = ValueError("Invalid format")
+            with pytest.raises(ValueError):
+                kernel_op.get_kern_var_objs(invalid_var_strs)
+
+    def test_get_kern_var_objs_integration_without_mock(self):
+        """
+        @brief Test get_kern_var_objs without mocking (integration test)
+        """
+        # Arrange
+        kernel_op = KernelOp("add", self._create_test_context_config(), self._create_test_kern_args())
+        test_var_strs = ["var1-1024-1", "var2-2048-2"]
+
+        # Act
+        result = kernel_op.get_kern_var_objs(test_var_strs)
+
+        # Assert
+        assert len(result) == 2
+        assert all(isinstance(v, KernVar) for v in result)
+
     def test_get_level(self):
         """
         @brief Test get_level method

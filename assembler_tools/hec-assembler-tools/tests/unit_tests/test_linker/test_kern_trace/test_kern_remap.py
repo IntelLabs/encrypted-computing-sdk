@@ -14,7 +14,8 @@ from unittest.mock import MagicMock
 import pytest
 from linker.instructions.cinst import CLoad, CStore
 from linker.instructions.minst import MLoad, MStore
-from linker.kern_trace.kern_remap import remap_cinstrs_vars_hbm, remap_dinstrs_vars, remap_m_c_instrs_vars
+from linker.instructions.xinst import Mac
+from linker.kern_trace.kern_remap import remap_cinstrs_vars_hbm, remap_dinstrs_vars, remap_m_c_instrs_vars, remap_xinstrs_vars
 from linker.kern_trace.kern_var import KernVar
 from linker.kern_trace.kernel_op import KernelOp
 
@@ -353,3 +354,306 @@ class TestRemapMCInstrsVars:
         # Assert
         assert mock_instr.var_name == "0"  # Unchanged
         assert mock_instr.comment == "Store new_dest"
+
+
+class TestRemapCinstrsVarsHbm:
+    """
+    @class TestRemapCinstrsVarsHbm
+    @brief Test cases for the remap_cinstrs_vars_hbm function
+    """
+
+    def _create_remap_dict(self):
+        """
+        @brief Helper method to create a remap dictionary
+        """
+        return {"old_var": "new_var", "input_data": "remapped_input"}
+
+    def test_remap_cload_comment(self):
+        """
+        @brief Test remapping variables in CLoad instruction comments
+        """
+        # Arrange
+        mock_instr = MagicMock(spec=CLoad)
+        mock_instr.comment = "Load from old_var"
+
+        kernel_instrs = [mock_instr]
+        hbm_remap_dict = self._create_remap_dict()
+
+        # Act
+        remap_cinstrs_vars_hbm(kernel_instrs, hbm_remap_dict)
+
+        # Assert
+        assert mock_instr.comment == "Load from new_var"
+
+    def test_remap_cstore_comment(self):
+        """
+        @brief Test remapping variables in CStore instruction comments
+        """
+        # Arrange
+        mock_instr = MagicMock(spec=CStore)
+        mock_instr.comment = "Store to input_data buffer"
+
+        kernel_instrs = [mock_instr]
+        hbm_remap_dict = self._create_remap_dict()
+
+        # Act
+        remap_cinstrs_vars_hbm(kernel_instrs, hbm_remap_dict)
+
+        # Assert
+        assert mock_instr.comment == "Store to remapped_input buffer"
+
+    def test_remap_after_first_match(self):
+        """
+        @brief Test that remapping even after first match (break statement)
+        """
+        # Arrange
+        mock_instr = MagicMock(spec=CLoad)
+        mock_instr.comment = "old_var and old_var again"
+
+        kernel_instrs = [mock_instr]
+        # Dict with multiple keys that could match
+        hbm_remap_dict = {"old_var": "new_var", "again": "never"}
+
+        # Act
+        remap_cinstrs_vars_hbm(kernel_instrs, hbm_remap_dict)
+
+        # Assert
+        # Only first match should be replaced due to break
+        assert mock_instr.comment == "new_var and new_var again"
+        assert "never" not in mock_instr.comment
+
+    def test_skip_unmapped_variables(self):
+        """
+        @brief Test that variables not in remap dict are unchanged
+        """
+        # Arrange
+        mock_instr = MagicMock(spec=CLoad)
+        mock_instr.comment = "Load unmapped_var"
+
+        kernel_instrs = [mock_instr]
+        hbm_remap_dict = self._create_remap_dict()
+
+        # Act
+        remap_cinstrs_vars_hbm(kernel_instrs, hbm_remap_dict)
+
+        # Assert
+        assert mock_instr.comment == "Load unmapped_var"  # Unchanged
+
+    def test_empty_remap_dict(self):
+        """
+        @brief Test with empty remap dictionary
+        """
+        # Arrange
+        mock_instr = MagicMock(spec=CStore)
+        mock_instr.comment = "Original comment"
+
+        kernel_instrs = [mock_instr]
+        hbm_remap_dict = {}
+
+        # Act
+        remap_cinstrs_vars_hbm(kernel_instrs, hbm_remap_dict)
+
+        # Assert
+        assert mock_instr.comment == "Original comment"
+
+    def test_invalid_instruction_type(self):
+        """
+        @brief Test error when instruction is not a CInstruction
+        """
+        # Arrange
+        mock_instr = MagicMock()  # Not a CInstruction
+
+        kernel_instrs = [mock_instr]
+        hbm_remap_dict = self._create_remap_dict()
+
+        # Act & Assert
+        with pytest.raises(TypeError, match="not a valid CInstruction"):
+            remap_cinstrs_vars_hbm(kernel_instrs, hbm_remap_dict)
+
+    def test_multiple_instructions(self):
+        """
+        @brief Test remapping across multiple instructions
+        """
+        # Arrange
+        mock_cload = MagicMock(spec=CLoad)
+        mock_cload.comment = "Load old_var"
+
+        mock_cstore = MagicMock(spec=CStore)
+        mock_cstore.comment = "Store input_data"
+
+        kernel_instrs = [mock_cload, mock_cstore]
+        hbm_remap_dict = self._create_remap_dict()
+
+        # Act
+        remap_cinstrs_vars_hbm(kernel_instrs, hbm_remap_dict)
+
+        # Assert
+        assert mock_cload.comment == "Load new_var"
+        assert mock_cstore.comment == "Store remapped_input"
+
+
+class TestRemapXinstrsVars:
+    """
+    @class TestRemapXinstrsVars
+    @brief Test cases for the remap_xinstrs_vars function
+    """
+
+    def _create_remap_dict(self):
+        """
+        @brief Helper method to create a remap dictionary
+        """
+        return {"source_var": "remapped_source", "dest_var": "remapped_dest"}
+
+    def test_remap_move_instruction_comment(self):
+        """
+        @brief Test remapping variables in Move instruction comments
+        """
+        # Arrange
+        from linker.instructions.xinst import Move
+
+        mock_move = MagicMock(spec=Move)
+        mock_move.comment = "Move from source_var"
+
+        kernel_xinstrs = [mock_move]
+        hbm_remap_dict = self._create_remap_dict()
+
+        # Act
+        remap_xinstrs_vars(kernel_xinstrs, hbm_remap_dict)
+
+        # Assert
+        assert mock_move.comment == "Move from remapped_source"
+
+    def test_remap_xstore_instruction_comment(self):
+        """
+        @brief Test remapping variables in XStore instruction comments
+        """
+        # Arrange
+        from linker.instructions.xinst import XStore
+
+        mock_xstore = MagicMock(spec=XStore)
+        mock_xstore.comment = "Store to dest_var"
+
+        kernel_xinstrs = [mock_xstore]
+        hbm_remap_dict = self._create_remap_dict()
+
+        # Act
+        remap_xinstrs_vars(kernel_xinstrs, hbm_remap_dict)
+
+        # Assert
+        assert mock_xstore.comment == "Store to remapped_dest"
+
+    def test_remap_after_first_match(self):
+        """
+        @brief Test that remapping even after first match (break statement)
+        """
+        # Arrange
+        from linker.instructions.xinst import Move
+
+        mock_instr = MagicMock(spec=Move)
+        mock_instr.comment = "source_var and source_var repeated"
+
+        kernel_xinstrs = [mock_instr]
+        hbm_remap_dict = {"source_var": "new_src", "repeated": "never_used"}
+
+        # Act
+        remap_xinstrs_vars(kernel_xinstrs, hbm_remap_dict)
+
+        # Assert
+        # Only first match replaced due to break
+        assert mock_instr.comment == "new_src and new_src repeated"
+        assert "never_used" not in mock_instr.comment
+
+    def test_skip_unmapped_variables(self):
+        """
+        @brief Test that unmapped variables remain unchanged
+        """
+        # Arrange
+        from linker.instructions.xinst import Move
+
+        mock_instr = MagicMock(spec=Move)
+        mock_instr.comment = "Move unmapped_var"
+
+        kernel_xinstrs = [mock_instr]
+        hbm_remap_dict = self._create_remap_dict()
+
+        # Act
+        remap_xinstrs_vars(kernel_xinstrs, hbm_remap_dict)
+
+        # Assert
+        assert mock_instr.comment == "Move unmapped_var"
+
+    def test_empty_remap_dict(self):
+        """
+        @brief Test with empty remap dictionary
+        """
+        # Arrange
+        from linker.instructions.xinst import XStore
+
+        mock_instr = MagicMock(spec=XStore)
+        mock_instr.comment = "Original XStore comment"
+
+        kernel_xinstrs = [mock_instr]
+        hbm_remap_dict = {}
+
+        # Act
+        remap_xinstrs_vars(kernel_xinstrs, hbm_remap_dict)
+
+        # Assert
+        assert mock_instr.comment == "Original XStore comment"
+
+    def test_invalid_instruction_type(self):
+        """
+        @brief Test error when instruction is not an XInstruction
+        """
+        # Arrange
+        mock_instr = MagicMock()  # Not an XInstruction
+
+        kernel_xinstrs = [mock_instr]
+        hbm_remap_dict = self._create_remap_dict()
+
+        # Act & Assert
+        with pytest.raises(TypeError, match="not a valid X Instruction"):
+            remap_xinstrs_vars(kernel_xinstrs, hbm_remap_dict)
+
+    def test_multiple_instructions(self):
+        """
+        @brief Test remapping across multiple X instructions
+        """
+        # Arrange
+        from linker.instructions.xinst import Move, XStore
+
+        mock_move = MagicMock(spec=Move)
+        mock_move.comment = "Move source_var"
+
+        mock_xstore = MagicMock(spec=XStore)
+        mock_xstore.comment = "Store dest_var"
+
+        kernel_xinstrs = [mock_move, mock_xstore]
+        hbm_remap_dict = self._create_remap_dict()
+
+        # Act
+        remap_xinstrs_vars(kernel_xinstrs, hbm_remap_dict)
+
+        # Assert
+        assert mock_move.comment == "Move remapped_source"
+        assert mock_xstore.comment == "Store remapped_dest"
+
+    def test_non_move_xstore_instructions_ignored(self):
+        """
+        @brief Test that non-Move/XStore X instructions are not processed
+        """
+        # Create a mock XInstruction that's not Move or XStore
+        mock_other = MagicMock(spec=Mac)
+        # Remove Move and XStore from isinstance check
+        type(mock_other).__name__ = "OtherXInst"
+        mock_other.comment = "source_var reference"
+
+        kernel_xinstrs = [mock_other]
+        hbm_remap_dict = self._create_remap_dict()
+
+        # Act
+        remap_xinstrs_vars(kernel_xinstrs, hbm_remap_dict)
+
+        # Assert
+        # Comment should be unchanged since it's not Move or XStore
+        assert mock_other.comment == "source_var reference"
