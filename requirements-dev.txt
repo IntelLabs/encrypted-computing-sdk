@@ -170,9 +170,9 @@ grpcio-tools==1.76.0 \
     --hash=sha256:fe0cc10dd31ac01cadc8af1ce7877cc770bc2a71aa96569bc3c1897c1eac0116 \
     --hash=sha256:ff48969f81858397ef33a36b326f2dbe2053a48b254593785707845db73c8f44
     # via encrypted-computing-sdk (pyproject.toml)
-identify==2.6.15 \
-    --hash=sha256:1181ef7608e00704db228516541eb83a88a9f94433a8c80bb9b5bd54b1d81757 \
-    --hash=sha256:e4f4864b96c6557ef2a1e1c951771838f4edc9df3a72ec7118b338801b11c7bf
+identify==2.6.16 \
+    --hash=sha256:391ee4d77741d994189522896270b787aed8670389bfd60f326d677d64a6dfb0 \
+    --hash=sha256:846857203b5511bbe94d5a352a48ef2359532bc8f6727b5544077a0dcfb24980
     # via pre-commit
 iniconfig==2.3.0 \
     --hash=sha256:c76315c77db068650d49c5b56314774a7804df16fee4402c1f19d6d15d8c4730 \
