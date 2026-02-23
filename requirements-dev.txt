@@ -625,9 +625,9 @@ typing-inspection==0.4.2 \
     --hash=sha256:4ed1cacbdc298c220f1bd249ed5287caa16f34d44ef4e9c3d0cbad5b521545e7 \
     --hash=sha256:ba561c48a67c5958007083d386c3295464928b01faa735ab8547c5692e87f464
     # via pydantic
-virtualenv==20.36.1 \
-    --hash=sha256:575a8d6b124ef88f6f51d56d656132389f961062a9177016a50e4f507bbcc19f \
-    --hash=sha256:8befb5c81842c641f8ee658481e42641c68b5eab3521d8e092d18320902466ba
+virtualenv==20.38.0 \
+    --hash=sha256:94f39b1abaea5185bf7ea5a46702b56f1d0c9aa2f41a6c2b8b0af4ddc74c10a7 \
+    --hash=sha256:d6e78e5889de3a4742df2d3d44e779366325a90cf356f15621fddace82431794
     # via
     #   encrypted-computing-sdk (pyproject.toml)
     #   pre-commit
