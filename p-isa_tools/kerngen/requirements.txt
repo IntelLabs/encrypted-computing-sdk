@@ -3,8 +3,8 @@
 pydantic ~= 1.10.22
 
 # for dev / commits
-black ~= 25.1
+black ~= 26.3
 pylint ~= 3.3
 
 # for testing
-pytest ~= 8.3
+pytest ~= 9.0
